@@ -12,14 +12,15 @@
 
 sval* evlist(sexp *args, struct senv *env);
 sval* lookup(char *symbol, struct senv *env);
-sval* apply_primitive(int which, sexp *args);
+sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
 struct senv* bind(sexp *parameters, sval *values, struct senv *env);
 
 sval* eval(sexp* expression, struct senv* env) {
     if (expression->tag == NUMBER) return expression;
     else if (expression->tag == SYMBOL) return lookup(expression->body.symbol, env);
     else if (expression->tag == CONSTANT) return expression;
-    else if (expression->tag == BUILTIN_PROCEDURE) return expression;
+    else if (expression->tag == PRIMITIVE) return expression;
+    else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == CONS) { // An application
         return apply(
@@ -30,8 +31,8 @@ sval* eval(sexp* expression, struct senv* env) {
 }
 
 sval* apply(sval* proc, sval* args) {
-    if (proc->tag == BUILTIN_PROCEDURE && proc->body.builtin_procedure == quote) return args;
-    else if (proc->tag == BUILTIN_PROCEDURE) return apply_primitive(proc->body.builtin_procedure, args);
+    if (proc->tag == SPECIAL_FORM && proc->body.form == quote) return args;
+    else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, args);
     else if (proc->tag == FUNCTION) { // Apply a closure
         return eval(
             proc->body.closure.body,
@@ -50,8 +51,8 @@ sval* evlist(sexp *args, struct senv *env) {
 }
 
 
-sval* apply_primitive(int which, sexp *args) {
-    return error("Primitives do not yet exist");
+sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
+    return primitive(args);
 }
 
 struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
@@ -91,7 +92,7 @@ sval* lookup(char *symbol, struct senv *env) {
 }
 
 static struct senv *BASE_ENV;
-void add_prim(struct senv *env, char* symbol, int prim) {
+void add_prim(struct senv *env, char* symbol, sval* (*prim)(sval*)) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
     env->frame.values = make_cons(make_prim(prim), env->frame.values);
 }
@@ -101,24 +102,20 @@ struct senv* empty_env() {
         BASE_ENV->parent = 0;
         BASE_ENV->frame.names = make_empty();
         BASE_ENV->frame.values = make_empty();
-        
-        add_prim(BASE_ENV, "quote", quote);
-        add_prim(BASE_ENV, "cond", cond);
-        add_prim(BASE_ENV, "lambda", lambda);
 
-        add_prim(BASE_ENV, "+", fplus);
-        add_prim(BASE_ENV, "-", fsubtract);
-        add_prim(BASE_ENV, "cons", fcons);
-        add_prim(BASE_ENV, "car", fcar);
-        add_prim(BASE_ENV, "cdr", fcdr);
-        add_prim(BASE_ENV, "nil?", fnilp);
-        add_prim(BASE_ENV, "false?", ffalsep);
-        add_prim(BASE_ENV, "true?", ftruep);
-        add_prim(BASE_ENV, "empty?", femptyp);
-        add_prim(BASE_ENV, "list?", femptyp);
-        add_prim(BASE_ENV, "number?", femptyp);
-        add_prim(BASE_ENV, "list", femptyp);
-        add_prim(BASE_ENV, "print", femptyp);
+        add_prim(BASE_ENV, "+", prim_plus);
+        add_prim(BASE_ENV, "-", prim_minus);
+        add_prim(BASE_ENV, "cons", prim_cons);
+        add_prim(BASE_ENV, "car", prim_car);
+        add_prim(BASE_ENV, "cdr", prim_cdr);
+        add_prim(BASE_ENV, "nil?", prim_nilp);
+        add_prim(BASE_ENV, "false?", prim_falsep);
+        add_prim(BASE_ENV, "true?", prim_truep);
+        add_prim(BASE_ENV, "empty?", prim_emptyp);
+        add_prim(BASE_ENV, "list?", prim_emptyp);
+        add_prim(BASE_ENV, "number?", prim_emptyp);
+        add_prim(BASE_ENV, "list", prim_emptyp);
+        add_prim(BASE_ENV, "print", prim_emptyp);
     }
     return BASE_ENV;
 }

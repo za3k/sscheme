@@ -7,7 +7,7 @@
 // TODO: Character parsing: #\a
 // TODO: Hex numbers: 0xFE and 0xfe
 // TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
-// TODO: Intern symbols to save space
+// TODO: Intern symbols to save space and allow == comparison
 
 sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
@@ -87,9 +87,11 @@ struct token* parse_token(char **s) {
             res->atom = make_int(parsed_int);
             break;
         case '(':
+            (*s)++;
             res->tag = tok_open_paren;
             break;
         case ')':
+            (*s)++;
             res->tag = tok_close_paren;
             break;
         case ' ':
@@ -149,6 +151,7 @@ int peek_token(char **s) {
 sexp* parse_list_right(char **s) {
     // We just read "(". Parse the rest of the list, then return
     if (peek_token(s) == tok_close_paren) {
+        free(parse_token(s));
         free(parse_token(s));
         return make_empty();
     }

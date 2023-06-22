@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-// TODO: Move prims to function pointers, not an enum
 
 // Constant singletons
 static struct sval TRUE_V = { CONSTANT, .body.constant = TRUE };
@@ -54,10 +53,10 @@ sval* make_symbol(char* name) {
     return v;
 }
 
-sval* make_prim(int prim) {
+sval* make_prim(sval* (*primitive)(sval*)) {
     sval *v = make_cell();
-    v->tag = BUILTIN_PROCEDURE;
-    v->body.builtin_procedure = prim;
+    v->tag = PRIMITIVE;
+    v->body.primitive = primitive;
     return v;
 }
 

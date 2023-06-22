@@ -45,7 +45,7 @@ sval* prim_plus(sval *args) {
     return add(args);
 }
 
-sval* prim_subtract(sval *args) {
+sval* prim_minus(sval *args) {
     if (listOfLength(args, 1)) return negative(car(args));
     if (listOfLength(args, 2)) return subtract(car(args), car(cdr(args)));
     else return error(ERR_WRONG_NUM);

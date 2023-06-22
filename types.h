@@ -36,9 +36,10 @@ struct sclosure {
     struct senv *env;
 };
 
+
 // Sh
 typedef struct sval {
-  enum stype { NUMBER, SYMBOL, CONS, BUILTIN_PROCEDURE, FUNCTION, CONSTANT, ERROR } tag;
+  enum stype { NUMBER, SYMBOL, CONS, SPECIAL_FORM, PRIMITIVE, FUNCTION, CONSTANT, ERROR } tag;
   union {
     struct scons list; // NIL is also considered the empty list
     char *symbol; // Symbols are parsed to strings instead of ints for convenience
@@ -49,17 +50,12 @@ typedef struct sval {
     } constant;
     enum { 
         quote, lambda, cond, // Special forms
-        // Builtin functions -- move out of here and into initial env instead?
-        fnilp, ffalsep, femptyp, ftruep,
-        flistp, fnumberp, fsymbolp,
-        fcons, fcar, fcdr, flist,
-        fplus, fsubtract,
-    } builtin_procedure;
+    } form;
+    struct sval* (*primitive)(struct sval*);
     struct sclosure closure;
     char *error;
   } body;
 } sval;
-
 
 // The helpers
 sval* error(char *msg);
@@ -73,6 +69,6 @@ sval* make_true();
 sval* make_nil();
 sval* make_false();
 sval* make_empty();
-sval* make_prim(int prim_enum); // Do not call, please.
+sval* make_prim(sval* primitive(sval*)); // Do not call, please.
 
 #endif // __TYPES

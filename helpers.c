@@ -23,8 +23,15 @@ void print1(sval *arg) {
             case TRUE: printf("true"); break;
             default: printf("<Unknown constant>");
         }
-    } else if (arg->tag == BUILTIN_PROCEDURE) {
-        printf("<builtin %d>", arg->body.builtin_procedure); // TODO: pretty-print names
+    } else if (arg->tag == SPECIAL_FORM) {
+        switch(arg->body.form) {
+            case quote: printf("quote"); break;
+            case cond: printf("cond"); break;
+            case lambda: printf("lambda"); break;
+            default: printf("<special form %d>", arg->body.form); break;
+        }
+    } else if (arg->tag == PRIMITIVE) {
+        printf("<builtin %lx>", (unsigned long int) arg->body.primitive); // TODO: pretty-print names
     } else if (arg->tag == ERROR) {
         printf("<error: %s>", arg->body.error);
     } else if (arg->tag == FUNCTION) {
