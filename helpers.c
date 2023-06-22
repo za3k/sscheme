@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include "prims.h"
 #include <stdio.h>
 
 int iserror(sval *arg) { return arg->tag == ERROR; }
@@ -31,7 +32,21 @@ void print1(sval *arg) {
             default: printf("<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
-        printf("<builtin %lx>", (unsigned long int) arg->body.primitive); // TODO: pretty-print names
+        sval* (*p)(sval*) = arg->body.primitive;
+        if (p==prim_cons) printf("cons");
+        else if (p==prim_car)  printf("car");
+        else if (p==prim_cdr)  printf("cdr");
+        else if (p==prim_plus) printf("+");
+        else if (p==prim_minus) printf("-");
+        else if (p==prim_nilp) printf("nil?");
+        else if (p==prim_falsep) printf("false?");
+        else if (p==prim_truep) printf("true?");
+        else if (p==prim_listp) printf("list?");
+        else if (p==prim_numberp) printf("number?");
+        else if (p==prim_emptyp) printf("empty?");
+        else if (p==prim_list) printf("list");
+        else if (p==prim_print) printf("print");
+        else printf("<builtin %lx>", (unsigned long int) p);
     } else if (arg->tag == ERROR) {
         printf("<error: %s>", arg->body.error);
     } else if (arg->tag == FUNCTION) {

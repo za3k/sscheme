@@ -51,6 +51,11 @@ sval* prim_minus(sval *args) {
     else return error(ERR_WRONG_NUM);
 }
 
+sval* prim_print(sval *args) {
+    VARITY(args);
+    return print(args);
+}
+
 /*  ============ Definitions of primitives ============= */
 
 sval* nilp(sval *arg1) { return pred(isnil(arg1)); }
