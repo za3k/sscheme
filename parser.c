@@ -27,6 +27,7 @@ int parse_int(char **s) {
                 digit = *p-'0';
                 out = out * 10 + digit;
                 break;
+            // TODO: 383484jjdj should be illegal instead of parsed as 383484 jjdj
             default:
                 *s = p;
                 return out;
@@ -52,6 +53,8 @@ char* parse_symbol(char **s) {
             case '!': case '@': case '#': case '$': case '%':
             case '^': case '&': case '*': case '-': case '_':
             case '=': case '+': case '?': case '>': case '<':
+            case '0': case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
                 break;;
             default:
                 length = p-*s;
@@ -151,7 +154,6 @@ int peek_token(char **s) {
 sexp* parse_list_right(char **s) {
     // We just read "(". Parse the rest of the list, then return
     if (peek_token(s) == tok_close_paren) {
-        free(parse_token(s));
         free(parse_token(s));
         return make_empty();
     }
