@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO: Parse negative numbers: -55
 // TODO: String parsing: "abc\n"
 // TODO: Character parsing: #\a
 // TODO: Hex numbers: 0xFE and 0xfe

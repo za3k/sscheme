@@ -64,13 +64,11 @@ sval* make_prim(sval* (*primitive)(sval*)) {
 
 sexp* make_function(sexp *parameters, sexp *body, struct senv *env) {
     sval *v = make_cell();
-    struct sclosure *closure = malloc(sizeof(struct sclosure));
 
-    closure->parameters = parameters;
-    closure->body = body;
-    closure->env = env;
     v->tag = FUNCTION;
-    v->body.closure = closure;
+    v->body.closure.parameters = parameters;
+    v->body.closure.body = body;
+    v->body.closure.env = env;
     return v;
 }
 

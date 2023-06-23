@@ -3,21 +3,19 @@
 #include "helpers.h"
 #include "types.h"
 #include "prims.h"
-
 #include <stdlib.h>
-#include <string.h>
 
 // TODO: Propogate errors
 
 sval* evlist(sexp *args, struct senv *env);
 sval* evcond(sexp *conditions, struct senv *env);
-sval* lookup(char *symbol, struct senv *env);
+sval* lookup(sexp *symbol, struct senv *env);
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
 struct senv* bind(sexp *parameters, sval *values, struct senv *env);
 
 sval* eval(sexp* expression, struct senv* env) {
     if (expression->tag == NUMBER) return expression;
-    else if (expression->tag == SYMBOL) return lookup(expression->body.symbol, env);
+    else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
     else if (expression->tag == PRIMITIVE) return expression;
     else if (expression->tag == SPECIAL_FORM) return expression;
@@ -34,7 +32,7 @@ sval* eval(sexp* expression, struct senv* env) {
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == cond) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
             return evcond(car(expression), env);
-        } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, rest);
+        } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else return error(ERR_APPLY_NON_FUNCTION);
     } else return error(ERR_EVAL_UNKNOWN);
@@ -42,8 +40,8 @@ sval* eval(sexp* expression, struct senv* env) {
 
 sval* apply(sval* proc, sval* args) {
     return eval(
-        proc->body.closure->body,
-        bind(proc->body.closure->parameters, args, proc->body.closure->env));
+        proc->body.closure.body,
+        bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
 
 sval* evlist(sexp *args, struct senv *env) {
@@ -71,6 +69,7 @@ sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
 }
 
 struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
+    // TODO: Check if 'parameters' and 'values' are lists of the same length, complain if not
     struct senv *new_env = malloc(sizeof(struct senv));
     new_env->parent = env;
     new_env->frame.names = parameters;
@@ -78,7 +77,7 @@ struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
     return new_env;
 }
 
-sval* lookup_frame(char *symbol, sexp *parameters, sval *values) {
+sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
     if (!islist(parameters)) error(ERR_FRAME_NON_LIST);
     if (!islist(values)) error(ERR_FRAME_NON_LIST);
     
@@ -86,11 +85,8 @@ sval* lookup_frame(char *symbol, sexp *parameters, sval *values) {
     else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);
     else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
     else {
-        sval *sym=car(parameters);
-        sval *val=car(values);
-        
-        if (!issymbol(sym)) error(ERR_FRAME_NON_SYMBOL);
-        if (strcmp(symbol, sym->body.symbol)==0) return val;
+        if (!issymbol(car(parameters))) error(ERR_FRAME_NON_SYMBOL);
+        if (symboleq(symbol, car(parameters))) return car(values);
         else return lookup_frame(
             symbol,
             cdr(parameters),
@@ -99,7 +95,7 @@ sval* lookup_frame(char *symbol, sexp *parameters, sval *values) {
     }
 }
 
-sval* lookup(char *symbol, struct senv *env) {
+sval* lookup(sexp *symbol, struct senv *env) {
     if (env == 0) return error(ERR_SYMBOL_NOT_FOUND);
     sval* res = lookup_frame(symbol, env->frame.names, env->frame.values);
     if (res != 0) return res;
@@ -124,19 +120,23 @@ struct senv* empty_env() {
         add_thing(BASE_ENV, "lambda", make_lambda());
         add_thing(BASE_ENV, "cond", make_cond());
         add_thing(BASE_ENV, "quote", make_quote());
+        add_thing(BASE_ENV, "nil", make_nil());
+        add_thing(BASE_ENV, "else", make_true());
+        add_thing(BASE_ENV, "#t", make_true());
+        add_thing(BASE_ENV, "#f", make_false());
+        add_prim(BASE_ENV, "eq?", prim_eqp);
         add_prim(BASE_ENV, "+", prim_plus);
         add_prim(BASE_ENV, "-", prim_minus);
         add_prim(BASE_ENV, "cons", prim_cons);
         add_prim(BASE_ENV, "car", prim_car);
         add_prim(BASE_ENV, "cdr", prim_cdr);
         add_prim(BASE_ENV, "nil?", prim_nilp);
-        add_prim(BASE_ENV, "false?", prim_falsep);
-        add_prim(BASE_ENV, "true?", prim_truep);
         add_prim(BASE_ENV, "empty?", prim_emptyp);
-        add_prim(BASE_ENV, "list?", prim_emptyp);
-        add_prim(BASE_ENV, "number?", prim_emptyp);
-        add_prim(BASE_ENV, "list", prim_emptyp);
-        add_prim(BASE_ENV, "print", prim_emptyp);
+        add_prim(BASE_ENV, "list?", prim_listp);
+        add_prim(BASE_ENV, "number?", prim_numberp);
+        add_prim(BASE_ENV, "procedure?", prim_procedurep);
+        add_prim(BASE_ENV, "list", prim_list);
+        add_prim(BASE_ENV, "print", prim_print);
     }
     return BASE_ENV;
 }

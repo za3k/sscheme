@@ -26,13 +26,12 @@ inline static sval* pred(int x) {
 sval* prim_cons(sval *args)    { FARITY(2, args); return cons(car(args), car(cdr(args))); }
 sval* prim_car(sval *args)     { FARITY(1, args); return car(car(args)); }
 sval* prim_cdr(sval *args)     { FARITY(1, args); return cdr(car(args)); }
-sval* prim_falsep(sval *args)  { FARITY(1, args); return falsep(car(args)); }
-sval* prim_truep(sval *args)   { FARITY(1, args); return pred(istrue(car(args))); }
 sval* prim_nilp(sval *args)    { FARITY(1, args); return nilp(car(args)); }
 sval* prim_emptyp(sval *args)  { FARITY(1, args); return emptyp(car(args)); }
 sval* prim_listp(sval *args)   { FARITY(1, args); return listp(car(args)); }
 sval* prim_numberp(sval *args) { FARITY(1, args); return numberp(car(args)); }
-sval* prim_else(sval *args)    { FARITY(1, args); return else_(car(args)); }
+sval* prim_procedurep(sval *args) { FARITY(1, args); return procedurep(car(args)); }
+sval* prim_eqp(sval *args)     { FARITY(2, args); return eqp(car(args), car(cdr(args))); }
 
 sval* prim_list(sval *args)    { VARITY(args);    return args; }
 
@@ -56,13 +55,11 @@ sval* prim_print(sval *args) {
 /*  ============ Definitions of primitives ============= */
 
 sval* nilp(sval *arg1) { return pred(isnil(arg1)); }
-sval* falsep(sval *arg1) { return pred(isfalse(arg1)); }
-sval* truep(sval *arg1) { return pred(istrue(arg1)); }
 sval* listp(sval *arg1) { return pred(islist(arg1)); }
 sval* numberp(sval *arg1) { return pred(isnumber(arg1)); }
 sval* emptyp(sval *arg1) { return pred(isempty(arg1)); }
-
-sval* else_(sval *arg1) { return make_true(); }
+sval* eqp(sval *arg1, sval *arg2) { return pred(iseq(arg1, arg2)); }
+sval* procedurep(sval *arg1) { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
 
 sval* cons(sval *arg1, sval *arg2) {
     // Should we allow cons-ing to make non-lists? currently yes!

@@ -1,6 +1,7 @@
 #include "helpers.h"
 #include "prims.h"
 #include <stdio.h>
+#include <string.h>
 
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == EMPTY_LIST; }
@@ -10,6 +11,28 @@ int istrue(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == TRU
 int islist(sval *arg) { return arg->tag == CONS || isempty(arg); }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
+
+int symboleq(sval *arg1, sval *arg2) {
+    int ret = strcmp(arg1->body.symbol,arg2->body.symbol) == 0;
+    return ret;
+}
+
+int iseq(sval *arg1, sval *arg2) {
+    if (arg1->tag != arg2->tag) return 0;
+    switch (arg1->tag) {
+        case ERROR: return 0; break;
+        case SPECIAL_FORM: return arg1->body.form == arg2->body.form; break;
+        case PRIMITIVE: return arg1->body.primitive == arg2->body.primitive; break;
+        case SYMBOL: return symboleq(arg1, arg2); break;
+        case CONSTANT: return arg1->body.constant == arg2->body.constant; break;
+        case NUMBER: return arg1->body.smallnum == arg2->body.smallnum; break;
+        case CONS:
+        case FUNCTION:
+            return arg1==arg2;
+            break;
+        default: return 0;
+    }
+}
 
 void print1(sval *arg) {
     if (arg->tag == NUMBER) {
@@ -39,13 +62,13 @@ void print1(sval *arg) {
         else if (p==prim_plus) printf("+");
         else if (p==prim_minus) printf("-");
         else if (p==prim_nilp) printf("nil?");
-        else if (p==prim_falsep) printf("false?");
-        else if (p==prim_truep) printf("true?");
         else if (p==prim_listp) printf("list?");
         else if (p==prim_numberp) printf("number?");
         else if (p==prim_emptyp) printf("empty?");
+        else if (p==prim_procedurep) printf("procedure?");
         else if (p==prim_list) printf("list");
         else if (p==prim_print) printf("print");
+        else if (p==prim_eqp) printf("eq?");
         else printf("<builtin %lx>", (unsigned long int) p);
     } else if (arg->tag == ERROR) {
         printf("<error: %s>", arg->body.error);
@@ -68,7 +91,7 @@ void print1(sval *arg) {
         } else { // This is a 'cons', not a list.
             // (1 . 2)
             // (1 2 3 . 4)
-            printf(". ");
+            printf(" . ");
             print1(lst);
         }
         printf(")");
@@ -83,5 +106,5 @@ void print1nl(sval *arg1) {
 
 int islistoflength(sval *arg, int l) {
     if (l == 0) return isempty(arg);
-    else return islist(arg) && islistoflength(arg->body.list.cdr, l-1);
+    else return islist(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
 }

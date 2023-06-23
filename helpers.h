@@ -12,6 +12,8 @@ int istrue(sval *arg);
 int islist(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
+int symboleq(sval *arg1, sval *arg2);
+int iseq(sval *arg1, sval *arg2);
 
 int islistoflength(sval *arg, int l);
 

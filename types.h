@@ -53,7 +53,7 @@ typedef struct sval {
         quote, lambda, cond, // Special forms
     } form;
     struct sval* (*primitive)(struct sval*);
-    struct sclosure *closure;
+    struct sclosure closure;
     char *error;
   } body;
 } sval;
