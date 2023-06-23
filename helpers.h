@@ -13,6 +13,8 @@ int islist(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
 
+int islistoflength(sval *arg, int l);
+
 void print1(sval *arg1);
 void print1nl(sval *arg1);
 

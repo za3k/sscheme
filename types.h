@@ -3,6 +3,8 @@
    This is tightly based on lecture 10, "Metacircular Evaluator", the most primitive interpreter provided.
 */
 
+// TODO: String, char
+
 #ifndef __TYPES
 #define __TYPES
 
@@ -44,7 +46,6 @@ typedef struct sval {
     struct scons list; // NIL is also considered the empty list
     char *symbol; // Symbols are parsed to strings instead of ints for convenience
     int smallnum; // Small integer. No bignum support.
-    // TODO: String, char
     enum {
        FALSE, TRUE, EMPTY_LIST, NIL,
     } constant;
@@ -52,7 +53,7 @@ typedef struct sval {
         quote, lambda, cond, // Special forms
     } form;
     struct sval* (*primitive)(struct sval*);
-    struct sclosure closure;
+    struct sclosure *closure;
     char *error;
   } body;
 } sval;
@@ -64,12 +65,13 @@ sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);
 sval* make_symbol(char* name);
 
-// TODO: How to move defs to .h file instead of using singleton "makers"?
+// XXX How to move defs to .h file instead of using singleton "makers"?
 sval* make_true();
 sval* make_nil();
 sval* make_false();
 sval* make_empty();
-sval* make_prim(sval* primitive(sval*)); // Do not call, please.
+sval* make_prim(sval* primitive(sval*));
+sexp* make_function(sexp *parameters, sexp *body, struct senv *env);
 
 sexp* make_cond();
 sexp* make_quote();

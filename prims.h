@@ -1,5 +1,9 @@
 #include "types.h"
 
+// TODO: eq? < * / ~ ^ | eval
+// Could be done in scheme with macros: if and or not
+// Can be done in scheme: equal? = != > <= >=
+
 // Primitive functions -- uniform signature
 sval* prim_cons(sval *args);
 sval* prim_car(sval *args);

@@ -46,7 +46,6 @@ sval* make_int(int i) {
 }
 
 sval* make_symbol(char* name) {
-    // TODO: Check for special form symbols? cond, if, quote
     sval *v = make_cell();
     int l = strlen(name);
     char *s = malloc(l+1);
@@ -60,6 +59,18 @@ sval* make_prim(sval* (*primitive)(sval*)) {
     sval *v = make_cell();
     v->tag = PRIMITIVE;
     v->body.primitive = primitive;
+    return v;
+}
+
+sexp* make_function(sexp *parameters, sexp *body, struct senv *env) {
+    sval *v = make_cell();
+    struct sclosure *closure = malloc(sizeof(struct sclosure));
+
+    closure->parameters = parameters;
+    closure->body = body;
+    closure->env = env;
+    v->tag = FUNCTION;
+    v->body.closure = closure;
     return v;
 }
 

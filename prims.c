@@ -4,16 +4,12 @@
 #include "helpers.h"
 
 // Type and arity checker macros
-#define FARITY(x, args) if (!listOfLength(args, x)) return error(ERR_WRONG_NUM);
+#define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
 #define TYPE(p, arg) if (!p(arg)) return error(ERR_WRONG_TYPE);
 #define VARITY(args) if (!islist(args)) return error(ERR_NON_LIST);
 #define VARITY_TYPE(p, args) if (!listOf(args, p)) return error(ERR_WRONG_TYPE);
 
 // Helpers
-int listOfLength(sval *arg, int l) {
-    if (l == 0) return isempty(arg);
-    else return islist(arg) && listOfLength(cdr(arg), l-1);
-}
 int listOf(sval *arg, int p(sval *arg)) {
     if (!islist(arg)) return 0;
     if (isempty(arg)) return 1;
@@ -42,13 +38,13 @@ sval* prim_list(sval *args)    { VARITY(args);    return args; }
 
 sval* prim_plus(sval *args) {
     VARITY(args);
-    if (listOfLength(args, 0)) return error(ERR_WRONG_NUM);
+    if (islistoflength(args, 0)) return error(ERR_WRONG_NUM);
     return add(args);
 }
 
 sval* prim_minus(sval *args) {
-    if (listOfLength(args, 1)) return negative(car(args));
-    if (listOfLength(args, 2)) return subtract(car(args), car(cdr(args)));
+    if (islistoflength(args, 1)) return negative(car(args));
+    if (islistoflength(args, 2)) return subtract(car(args), car(cdr(args)));
     else return error(ERR_WRONG_NUM);
 }
 

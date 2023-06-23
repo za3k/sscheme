@@ -80,3 +80,8 @@ void print1(sval *arg) {
 void print1nl(sval *arg1) {
     print1(arg1); printf("\n");
 }
+
+int islistoflength(sval *arg, int l) {
+    if (l == 0) return isempty(arg);
+    else return islist(arg) && islistoflength(arg->body.list.cdr, l-1);
+}

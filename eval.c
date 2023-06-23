@@ -8,9 +8,10 @@
 #include <string.h>
 
 // TODO: Propogate errors
-// TODO: lambda, cond
+// TODO: Special-case special form symbols in empty_env instead of the parser: cond, if, quote
 
 sval* evlist(sexp *args, struct senv *env);
+sval* evcond(sexp *conditions, struct senv *env);
 sval* lookup(char *symbol, struct senv *env);
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
 struct senv* bind(sexp *parameters, sval *values, struct senv *env);
@@ -23,33 +24,48 @@ sval* eval(sexp* expression, struct senv* env) {
     else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == CONS) { // An application
-        return apply(
-            eval(expression->body.list.car, env),
-            evlist(expression->body.list.cdr, env)
-        );
+        sval *proc = eval(car(expression), env);
+        sval *rest = cdr(expression);
+        if (proc->tag == SPECIAL_FORM && proc->body.form == quote) {
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
+            return car(rest);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == lambda) {
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            else return make_function(car(rest), car(cdr(rest)), env);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == cond) {
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
+            return evcond(car(expression), env);
+        } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, rest);
+        else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
+        else return error(ERR_APPLY_NON_FUNCTION);
     } else return error(ERR_EVAL_UNKNOWN);
 }
 
 sval* apply(sval* proc, sval* args) {
-    if (proc->tag == SPECIAL_FORM && proc->body.form == quote) return args;
-    else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, args);
-    else if (proc->tag == FUNCTION) { // Apply a closure
-        return eval(
-            proc->body.closure.body,
-            bind(proc->body.closure.parameters, args, proc->body.closure.env));
-    } else return error(ERR_APPLY_NON_FUNCTION);
+    return eval(
+        proc->body.closure->body,
+        bind(proc->body.closure->parameters, args, proc->body.closure->env));
 }
 
 sval* evlist(sexp *args, struct senv *env) {
     if (args->tag == CONSTANT && args->body.constant == EMPTY_LIST) return args;
     else if(args->tag == CONS) {
         return make_cons(
-            eval(args->body.list.car, env),
-            evlist(args->body.list.cdr, env)
+            eval(car(args), env),
+            evlist(cdr(args), env)
         );
     } else return error(ERR_EVLIST_NON_LIST);
 }
 
+sval* evcond(sexp *conditions, struct senv *env) {
+    if (isempty(conditions)) return make_nil();
+    else {
+        sexp *condition = car(car(conditions));
+        sexp *body = car(cdr(conditions));
+        if (!isfalse(eval(condition, env))) return eval(body, env);
+        else return evcond(cdr(conditions), env);
+    }
+}
 
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
     return primitive(args);
@@ -78,8 +94,8 @@ sval* lookup_frame(char *symbol, sexp *parameters, sval *values) {
         if (strcmp(symbol, sym->body.symbol)==0) return val;
         else return lookup_frame(
             symbol,
-            parameters->body.list.cdr,
-            values->body.list.cdr
+            cdr(parameters),
+            cdr(values)
         );
     }
 }
