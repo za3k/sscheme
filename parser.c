@@ -17,7 +17,7 @@ struct token {
     sexp* atom;
 };
 
-int parse_int(char **s) {
+int parse_int(char **s, int *result) {
     int out = 0;
     int digit;
     for (char* p=*s;; p++) {
@@ -27,10 +27,14 @@ int parse_int(char **s) {
                 digit = *p-'0';
                 out = out * 10 + digit;
                 break;
-            // TODO: 383484jjdj should be illegal instead of parsed as 383484 jjdj
-            default:
+            case ' ': case '\t': case '\n': case '\r':
+            case ')': case '(': case '\0':
                 *s = p;
-                return out;
+                *result = out;
+                return 1;
+                break;
+            default:
+                return 0;
         }
     }
 }
@@ -55,7 +59,7 @@ char* parse_symbol(char **s) {
             case '=': case '+': case '?': case '>': case '<':
             case '0': case '1': case '2': case '3': case '4':
             case '5': case '6': case '7': case '8': case '9':
-                break;;
+                break;
             default:
                 length = p-*s;
                 out = malloc(length+1);
@@ -75,17 +79,13 @@ struct token* parse_token(char **s) {
     char *parsed_symbol;
     start:
     switch(**s) {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            parsed_int = parse_int(s);
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+            if(!parse_int(s, &parsed_int)) {
+                // Not a legal number!
+                free(res);
+                return 0;
+            }
             res->tag = tok_number;
             res->atom = make_int(parsed_int);
             break;
@@ -125,21 +125,10 @@ struct token* parse_token(char **s) {
         case '^': case '&': case '*': case '-': case '_':
         case '=': case '+': case '?': case '>': case '<':
             parsed_symbol = parse_symbol(s);
-            if (strcmp(parsed_symbol, "quote")==0) {
-                res->tag = tok_form;
-                res->atom = make_quote();
-            } else if (strcmp(parsed_symbol, "cond")==0) {
-                res->tag = tok_form;
-                res->atom = make_cond();
-            } else if (strcmp(parsed_symbol, "lambda")==0) {
-                res->tag = tok_form;
-                res->atom = make_lambda();
-            } else {
-                res->tag = tok_symbol;
-                res->atom = make_symbol(parsed_symbol);
-            }
+            res->tag = tok_symbol;
+            res->atom = make_symbol(parsed_symbol);
             free(parsed_symbol);
-            break;;
+            break;
         case '"':
         default:
             free(res);
@@ -185,25 +174,25 @@ sexp* parse_sexp(char **s) {
         case tok_open_paren:
             free_tok(next_token);
             ret = parse_list_right(s);
-            break;;
+            break;
         case tok_close_paren:
             ret = error(ERR_UNEXPECTED_CLOSE);
             free_tok(next_token);
-            break;;
+            break;
         case tok_form:
         case tok_symbol:
         case tok_number:
             ret = next_token->atom;
             free(next_token);
-            break;;
+            break;
         case tok_quote:
             ret = error(ERR_QUOTE_NOT_IMPL);
             free_tok(next_token);
-            break;;
+            break;
         default:
             ret = error(ERR_UNKNOWN_TOKEN);
             free_tok(next_token);
-            break;;
+            break;
     }
     return ret;
 }

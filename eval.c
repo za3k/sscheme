@@ -8,7 +8,6 @@
 #include <string.h>
 
 // TODO: Propogate errors
-// TODO: Special-case special form symbols in empty_env instead of the parser: cond, if, quote
 
 sval* evlist(sexp *args, struct senv *env);
 sval* evcond(sexp *conditions, struct senv *env);
@@ -108,9 +107,12 @@ sval* lookup(char *symbol, struct senv *env) {
 }
 
 static struct senv *BASE_ENV;
-void add_prim(struct senv *env, char* symbol, sval* (*prim)(sval*)) {
+void add_thing(struct senv *env, char* symbol, sval* thing) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
-    env->frame.values = make_cons(make_prim(prim), env->frame.values);
+    env->frame.values = make_cons(thing, env->frame.values);
+}
+void add_prim(struct senv *env, char* symbol, sval* (*prim)(sval*)) {
+    add_thing(env, symbol, make_prim(prim));
 }
 struct senv* empty_env() {
     if (!BASE_ENV) {
@@ -119,6 +121,9 @@ struct senv* empty_env() {
         BASE_ENV->frame.names = make_empty();
         BASE_ENV->frame.values = make_empty();
 
+        add_thing(BASE_ENV, "lambda", make_lambda());
+        add_thing(BASE_ENV, "cond", make_cond());
+        add_thing(BASE_ENV, "quote", make_quote());
         add_prim(BASE_ENV, "+", prim_plus);
         add_prim(BASE_ENV, "-", prim_minus);
         add_prim(BASE_ENV, "cons", prim_cons);
