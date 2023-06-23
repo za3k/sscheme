@@ -54,9 +54,11 @@ void print1(sval *arg) {
     } else if (arg->tag == CONS) {
         printf("(");
         sval *lst = arg;
+        int first=1;
         while (islist(lst) && !isempty(lst)) {
+            if (first) first=0;
+            else printf(" ");
             print1(lst->body.list.car);
-            printf(" ");
             lst = lst->body.list.cdr;
         }
         if (islist(lst)) { // We finished a normal-style list. Done.

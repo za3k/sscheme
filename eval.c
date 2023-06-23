@@ -122,7 +122,7 @@ struct senv* empty_env() {
 
 #include "parser.h"
 int main(int argc, char *argv[]) {
-    char *EXAMPLE = "(+ 4 10)";
+    char *EXAMPLE = "(cond 7 ((false? 5) (true? 6) (else 7)))";
     if ( argc == 2) EXAMPLE=argv[1];
     sexp* parsed = parse(EXAMPLE);
     print1nl(parsed);

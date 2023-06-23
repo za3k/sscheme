@@ -71,4 +71,8 @@ sval* make_false();
 sval* make_empty();
 sval* make_prim(sval* primitive(sval*)); // Do not call, please.
 
+sexp* make_cond();
+sexp* make_quote();
+sexp* make_lambda();
+
 #endif // __TYPES

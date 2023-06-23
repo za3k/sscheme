@@ -5,7 +5,7 @@
 #define ERR_INVALID_CHAR       "parse: Invalid character"
 #define ERR_UNKNOWN_TOKEN      "parse: Unknown token type"
 #define ERR_UNEXPECTED_CLOSE   "Unbalanced and unexpected close paren"
-#define ERR_QUOTE_NOT_IMPL     "Quoted expressions not yet implemented. Use the literal symbol QUOTE instead."
+#define ERR_QUOTE_NOT_IMPL     "Quote literals not yet implemented. Use the function 'quote' instead"
 
 // Eval/Apply core loop
 #define ERR_EVAL_CLOSURE       "eval: Tried to eval a closure"

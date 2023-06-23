@@ -11,6 +11,9 @@ static struct sval TRUE_V = { CONSTANT, .body.constant = TRUE };
 static struct sval FALSE_V = { CONSTANT, .body.constant = FALSE };
 static struct sval EMPTY_V = { CONSTANT, .body.constant = EMPTY_LIST };
 static struct sval NIL_V = { CONSTANT, .body.constant = NIL };
+static sexp LAMBDA_V = { SPECIAL_FORM, .body.form = lambda };
+static sexp COND_V = { SPECIAL_FORM, .body.form = cond };
+static sexp QUOTE_V = { SPECIAL_FORM, .body.form = quote };
 
 /*  Make the base types  */
 
@@ -43,7 +46,7 @@ sval* make_int(int i) {
 }
 
 sval* make_symbol(char* name) {
-    // TODO: Check for special symbols: cond, if, quote
+    // TODO: Check for special form symbols? cond, if, quote
     sval *v = make_cell();
     int l = strlen(name);
     char *s = malloc(l+1);
@@ -64,3 +67,7 @@ sval* make_true()  { return &TRUE_V; }
 sval* make_false() { return &FALSE_V; }
 sval* make_nil()   { return &NIL_V; }
 sval* make_empty() { return &EMPTY_V; }
+
+sexp* make_cond()  { return &COND_V; }
+sexp* make_quote() { return &QUOTE_V; }
+sexp* make_lambda(){ return &LAMBDA_V; }

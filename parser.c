@@ -13,7 +13,7 @@ sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote } tag;
+    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form } tag;
     sexp* atom;
 };
 
@@ -124,9 +124,21 @@ struct token* parse_token(char **s) {
         case '!': case '@': case '#': case '$': case '%':
         case '^': case '&': case '*': case '-': case '_':
         case '=': case '+': case '?': case '>': case '<':
-            res->tag = tok_symbol;
             parsed_symbol = parse_symbol(s);
-            res->atom = make_symbol(parsed_symbol);
+            if (strcmp(parsed_symbol, "quote")==0) {
+                res->tag = tok_form;
+                res->atom = make_quote();
+            } else if (strcmp(parsed_symbol, "cond")==0) {
+                res->tag = tok_form;
+                res->atom = make_cond();
+            } else if (strcmp(parsed_symbol, "lambda")==0) {
+                res->tag = tok_form;
+                res->atom = make_lambda();
+            } else {
+                res->tag = tok_symbol;
+                res->atom = make_symbol(parsed_symbol);
+            }
+            free(parsed_symbol);
             break;;
         case '"':
         default:
@@ -138,13 +150,14 @@ struct token* parse_token(char **s) {
 }
 
 void free_tok(struct token *t) {
-    if (t->atom) free(t->atom);
+    if (t->atom && !(t->tag == tok_form)) free(t->atom);
     free(t);
 }
 
 int peek_token(char **s) {
     char *old = *s;
     struct token *tok = parse_token(s);
+    if (tok == 0) return 0;
     int tag = tok->tag;
     free_tok(tok);
     *s = old; // Reset, thus 'peek' instead of parse
@@ -177,6 +190,7 @@ sexp* parse_sexp(char **s) {
             ret = error(ERR_UNEXPECTED_CLOSE);
             free_tok(next_token);
             break;;
+        case tok_form:
         case tok_symbol:
         case tok_number:
             ret = next_token->atom;

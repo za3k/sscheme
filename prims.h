@@ -14,6 +14,7 @@ sval* prim_numberp(sval *args);
 sval* prim_emptyp(sval *args);
 sval* prim_list(sval *args);
 sval* prim_print(sval *args);
+sval* prim_else(sval *args);
 
 // Primitive functions -- core
 sval* cons(sval *arg1, sval *arg2);
@@ -29,3 +30,4 @@ sval* listp(sval *arg1);
 sval* numberp(sval *arg1);
 sval* emptyp(sval *arg1);
 sval* print(sval *args);
+sval* else_(sval *args);

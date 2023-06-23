@@ -36,6 +36,7 @@ sval* prim_nilp(sval *args)    { FARITY(1, args); return nilp(car(args)); }
 sval* prim_emptyp(sval *args)  { FARITY(1, args); return emptyp(car(args)); }
 sval* prim_listp(sval *args)   { FARITY(1, args); return listp(car(args)); }
 sval* prim_numberp(sval *args) { FARITY(1, args); return numberp(car(args)); }
+sval* prim_else(sval *args)    { FARITY(1, args); return else_(car(args)); }
 
 sval* prim_list(sval *args)    { VARITY(args);    return args; }
 
@@ -64,6 +65,8 @@ sval* truep(sval *arg1) { return pred(istrue(arg1)); }
 sval* listp(sval *arg1) { return pred(islist(arg1)); }
 sval* numberp(sval *arg1) { return pred(isnumber(arg1)); }
 sval* emptyp(sval *arg1) { return pred(isempty(arg1)); }
+
+sval* else_(sval *arg1) { return make_true(); }
 
 sval* cons(sval *arg1, sval *arg2) {
     // Should we allow cons-ing to make non-lists? currently yes!
