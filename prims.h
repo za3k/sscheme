@@ -1,12 +1,6 @@
 #include "types.h"
 
-// TODO: * / < ~ ^ | apply display error eq? eval procedure? quotient random
-// TODO: Add macros to define the below?
-// TODO special forms: define let and or do
-
 // TODO: add definitions in scheme
-// Can be done in scheme: <= = > >= abs append boolean? cadr,caar... empty? eof-object? equal? even? expt filter first,second,rest,last,third... for-each length map max member? min newline not null? odd? repeated square write
-// Could be added if we add floats: expt cos sin tan sqrt log
 
 // Primitive functions -- uniform signature
 sval* prim_car(sval *args);

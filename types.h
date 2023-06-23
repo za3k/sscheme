@@ -1,8 +1,3 @@
-/* This is a small scheme compiler.
-   It is based on the 1986 video lecture series from MIT, "Structure and Interpretation of Computer Programs", which follows the book of the same name, and which is taught by the authors.
-   This is tightly based on lecture 10, "Metacircular Evaluator", the most primitive interpreter provided.
-*/
-
 // TODO: String, char
 
 #ifndef __TYPES
