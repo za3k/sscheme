@@ -1,0 +1,84 @@
+() => ()
+#t => #t
+#f => #f
+nil => nil
+
+1 => 1
+10 => 10
+100 => 100
+
+(1 2 3) => err
+(list 1 2 3)) => (1 2 3)
+(quote (1 2 3)) => (1 2 3)
+
++ => +
+- => -
+car => car
+cdr => cdr
+cons => cons
+empty? => empty?
+eq? => eq?
+list => list
+list? => list?
+nil? => nil?
+number? => number?
+print => print
+procedure? => procedure?
+NewVar => err
+else => #t
+
+(list) => ()
+(list 1) => (1)
+(list 1 2) => (1 2)
+(list 1 2 3) => (1 2 3)
+(list 1 (list 2 (list 3))) => (1 (2 (3)))
+
+(quote) => err
+(quote 1 2) => err
+(quote a) => :a
+(quote 1) => 1
+(quote nil) => nil
+(quote #t) => #t
+(quote #f) => #f
+(quote ()) => ()
+(quote quote) => :quote
+(quote NewVar) => :NewVar
+
+(+) => err
+(+ 1) => 1
+(+ 1 2) => 3
+(+ 1 2 3) => 6
+(+ 1 (list 2 3) 4) => err
+
+(-) => err
+(- 5) => -5
+(- 10 2) => 8
+(- 2 10) => -8
+(- 1 2 3) => err
+(- 1 2 3 4) => err
+(- 1 (list 1 2)) => err
+
+((lambda () 1)) => 1
+((lambda (x) 1) 2) => 1
+((lambda (x) x) 1) => 1
+((lambda (x y) x) 1 2) => 1
+((lambda (x y) y) 1 2) => 2
+(lambda (x) x) => proc
+
+(eq? 2 3) => #f
+(eq? 2 2) => #t
+(quote b) => :b
+else => #t
+
+(cond (((eq? 2 3) (quote a))
+       ((eq? 2 4) 5)
+       (else (quote b))))
+    => :b
+(cond (((eq? 2 3) (quote a))
+       ((eq? 4 4) 5)
+       (else (quote b))))
+    => 5
+(cond (((eq? 2 2) (quote a))
+       ((eq? 2 4) 5)
+       (else (quote b))))
+    => :a

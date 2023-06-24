@@ -34,54 +34,66 @@ int iseq(sval *arg1, sval *arg2) {
     }
 }
 
+static char print_buffer[1000];
 void print1(sval *arg) {
+    snprint1(print_buffer, sizeof(print_buffer), arg);
+    printf("%s",print_buffer);
+}
+
+void print1nl(sval *arg) {
+    snprint1(print_buffer, sizeof(print_buffer), arg);
+    printf("%s\n",print_buffer);
+}
+
+int snprint1(char* buffer, size_t n, sval *arg) {
+    int size;
     if (arg->tag == NUMBER) {
-        printf("%d", arg->body.smallnum);
+        size = snprintf(buffer, n, "%d", arg->body.smallnum);
     } else if (arg->tag == SYMBOL) {
-        printf(":%s", arg->body.symbol);
+        size = snprintf(buffer, n, ":%s", arg->body.symbol);
     } else if (arg->tag == CONSTANT) {
         switch (arg->body.constant) {
-            case NIL: printf("NIL"); break;
-            case EMPTY_LIST: printf("()"); break;
-            case FALSE: printf("false"); break;
-            case TRUE: printf("true"); break;
-            default: printf("<Unknown constant>");
+            case NIL: size = snprintf(buffer, n, "nil"); break;
+            case EMPTY_LIST: size = snprintf(buffer, n, "()"); break;
+            case FALSE: size = snprintf(buffer, n, "#f"); break;
+            case TRUE: size = snprintf(buffer, n, "#t"); break;
+            default: size = snprintf(buffer, n, "<Unknown constant>");
         }
     } else if (arg->tag == SPECIAL_FORM) {
         switch(arg->body.form) {
-            case quote: printf("quote"); break;
-            case cond: printf("cond"); break;
-            case lambda: printf("lambda"); break;
-            default: printf("<special form %d>", arg->body.form); break;
+            case quote: size = snprintf(buffer, n, "quote"); break;
+            case cond: size = snprintf(buffer, n, "cond"); break;
+            case lambda: size = snprintf(buffer, n, "lambda"); break;
+            default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
         sval* (*p)(sval*) = arg->body.primitive;
-        if (p==prim_cons) printf("cons");
-        else if (p==prim_car)  printf("car");
-        else if (p==prim_cdr)  printf("cdr");
-        else if (p==prim_plus) printf("+");
-        else if (p==prim_minus) printf("-");
-        else if (p==prim_nilp) printf("nil?");
-        else if (p==prim_listp) printf("list?");
-        else if (p==prim_numberp) printf("number?");
-        else if (p==prim_emptyp) printf("empty?");
-        else if (p==prim_procedurep) printf("procedure?");
-        else if (p==prim_list) printf("list");
-        else if (p==prim_print) printf("print");
-        else if (p==prim_eqp) printf("eq?");
-        else printf("<builtin %lx>", (unsigned long int) p);
+        if (p==prim_cons) size = snprintf(buffer, n, "cons");
+        else if (p==prim_car) size = snprintf(buffer, n, "car");
+        else if (p==prim_cdr) size = snprintf(buffer, n, "cdr");
+        else if (p==prim_plus) size = snprintf(buffer, n, "+");
+        else if (p==prim_minus) size = snprintf(buffer, n, "-");
+        else if (p==prim_nilp) size = snprintf(buffer, n, "nil?");
+        else if (p==prim_listp) size = snprintf(buffer, n, "list?");
+        else if (p==prim_numberp) size = snprintf(buffer, n, "number?");
+        else if (p==prim_emptyp) size = snprintf(buffer, n, "empty?");
+        else if (p==prim_procedurep) size = snprintf(buffer, n, "procedure?");
+        else if (p==prim_list) size = snprintf(buffer, n, "list");
+        else if (p==prim_print) size = snprintf(buffer, n, "print");
+        else if (p==prim_eqp) size = snprintf(buffer, n, "eq?");
+        else size = snprintf(buffer, n, "<builtin %lx>", (unsigned long int) p);
     } else if (arg->tag == ERROR) {
-        printf("<error: %s>", arg->body.error);
+        size = snprintf(buffer, n, "<error: %s>", arg->body.error);
     } else if (arg->tag == FUNCTION) {
-        printf("<function %lx>", (unsigned long) &arg->body);
+        size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg->body);
     } else if (arg->tag == CONS) {
-        printf("(");
+        size = snprintf(buffer, n, "(");
         sval *lst = arg;
         int first=1;
         while (islist(lst) && !isempty(lst)) {
             if (first) first=0;
-            else printf(" ");
-            print1(lst->body.list.car);
+            else size += snprintf(buffer+size,n-size," ");
+            size += snprint1(buffer+size,n-size,lst->body.list.car);
             lst = lst->body.list.cdr;
         }
         if (islist(lst)) { // We finished a normal-style list. Done.
@@ -91,17 +103,14 @@ void print1(sval *arg) {
         } else { // This is a 'cons', not a list.
             // (1 . 2)
             // (1 2 3 . 4)
-            printf(" . ");
-            print1(lst);
+            size += snprintf(buffer+size,n-size," . ");
+            size += snprint1(buffer+size,n-size,lst);
         }
-        printf(")");
+        size += snprintf(buffer+size,n-size,")");
     } else {
-        printf("<Unknown value>");
+        size = printf(buffer, n, "<Unknown value>");
     }
-}
-
-void print1nl(sval *arg1) {
-    print1(arg1); printf("\n");
+    return size;
 }
 
 int islistoflength(sval *arg, int l) {

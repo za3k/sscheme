@@ -1,4 +1,5 @@
 #include "types.h"
+#include <string.h>
 
 #ifndef __HELPERS
 #define __HELPERS
@@ -19,5 +20,6 @@ int islistoflength(sval *arg, int l);
 
 void print1(sval *arg1);
 void print1nl(sval *arg1);
+int snprint1(char* buffer, size_t n, sval *arg);
 
 #endif //__HELPERS

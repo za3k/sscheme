@@ -4,6 +4,7 @@
 #include "types.h"
 #include "prims.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 // TODO: Propogate errors
 
@@ -20,6 +21,7 @@ sval* eval(sexp* expression, struct senv* env) {
     else if (expression->tag == PRIMITIVE) return expression;
     else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
+    else if (expression->tag == ERROR) return expression;
     else if (expression->tag == CONS) { // An application
         sval *proc = eval(car(expression), env);
         sval *rest = cdr(expression);
@@ -34,11 +36,13 @@ sval* eval(sexp* expression, struct senv* env) {
             return evcond(car(expression), env);
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
+        else if (proc->tag == ERROR) return proc;
         else return error(ERR_APPLY_NON_FUNCTION);
     } else return error(ERR_EVAL_UNKNOWN);
 }
 
 sval* apply(sval* proc, sval* args) {
+    if (args->tag == ERROR) return args;
     return eval(
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
@@ -57,15 +61,17 @@ sval* evlist(sexp *args, struct senv *env) {
 sval* evcond(sexp *conditions, struct senv *env) {
     if (isempty(conditions)) return make_nil();
     else {
-        sexp *condition = car(car(conditions));
+        sexp *condition = eval(car(car(conditions)), env);
+        if (condition->tag == ERROR) return condition;
         sexp *body = car(cdr(conditions));
-        if (!isfalse(eval(condition, env))) return eval(body, env);
+        if (!isfalse(condition)) return eval(body, env);
         else return evcond(cdr(conditions), env);
     }
 }
 
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
-    return primitive(args);
+    if (args->tag == ERROR) return args;
+    else return primitive(args);
 }
 
 struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
@@ -139,15 +145,4 @@ struct senv* empty_env() {
         add_prim(BASE_ENV, "print", prim_print);
     }
     return BASE_ENV;
-}
-
-#include "parser.h"
-int main(int argc, char *argv[]) {
-    char *EXAMPLE = "(cond 7 ((false? 5) (true? 6) (else 7)))";
-    if ( argc == 2) EXAMPLE=argv[1];
-    sexp* parsed = parse(EXAMPLE);
-    print1nl(parsed);
-
-    sval* result = eval(parsed, empty_env());
-    print1nl(result);
 }
