@@ -16,7 +16,6 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
     char *f = *remaining_file;
     char *inp = input, *outp = expected_output;
 
-    // TODO: Strip comments
     while (f[0]==' ' || f[0] == '\n') f++;
     if (f[0] == 0) return 0;
     while (!(f[0]=='=' && f[1]=='>')) *inp++ = *f++;
@@ -30,6 +29,20 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
 
     *remaining_file = f;
     return 1;
+}
+
+char* strip_comments(char* f) {
+    int in=0, out=0;
+    while (f[in] != 0) {
+        while (f[in] == '#' && f[in+1] == ' ') { // Skip the comment(s)
+            while (f[in] != '\n' && f[in] != '\0') in++;
+            if (f[in] == '\n') f[out++] = f[in++];
+        }
+        while (f[in] != '\n' && f[in] != '\0') f[out++] = f[in++]; // Copy the line
+        if (f[in] == '\n') f[out++] = f[in++];
+    }
+    f[out] = 0;
+    return f;
 }
 
 static char file_buffer[10000];
@@ -49,6 +62,8 @@ int read_tests(char *path, char** inputs, char **expected_outputs) {
     int i;
     printf("Reading file... ");
     char *remaining_file = read_file(path);
+    printf("Reading file... ");
+    strip_comments(file_buffer);
     printf("done\n");
     printf("Reading test... ");
     for(i=0;;i++) {

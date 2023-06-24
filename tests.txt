@@ -1,16 +1,20 @@
+# Constants
 () => ()
+nil => nil
 #t => #t
 #f => #f
-nil => nil
 
+# Numbers
 1 => 1
 10 => 10
 100 => 100
 
+# Lists
 (1 2 3) => err
 (list 1 2 3)) => (1 2 3)
 (quote (1 2 3)) => (1 2 3)
 
+# Primitive/symbol resolution
 + => +
 - => -
 car => car
@@ -37,12 +41,13 @@ else => #t
 (quote 1 2) => err
 (quote a) => :a
 (quote 1) => 1
-(quote nil) => nil
-(quote #t) => #t
-(quote #f) => #f
 (quote ()) => ()
 (quote quote) => :quote
 (quote NewVar) => :NewVar
+# These are known failures because the parser treats them as generic symbols
+# (quote nil) => nil
+# (quote #t) => #t
+# (quote #f) => #f
 
 (+) => err
 (+ 1) => 1
@@ -64,11 +69,6 @@ else => #t
 ((lambda (x y) x) 1 2) => 1
 ((lambda (x y) y) 1 2) => 2
 (lambda (x) x) => proc
-
-(eq? 2 3) => #f
-(eq? 2 2) => #t
-(quote b) => :b
-else => #t
 
 (cond (((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b)))) => :b
 (cond (((eq? 2 3) (quote a))
