@@ -15,5 +15,4 @@ int main(int argc, char *argv[]) {
 
     sval* result = eval(parsed, empty_env());
     print1nl(result);
-
 }

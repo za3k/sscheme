@@ -33,7 +33,7 @@ sval* eval(sexp* expression, struct senv* env) {
             else return make_function(car(rest), car(cdr(rest)), env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == cond) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
-            return evcond(car(expression), env);
+            return evcond(car(rest), env);
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == ERROR) return proc;
@@ -63,7 +63,7 @@ sval* evcond(sexp *conditions, struct senv *env) {
     else {
         sexp *condition = eval(car(car(conditions)), env);
         if (condition->tag == ERROR) return condition;
-        sexp *body = car(cdr(conditions));
+        sexp *body = car(cdr(car(conditions)));
         if (!isfalse(condition)) return eval(body, env);
         else return evcond(cdr(conditions), env);
     }

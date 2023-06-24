@@ -9,6 +9,7 @@
 // TODO: Hex numbers: 0xFE and 0xfe
 // TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
 // TODO: Intern symbols to save space and allow == comparison
+// TODO: Parse constants immediately and not as symbols
 
 sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);

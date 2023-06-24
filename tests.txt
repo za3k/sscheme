@@ -70,6 +70,7 @@ else => #t
 (quote b) => :b
 else => #t
 
+(cond (((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b)))) => :b
 (cond (((eq? 2 3) (quote a))
        ((eq? 2 4) 5)
        (else (quote b))))
