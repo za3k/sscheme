@@ -139,6 +139,12 @@ void define(struct senv *env, char* symbol, sval* thing) {
 char STD_BUF[40000];
 struct senv* empty_env() {
     if (isempty(BUILTINS_ENV->frame.names)) {
+        // Set up character constants
+        for (int i=0; i<128; i++) {
+            CHARS_V[i].tag = CONSTANT;
+            CHARS_V[i].body.constant = C000+i;
+        }
+
         // Set up builtins
         define(BUILTINS_ENV, "lambda", LAMBDA);
         define(BUILTINS_ENV, "cond", COND);
