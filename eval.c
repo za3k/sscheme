@@ -1,3 +1,4 @@
+#include "constants.c"
 #include "eval.h"
 #include "errors.h"
 #include "helpers.h"
@@ -106,39 +107,31 @@ sval* lookup(sexp *symbol, struct senv *env) {
     else return lookup(symbol, env->parent);
 }
 
-static struct senv *BASE_ENV;
-void add_thing(struct senv *env, char* symbol, sval* thing) {
+void define(struct senv *env, char* symbol, sval* thing) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
     env->frame.values = make_cons(thing, env->frame.values);
 }
-void add_prim(struct senv *env, char* symbol, sval* (*prim)(sval*)) {
-    add_thing(env, symbol, make_prim(prim));
-}
 struct senv* empty_env() {
-    if (!BASE_ENV) {
-        BASE_ENV = malloc(sizeof(struct senv));
-        BASE_ENV->parent = 0;
-        BASE_ENV->frame.names = make_empty();
-        BASE_ENV->frame.values = make_empty();
-
-        add_thing(BASE_ENV, "lambda", make_lambda());
-        add_thing(BASE_ENV, "cond", make_cond());
-        add_thing(BASE_ENV, "quote", make_quote());
-        add_thing(BASE_ENV, "nil", make_nil());
-        add_thing(BASE_ENV, "else", make_true());
-        add_prim(BASE_ENV, "eq?", prim_eqp);
-        add_prim(BASE_ENV, "+", prim_plus);
-        add_prim(BASE_ENV, "-", prim_minus);
-        add_prim(BASE_ENV, "cons", prim_cons);
-        add_prim(BASE_ENV, "car", prim_car);
-        add_prim(BASE_ENV, "cdr", prim_cdr);
-        add_prim(BASE_ENV, "nil?", prim_nilp);
-        add_prim(BASE_ENV, "null?", prim_emptyp);
-        add_prim(BASE_ENV, "pair?", prim_listp);
-        add_prim(BASE_ENV, "number?", prim_numberp);
-        add_prim(BASE_ENV, "procedure?", prim_procedurep);
-        add_prim(BASE_ENV, "list", prim_list);
-        add_prim(BASE_ENV, "display", prim_print);
+    if (isempty(BASE_ENV.frame.names)) {
+        // Set up initial bindings
+        define(&BASE_ENV, "lambda", make_lambda());
+        define(&BASE_ENV, "cond", make_cond());
+        define(&BASE_ENV, "quote", make_quote());
+        define(&BASE_ENV, "nil", make_nil());
+        define(&BASE_ENV, "else", make_true());
+        define(&BASE_ENV, "eq?", make_prim(prim_eqp));
+        define(&BASE_ENV, "+", make_prim(prim_plus));
+        define(&BASE_ENV, "-", make_prim(prim_minus));
+        define(&BASE_ENV, "cons", make_prim(prim_cons));
+        define(&BASE_ENV, "car", make_prim(prim_car));
+        define(&BASE_ENV, "cdr", make_prim(prim_cdr));
+        define(&BASE_ENV, "nil?", make_prim(prim_nilp));
+        define(&BASE_ENV, "null?", make_prim(prim_emptyp));
+        define(&BASE_ENV, "pair?", make_prim(prim_listp));
+        define(&BASE_ENV, "number?", make_prim(prim_numberp));
+        define(&BASE_ENV, "procedure?", make_prim(prim_procedurep));
+        define(&BASE_ENV, "list", make_prim(prim_list));
+        define(&BASE_ENV, "display", make_prim(prim_print));
     }
-    return BASE_ENV;
+    return bind(make_empty(), make_empty(), &BASE_ENV); // Return an empty frame so we can 'define' and modify it.
 }
