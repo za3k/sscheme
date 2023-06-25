@@ -32,7 +32,7 @@ sval* eval1(sexp* expression, struct senv* env) {
     else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == ERROR) return expression;
-    else if (expression->tag == CONS) { // An application
+    else if (expression->tag == PAIR) { // An application
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
         if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
@@ -74,7 +74,7 @@ sval* apply(sval* proc, sval* args) {
 
 sval* evlist(sexp *args, struct senv *env) {
     if (isempty(args)) return args;
-    else if(args->tag == CONS) {
+    else if(args->tag == PAIR) {
         return make_cons(
             eval1(car(args), env),
             evlist(cdr(args), env)
@@ -108,8 +108,8 @@ struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
 }
 
 sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
-    if (!islist(parameters)) error(ERR_FRAME_NON_LIST);
-    if (!islist(values)) error(ERR_FRAME_NON_LIST);
+    if (!ispair(parameters)) error(ERR_FRAME_NON_LIST);
+    if (!ispair(values)) error(ERR_FRAME_NON_LIST);
     
     if (isempty(parameters) && isempty(values)) return 0;
     else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);

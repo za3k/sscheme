@@ -7,12 +7,12 @@
 // Type and arity checker macros
 #define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
 #define TYPE(p, arg) if (!p(arg)) return error(ERR_WRONG_TYPE);
-#define VARITY(args) if (!islist(args)) return error(ERR_NON_LIST);
+#define VARITY(args) if (!ispair(args)) return error(ERR_NON_LIST);
 #define VARITY_TYPE(p, args) if (!listOf(args, p)) return error(ERR_WRONG_TYPE);
 
 // Helpers
 int listOf(sval *arg, int p(sval *arg)) {
-    if (!islist(arg)) return 0;
+    if (!ispair(arg)) return 0;
     if (isempty(arg)) return 1;
     if (!p(car(arg))) return 0;
     return listOf(cdr(arg), p);
@@ -56,7 +56,7 @@ sval* prim_print(sval *args) {
 /*  ============ Definitions of primitives ============= */
 
 sval* nilp(sval *arg1) { return pred(isnil(arg1)); }
-sval* listp(sval *arg1) { return pred(islist(arg1)); }
+sval* listp(sval *arg1) { return pred(ispair(arg1)); }
 sval* numberp(sval *arg1) { return pred(isnumber(arg1)); }
 sval* emptyp(sval *arg1) { return pred(isempty(arg1)); }
 sval* eqp(sval *arg1, sval *arg2) { return pred(iseq(arg1, arg2)); }
@@ -70,7 +70,7 @@ sval* cons(sval *arg1, sval *arg2) {
 }
 
 sval* car(sval *arg1) {
-    TYPE(islist, arg1);
+    TYPE(ispair, arg1);
 
     if (isempty(arg1)) return error(ERR_EMPTY_LIST);
     if (arg1 && arg1->tag == ERROR) return arg1;
@@ -78,7 +78,7 @@ sval* car(sval *arg1) {
 }
 
 sval* cdr(sval *arg1) {
-    TYPE(islist, arg1);
+    TYPE(ispair, arg1);
 
     if (isempty(arg1)) return error(ERR_EMPTY_LIST);
     if (arg1 && arg1->tag == ERROR) return arg1;

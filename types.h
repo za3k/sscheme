@@ -36,7 +36,7 @@ struct sclosure {
 
 // Sh
 typedef struct sval {
-  enum stype { CONS, CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PRIMITIVE, SPECIAL_FORM, SYMBOL } tag;
+  enum stype { CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, SYMBOL } tag;
   union {
     struct scons list; // NIL is also considered the empty list
     char *symbol; // Symbols are parsed to strings instead of ints for convenience

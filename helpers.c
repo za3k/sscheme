@@ -12,8 +12,7 @@ int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isnil(sval *arg) { return arg == NIL; }
 int isfalse(sval *arg) { return arg == FALSE; }
 int istrue(sval *arg) { return arg == TRUE; }
-// TODO: Rename to ispair, name CONS->PAIR
-int islist(sval *arg) { return arg->tag == CONS || isempty(arg); }
+int ispair(sval *arg) { return arg->tag == PAIR || isempty(arg); }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
 
@@ -31,7 +30,7 @@ int iseq(sval *arg1, sval *arg2) {
         case SYMBOL: return symboleq(arg1, arg2); break;
         case CONSTANT: return arg1->body.constant == arg2->body.constant; break;
         case NUMBER: return arg1->body.smallnum == arg2->body.smallnum; break;
-        case CONS:
+        case PAIR:
         case FUNCTION:
             return arg1==arg2;
             break;
@@ -91,17 +90,17 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         size = snprintf(buffer, n, "<macro ");
         size += snprint1(buffer+size, n-size, arg->body.macro_procedure);
         size += snprintf(buffer+size, n-size, ">");
-    } else if (arg->tag == CONS) {
+    } else if (arg->tag == PAIR) {
         size = snprintf(buffer, n, "(");
         sval *lst = arg;
         int first=1;
-        while (islist(lst) && !isempty(lst)) {
+        while (ispair(lst) && !isempty(lst)) {
             if (first) first=0;
             else size += snprintf(buffer+size,n-size," ");
             size += snprint1(buffer+size,n-size,lst->body.list.car);
             lst = lst->body.list.cdr;
         }
-        if (islist(lst)) { // We finished a normal-style list. Done.
+        if (ispair(lst)) { // We finished a normal-style list. Done.
             // ()
             // (1 2 3)
             // (1)
@@ -120,7 +119,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
 
 int islistoflength(sval *arg, int l) {
     if (l == 0) return isempty(arg);
-    else return islist(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
+    else return ispair(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
 }
 
 char* slurp_file(char *path, char* buffer) {

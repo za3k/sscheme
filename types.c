@@ -17,8 +17,6 @@ sval* error(char *msg) {
     sval *err = make_cell();
     err->tag = ERROR;
     err->body.error = msg;
-    //printf("%s\n", msg);
-    //msg[1000000]=0; // Generate a crash
     return err;
 }
 
@@ -26,7 +24,7 @@ sval* make_cons(sval *car, sval *cdr) {
     if (car->tag == ERROR) return car;
     if (cdr->tag == ERROR) return cdr;
     sval *v = make_cell();
-    v->tag = CONS;
+    v->tag = PAIR;
     v->body.list.car = car;
     v->body.list.cdr = cdr;
     return v;

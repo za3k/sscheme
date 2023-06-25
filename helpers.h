@@ -10,7 +10,7 @@ int isempty(sval *arg);
 int isnil(sval *arg);
 int isfalse(sval *arg);
 int istrue(sval *arg);
-int islist(sval *arg);
+int ispair(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
 int symboleq(sval *arg1, sval *arg2);
