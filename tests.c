@@ -29,27 +29,12 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
     return 1;
 }
 
-char* strip_comments(char* f) {
-    int in=0, out=0;
-    while (f[in] != 0) {
-        while (f[in] == ';' && f[in+1] == ' ') { // Skip the comment(s)
-            while (f[in] != '\n' && f[in] != '\0') in++;
-            if (f[in] == '\n') f[out++] = f[in++];
-        }
-        while (f[in] != '\n' && f[in] != '\0') f[out++] = f[in++]; // Copy the line
-        if (f[in] == '\n') f[out++] = f[in++];
-    }
-    f[out] = 0;
-    return f;
-}
-
 static char file_buffer[10000];
 int read_tests(char *path, char** inputs, char **expected_outputs) {
     // Return number of tests read
     int i;
-    char *remaining_file = slurp_file(path, file_buffer);
     //printf("Reading file... ");
-    strip_comments(file_buffer);
+    char *remaining_file = slurp_file(path, file_buffer);
     //printf("done\n");
     //printf("Reading test... ");
     for(i=0;;i++) {

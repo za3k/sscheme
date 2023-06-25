@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+// TODO: Include tests.txt and standard.txt as string constants instead of slurping them.
+
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == EMPTY_LIST; }
 int isnil(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == NIL; }

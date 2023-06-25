@@ -27,13 +27,13 @@ Finished features:
     - Lists
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
+- Comments
 - Special forms: `cond` `define` `lambda` `quote`
 - Builtins: `+` `-` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `first` (`second`, `third`...) `last` `list` `list?` `nil?` `number?` `print` `procedure?` `rest`
 
 Unfinished features:
 - Macros
 - lambda varargs support
-- comments
 - Data types
     - Strings
 - Special forms: `and` `do` `for-each` `if` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`

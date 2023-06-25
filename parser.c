@@ -194,6 +194,11 @@ struct token* parse_token(char **s) {
             res->tag = tok_number;
             res->atom = make_int(parsed_int);
             break;
+        case ';': // Ignore comments, don't output a token.
+            (*s)++;
+            while (**s != '\n') (*s)++;
+            (*s)++;
+            goto start;
         case '(':
             (*s)++;
             res->tag = tok_open_paren;
@@ -203,9 +208,9 @@ struct token* parse_token(char **s) {
             res->tag = tok_close_paren;
             break;
         case ' ': case '\t': case '\n': case '\r':
+            // Ignore whitespace, don't output a token
             (*s)++;
             goto start;
-            break;
         case '\'':
             res->tag = tok_quote;
             break;
