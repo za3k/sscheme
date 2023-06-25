@@ -122,10 +122,10 @@ sexp* parse_constant(char **s) {
     switch((*s)[1]) {
         case 't': // #t
             (*s)+=2;
-            return make_true();
+            return &TRUE_V;
         case 'f': // #f
             (*s)+=2;
-            return make_false();
+            return &FALSE_V;
         case '\\': // Character constant
             return parse_character_constant(s);
         default:

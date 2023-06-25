@@ -1,7 +1,8 @@
 #include "prims.h"
-#include <stdio.h>
 #include "errors.h"
 #include "helpers.h"
+#include "constants.h"
+#include <stdio.h>
 
 // Type and arity checker macros
 #define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
@@ -18,7 +19,7 @@ int listOf(sval *arg, int p(sval *arg)) {
 }
 
 inline static sval* pred(int x) {
-    return x ? make_true() : make_false();
+    return x ? &TRUE_V : &FALSE_V;
 }
 
 /*  ============ Arity checkers and uniform function signatures ============= */
@@ -108,5 +109,5 @@ sval* print(sval *args) {
         print1nl(car(args));
         args = cdr(args);
     }
-    return make_nil();
+    return &NIL_V;
 }

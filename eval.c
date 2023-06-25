@@ -47,7 +47,7 @@ sval* eval1(sexp* expression, struct senv* env) {
             struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
             if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
             define(env, arg1->body.symbol, arg2);
-            return make_nil();
+            return &NIL_V;
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == ERROR) return proc;
@@ -73,7 +73,7 @@ sval* evlist(sexp *args, struct senv *env) {
 }
 
 sval* evcond(sexp *conditions, struct senv *env) {
-    if (isempty(conditions)) return make_nil();
+    if (isempty(conditions)) return &NIL_V;
     else {
         sexp *condition = eval1(car(car(conditions)), env);
         if (condition->tag == ERROR) return condition;
@@ -129,12 +129,12 @@ void define(struct senv *env, char* symbol, sval* thing) {
 struct senv* empty_env() {
     if (isempty(BASE_ENV.frame.names)) {
         // Set up initial bindings
-        define(&BASE_ENV, "lambda", make_lambda());
-        define(&BASE_ENV, "cond", make_cond());
-        define(&BASE_ENV, "quote", make_quote());
-        define(&BASE_ENV, "define", make_define());
-        define(&BASE_ENV, "nil", make_nil());
-        define(&BASE_ENV, "else", make_true());
+        define(&BASE_ENV, "lambda", &LAMBDA_V);
+        define(&BASE_ENV, "cond", &COND_V);
+        define(&BASE_ENV, "quote", &QUOTE_V);
+        define(&BASE_ENV, "define", &DEFINE_V);
+        define(&BASE_ENV, "nil", &NIL_V);
+        define(&BASE_ENV, "else", &TRUE_V);
         define(&BASE_ENV, "eq?", make_prim(prim_eqp));
         define(&BASE_ENV, "+", make_prim(prim_plus));
         define(&BASE_ENV, "-", make_prim(prim_minus));

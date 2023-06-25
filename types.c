@@ -71,12 +71,4 @@ sval* make_character_constant (char c) {
     return &CHARS_V[(int)c];
 };
 
-sval* make_true()  { return &TRUE_V; }
-sval* make_false() { return &FALSE_V; }
-sval* make_nil()   { return &NIL_V; }
 sval* make_empty() { return &EMPTY_V; }
-
-sexp* make_cond()  { return &COND_V; }
-sexp* make_quote() { return &QUOTE_V; }
-sexp* make_lambda(){ return &LAMBDA_V; }
-sexp* make_define(){ return &DEFINE_V; }
