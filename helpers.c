@@ -3,6 +3,7 @@
 #include "constants.h"
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == EMPTY_LIST; }
@@ -118,4 +119,21 @@ int snprint1(char* buffer, size_t n, sval *arg) {
 int islistoflength(sval *arg, int l) {
     if (l == 0) return isempty(arg);
     else return islist(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
+}
+
+char* slurp_file(char *path, char* buffer) {
+    FILE *infile = fopen(path, "r");
+    fseek(infile, 0L, SEEK_END);
+    int numbytes = ftell(infile);
+    fseek(infile, 0L, SEEK_SET);
+    fread(buffer, sizeof(char), numbytes, infile);
+    fclose(infile);
+    buffer[numbytes]='\0';
+    return buffer;
+}
+
+char *slurp_stdin(char* buffer) {
+    int size = read(0, buffer, 999999);
+    buffer[size] = 0;
+    return buffer;
 }

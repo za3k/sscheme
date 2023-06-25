@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-char* read_file(char *path);
-
 //int snprint1(char* buffer, size_t n, sval *arg);
 int read_test(char **remaining_file, char* input, char *expected_output) {
     // Read one test from *remaining_file. Return 1 for success, 0 for failure.
@@ -46,22 +44,11 @@ char* strip_comments(char* f) {
 }
 
 static char file_buffer[10000];
-char* read_file(char *path) {
-    FILE *infile = fopen(path, "r");
-    fseek(infile, 0L, SEEK_END);
-    int numbytes = ftell(infile);
-    fseek(infile, 0L, SEEK_SET);
-    fread(file_buffer, sizeof(char), numbytes, infile);
-    fclose(infile);
-    file_buffer[numbytes]='\0';
-    return file_buffer;
-}
-
 int read_tests(char *path, char** inputs, char **expected_outputs) {
     // Return number of tests read
     int i;
     printf("Reading file... ");
-    char *remaining_file = read_file(path);
+    char *remaining_file = slurp_file(path, file_buffer);
     printf("Reading file... ");
     strip_comments(file_buffer);
     printf("done\n");
