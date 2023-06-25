@@ -64,10 +64,11 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         }
     } else if (arg->tag == SPECIAL_FORM) {
         switch(arg->body.form) {
-            case quote: size = snprintf(buffer, n, "quote"); break;
-            case cond: size = snprintf(buffer, n, "cond"); break;
-            case lambda: size = snprintf(buffer, n, "lambda"); break;
-            default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
+            case form_quote: size = snprintf(buffer, n, "quote"); break;
+            case form_cond: size = snprintf(buffer, n, "cond"); break;
+            case form_lambda: size = snprintf(buffer, n, "lambda"); break;
+            case form_define: size = snprintf(buffer, n, "define"); break;
+            //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
         sval* (*p)(sval*) = arg->body.primitive;

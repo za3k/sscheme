@@ -33,15 +33,21 @@ sval* eval1(sexp* expression, struct senv* env) {
     else if (expression->tag == CONS) { // An application
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
-        if (proc->tag == SPECIAL_FORM && proc->body.form == quote) {
+        if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
             return car(rest);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == lambda) {
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
             else return make_function(car(rest), car(cdr(rest)), env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == cond) {
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
             return evcond(car(rest), env);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define) {
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
+            if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
+            define(env, arg1->body.symbol, arg2);
+            return make_nil();
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == ERROR) return proc;
@@ -126,6 +132,7 @@ struct senv* empty_env() {
         define(&BASE_ENV, "lambda", make_lambda());
         define(&BASE_ENV, "cond", make_cond());
         define(&BASE_ENV, "quote", make_quote());
+        define(&BASE_ENV, "define", make_define());
         define(&BASE_ENV, "nil", make_nil());
         define(&BASE_ENV, "else", make_true());
         define(&BASE_ENV, "eq?", make_prim(prim_eqp));

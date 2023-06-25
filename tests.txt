@@ -108,6 +108,8 @@ NewVar => err
        (else (quote b))))
     => :a
 
+(define x 2) x => 2
+
 ; Tests for each builtin
 (list) => ()
 (list 1) => (1)

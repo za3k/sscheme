@@ -79,3 +79,4 @@ sval* make_empty() { return &EMPTY_V; }
 sexp* make_cond()  { return &COND_V; }
 sexp* make_quote() { return &QUOTE_V; }
 sexp* make_lambda(){ return &LAMBDA_V; }
+sexp* make_define(){ return &DEFINE_V; }

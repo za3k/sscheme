@@ -4,6 +4,11 @@ struct sval TRUE_V = { CONSTANT, .body.constant = TRUE };
 struct sval FALSE_V = { CONSTANT, .body.constant = FALSE };
 struct sval EMPTY_V = { CONSTANT, .body.constant = EMPTY_LIST };
 struct sval NIL_V = { CONSTANT, .body.constant = NIL };
+sexp LAMBDA_V = { SPECIAL_FORM, .body.form = form_lambda };
+sexp COND_V = { SPECIAL_FORM, .body.form = form_cond };
+sexp QUOTE_V = { SPECIAL_FORM, .body.form = form_quote };
+sexp DEFINE_V = { SPECIAL_FORM, .body.form = form_define };
+struct senv BASE_ENV = { { &EMPTY_V, &EMPTY_V }, 0 };
 struct sval CHARS_V[128] = {
     {CONSTANT, .body.constant = C000},
     {CONSTANT, .body.constant = C001},
@@ -146,10 +151,6 @@ struct sval CHARS_V[128] = {
     {CONSTANT, .body.constant = C126},
     {CONSTANT, .body.constant = C127},
 };
-sexp LAMBDA_V = { SPECIAL_FORM, .body.form = lambda };
-sexp COND_V = { SPECIAL_FORM, .body.form = cond };
-sexp QUOTE_V = { SPECIAL_FORM, .body.form = quote };
-struct senv BASE_ENV = { { &EMPTY_V, &EMPTY_V }, 0 };
 
 char *char_constant_names[] = {
     "#\\nul", "#\\soh", "#\\stx", "#\\etx", // 0-3

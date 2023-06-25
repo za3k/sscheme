@@ -17,6 +17,7 @@
 #define ERR_FRAME_NON_SYMBOL   "lookup_frame: A non-symbol was present in a parameter list"
 #define ERR_EVAL_UNKNOWN       "eval: An unknown type was encountered"
 #define ERR_SYMBOL_NOT_FOUND   "The symbol was unbound"
+#define ERR_DEFINE_NONSYMBOL   "Define can only be used to define a symbol (no lambda syntax yet)"
 
 // Primitive execution
 #define ERR_WRONG_NUM  "primitive passed wrong number of arguments"

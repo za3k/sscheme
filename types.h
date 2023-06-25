@@ -58,7 +58,7 @@ typedef struct sval {
        C120, C121, C122, C123, C124, C125, C126, C127,
     } constant;
     enum { 
-        quote, lambda, cond, // Special forms
+        form_quote, form_lambda, form_cond, form_define, // Special forms
     } form;
     struct sval* (*primitive)(struct sval*);
     struct sclosure closure;
@@ -85,5 +85,6 @@ sval* make_character_constant (char c);
 sexp* make_cond();
 sexp* make_quote();
 sexp* make_lambda();
+sexp* make_define();
 
 #endif // __TYPES
