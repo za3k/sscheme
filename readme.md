@@ -26,15 +26,14 @@ Finished features:
     - Lambda functions (including closures)
     - Lists
     - Constants: `nil` `#t` `#f` `()`
+    - Characters `#\d` `#\newline`
 - Special forms: `cond` `lambda` `quote`
 - Builtins: `+` `-` `car` `cdr` `cons` `empty?` `eq?` `list` `list?` `nil?` `number?` `print` `procedure?`
 
 Unfinished features:
 - Macros
 - Data types
-    - Characters
     - Strings
-    - Negative integer constants
 - Special forms: `and` `define` `do` `for-each` `if` `let` `or` `set!` `set-car!` `set-cdr!`
 - Garbage collection
 - Input/output, either interactively from stdin or files.

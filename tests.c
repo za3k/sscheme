@@ -101,8 +101,8 @@ int run_test(char* input, char* expected_output) {
 }
 
 int run_tests() {
-    char * inputs[100];
-    char * expected_outputs[100];
+    char * inputs[1000];
+    char * expected_outputs[1000];
     int num_tests, i, failed_tests=0;
 
     num_tests = read_tests(TESTS_FILE, inputs, expected_outputs);

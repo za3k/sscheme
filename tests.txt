@@ -87,10 +87,9 @@ else => #t
 (quote ()) => ()
 (quote quote) => :quote
 (quote NewVar) => :NewVar
-# These are known failures because the parser treats them as generic symbols
-# (quote nil) => nil
-# (quote #t) => #t
-# (quote #f) => #f
+(quote nil) => :nil
+(quote #t) => #t
+(quote #f) => #f
 
 (+) => err
 (+ 1) => 1
