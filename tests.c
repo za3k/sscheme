@@ -79,7 +79,9 @@ int read_tests(char *path, char** inputs, char **expected_outputs) {
 static char output[1000];
 int run_test(char* input, char* expected_output) {
     // Return 0 on success, 1 on failure. Print to stdout.
+    //printf("Toparse: %s\n", input);
     sexp* parsed = parse(input);
+    //print1nl(parsed);
     sval* result = eval(parsed, empty_env());
 
     snprint1(output, sizeof(output), result);
@@ -108,7 +110,7 @@ int run_tests() {
         printf("Running test %d... ", i+1);
         failed_tests += run_test(inputs[i], expected_outputs[i]);
     }
-    printf("%d/%d tests failed\n", failed_tests, num_tests);
+    printf("%d/%d tests passed\n", num_tests-failed_tests, num_tests);
     if (failed_tests > 0) printf("FAILURE\n");
     else printf("SUCCESS\n");
     return failed_tests > 0;

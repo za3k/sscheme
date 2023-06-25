@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// TODO: Propogate errors
-
 sval* evlist(sexp *args, struct senv *env);
 sval* evcond(sexp *conditions, struct senv *env);
 sval* lookup(sexp *symbol, struct senv *env);

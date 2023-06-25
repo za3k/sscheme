@@ -8,6 +8,49 @@ nil => nil
 1 => 1
 10 => 10
 100 => 100
+-10 => -10
+-symbol_name => err
+
+# Decimal, Octal, Hex parsing
+#d10 => 10
+#o10 => 8
+#x10 => 16
+#d-10 => -10
+#o-10 => -8
+#x-10 => -16
+#d12 => 12
+#o12 => 10
+#x12 => 18
+#x100 => 256
+
+# Character constants
+#\a => #\a
+#\m => #\m
+#\z => #\z
+#\A => #\A
+#\M => #\M
+#\Z => #\Z
+#\nul => #\nul
+#\soh => #\soh
+#\bel => #\bel
+#\bs  => #\bs
+#\lf  => #\lf
+#\vt  => #\vt
+#\cr  => #\cr
+#\esc => #\esc
+#\sp  => #\sp
+
+#\alarm     => #\bel
+#\backspace => #\bs
+#\tab       => #\ht
+#\linefeed  => #\lf
+#\newline   => #\lf
+#\vtab      => #\vt
+#\page      => #\ff
+#\return    => #\cr
+#\escape    => #\esc
+#\space     => #\sp
+#\delete    => #\del
 
 # Lists
 (1 2 3) => err

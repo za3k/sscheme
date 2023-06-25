@@ -1,5 +1,6 @@
 #include "helpers.h"
 #include "prims.h"
+#include "constants.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -57,7 +58,8 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             case EMPTY_LIST: size = snprintf(buffer, n, "()"); break;
             case FALSE: size = snprintf(buffer, n, "#f"); break;
             case TRUE: size = snprintf(buffer, n, "#t"); break;
-            default: size = snprintf(buffer, n, "<Unknown constant>");
+            case C000...C127: size = snprintf(buffer, n, char_constant_names[arg->body.constant-C000]); break;
+            //default: size = snprintf(buffer, n, "<Unknown constant>");
         }
     } else if (arg->tag == SPECIAL_FORM) {
         switch(arg->body.form) {

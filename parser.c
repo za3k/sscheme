@@ -1,38 +1,77 @@
 #include "parser.h"
 #include "errors.h"
+#include "constants.h"
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: Parse negative numbers: -55
 // TODO: String parsing: "abc\n"
-// TODO: Character parsing: #\a
-// TODO: Hex numbers: 0xFE and 0xfe
 // TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
 // TODO: Intern symbols to save space and allow == comparison
-// TODO: Parse constants immediately and not as symbols
 
 sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form } tag;
+    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form, tok_constant } tag;
     sexp* atom;
 };
 
 int parse_int(char **s, int *result) {
     int out = 0;
-    int digit;
+    int sign=1;
+    if (**s == '-') { (*s)++; sign=-1; }
     for (char* p=*s;; p++) {
         switch (*p) {
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-                digit = *p-'0';
-                out = out * 10 + digit;
+            case '0' ... '9':
+                out = out * 10 + (*p-'0');
                 break;
             case ' ': case '\t': case '\n': case '\r':
             case ')': case '(': case '\0':
                 *s = p;
-                *result = out;
+                *result = out*sign;
+                return 1;
+                break;
+            default:
+                return 0;
+        }
+    }
+}
+int parse_int_octal(char **s, int *result) {
+    int out = 0;
+    int sign=1;
+    if (**s == '-') { (*s)++; sign=-1; }
+    for (char* p=*s;; p++) {
+        switch (*p) {
+            case '0' ... '7':
+                out = out * 8 + (*p-'0');
+                break;
+            case ' ': case '\t': case '\n': case '\r':
+            case ')': case '(': case '\0':
+                *s = p;
+                *result = out*sign;
+                return 1;
+                break;
+            default:
+                return 0;
+        }
+    }
+}
+int parse_int_hex(char **s, int *result) {
+    int out = 0;
+    int sign=1;
+    if (**s == '-') { (*s)++; sign=-1; }
+    for (char* p=*s;; p++) {
+        switch (*p) {
+            case '0' ... '9':
+                out = out * 16 + (*p-'0'); break;
+            case 'a' ... 'f':
+                out = out * 16 + (*p-'a'+10); break;
+            case 'A' ... 'F':
+                out = out * 16 + (*p-'A'+10); break;
+            case ' ': case '\t': case '\n': case '\r':
+            case ')': case '(': case '\0':
+                *s = p;
+                *result = out*sign;
                 return 1;
                 break;
             default:
@@ -41,26 +80,71 @@ int parse_int(char **s, int *result) {
     }
 }
 
+char CONSTANT_BUF[200];
+sexp* parse_character_constant(char**s) {
+    int length=0, i;
+    char *constant = *s;
+
+    // Step 0, test for #\) or #\(
+    if (constant[2]=='(' || constant[2]==')') {
+        (*s)+=3;
+        return make_character_constant(constant[2]);
+    }
+
+    // Step 1, read into a string.
+    while (1) {
+        switch((*s)[length]) {
+            case ' ': case '\t': case '\n': case '\r': case '\0':
+            case '(': case ')':
+                CONSTANT_BUF[length] = 0;
+                goto done;
+                break;
+            default:
+                CONSTANT_BUF[length] = (*s)[length];
+                length++;
+                if (length >= 100) return 0;
+        }
+    }
+    done:
+    (*s)+=length;
+
+    // Step 2, check against the hardcoded list of character constants.
+    for (i=0; i<sizeof(char_constant_names)/sizeof(char*); i++) {
+        if (strcmp(char_constant_names[i], CONSTANT_BUF)==0) {
+            return make_character_constant(char_constant_values[i]);
+        }
+    }
+    return 0;
+}
+
+sexp* parse_constant(char **s) {
+    switch((*s)[1]) {
+        case 't': // #t
+            (*s)+=2;
+            return make_true();
+        case 'f': // #f
+            (*s)+=2;
+            return make_false();
+        case '\\': // Character constant
+            return parse_character_constant(s);
+        default:
+            return 0;
+    }
+}
+
 char* parse_symbol(char **s) {
     int length;
     char *out;
     for (char* p=*s;; p++) {
         switch (*p) {
-            case 'a': case 'b': case 'c': case 'd': case 'e':
-            case 'f': case 'g': case 'h': case 'i': case 'j':
-            case 'k': case 'l': case 'm': case 'n': case 'o':
-            case 'p': case 'q': case 'r': case 's': case 't':
-            case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-            case 'A': case 'B': case 'C': case 'D': case 'E':
-            case 'F': case 'G': case 'H': case 'I': case 'J':
-            case 'K': case 'L': case 'M': case 'N': case 'O':
-            case 'P': case 'Q': case 'R': case 'S': case 'T':
-            case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
-            case '!': case '@': case '#': case '$': case '%':
-            case '^': case '&': case '*': case '-': case '_':
-            case '=': case '+': case '?': case '>': case '<':
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
+            case 'a'...'z':
+            case 'A'...'Z':
+            case '0'...'9':
+            case '!': case '@': case '$': case '%': case '^':
+            case '&': case '*': case '_': case '=': case '+':
+            case '?': case '>': case '<': case '.': case '/':
+            case ':': case '~':
+            case '-':
                 break;
             default:
                 length = p-*s;
@@ -81,8 +165,26 @@ struct token* parse_token(char **s) {
     char *parsed_symbol;
     start:
     switch(**s) {
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
+        case '-':
+            switch((*s)[1]) {
+                case '0'...'9':
+                    if(!parse_int(s, &parsed_int)) {
+                        // Not a legal number!
+                        free(res);
+                        return 0;
+                    }
+                    res->tag = tok_number;
+                    res->atom = make_int(parsed_int);
+                    break;
+                default:
+                    parsed_symbol = parse_symbol(s);
+                    res->tag = tok_symbol;
+                    res->atom = make_symbol(parsed_symbol);
+                    free(parsed_symbol);
+                    break;
+            }
+            break;
+        case '0' ... '9': 
             if(!parse_int(s, &parsed_int)) {
                 // Not a legal number!
                 free(res);
@@ -99,33 +201,52 @@ struct token* parse_token(char **s) {
             (*s)++;
             res->tag = tok_close_paren;
             break;
-        case ' ':
-        case '\t':
-        case '\n':
-        case '\r':
+        case ' ': case '\t': case '\n': case '\r':
             (*s)++;
             goto start;
             break;
         case '\'':
             res->tag = tok_quote;
             break;
+        case '#':
+            switch((*s)[1]) {
+                case 't':
+                case 'f':
+                case '\\':
+                    res->tag = tok_constant;
+                    res->atom = parse_constant(s);
+                    break;
+                case 'o':
+                    (*s)+=2;
+                    if(!parse_int_octal(s, &parsed_int)) { free(res); return 0; }
+                    res->tag = tok_number;
+                    res->atom = make_int(parsed_int);
+                    break;
+                case 'd':
+                    (*s)+=2;
+                    if(!parse_int(s, &parsed_int)) { free(res); return 0; }
+                    res->tag = tok_number;
+                    res->atom = make_int(parsed_int);
+                    break;
+                case 'x':
+                    (*s)+=2;
+                    if(!parse_int_hex(s, &parsed_int)) { free(res); return 0; }
+                    res->tag = tok_number;
+                    res->atom = make_int(parsed_int);
+                    break;
+                default: free(res); return 0;
+            }
+            break;
         case '\0':
             free(res);
             return 0; // Done parsing!
             break;
-        case 'a': case 'b': case 'c': case 'd': case 'e':
-        case 'f': case 'g': case 'h': case 'i': case 'j':
-        case 'k': case 'l': case 'm': case 'n': case 'o':
-        case 'p': case 'q': case 'r': case 's': case 't':
-        case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-        case 'A': case 'B': case 'C': case 'D': case 'E':
-        case 'F': case 'G': case 'H': case 'I': case 'J':
-        case 'K': case 'L': case 'M': case 'N': case 'O':
-        case 'P': case 'Q': case 'R': case 'S': case 'T':
-        case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
-        case '!': case '@': case '#': case '$': case '%':
-        case '^': case '&': case '*': case '-': case '_':
-        case '=': case '+': case '?': case '>': case '<':
+        case 'a'...'z':
+        case 'A'...'Z':
+        case '!': case '@': case '$': case '%': case '^':
+        case '&': case '*': case '_': case '=': case '+':
+        case '?': case '>': case '<': case '.': case '/':
+        case ':': case '~':
             parsed_symbol = parse_symbol(s);
             res->tag = tok_symbol;
             res->atom = make_symbol(parsed_symbol);
@@ -141,7 +262,7 @@ struct token* parse_token(char **s) {
 }
 
 void free_tok(struct token *t) {
-    if (t->atom && !(t->tag == tok_form)) free(t->atom);
+    if (t->atom && !(t->tag == tok_form || t->tag == tok_constant)) free(t->atom);
     free(t);
 }
 
@@ -184,6 +305,7 @@ sexp* parse_sexp(char **s) {
         case tok_form:
         case tok_symbol:
         case tok_number:
+        case tok_constant:
             ret = next_token->atom;
             free(next_token);
             break;

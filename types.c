@@ -1,19 +1,11 @@
 #include "types.h"
 #include "prims.h"
 #include "errors.h"
+#include "constants.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-// Constant singletons
-static struct sval TRUE_V = { CONSTANT, .body.constant = TRUE };
-static struct sval FALSE_V = { CONSTANT, .body.constant = FALSE };
-static struct sval EMPTY_V = { CONSTANT, .body.constant = EMPTY_LIST };
-static struct sval NIL_V = { CONSTANT, .body.constant = NIL };
-static sexp LAMBDA_V = { SPECIAL_FORM, .body.form = lambda };
-static sexp COND_V = { SPECIAL_FORM, .body.form = cond };
-static sexp QUOTE_V = { SPECIAL_FORM, .body.form = quote };
 
 /*  Make the base types  */
 
@@ -73,6 +65,11 @@ sexp* make_function(sexp *parameters, sexp *body, struct senv *env) {
     v->body.closure.env = env;
     return v;
 }
+
+sval* make_character_constant (char c) { 
+    if (((unsigned int)c) >= 128) return 0;
+    return &CHARS_V[(int)c];
+};
 
 sval* make_true()  { return &TRUE_V; }
 sval* make_false() { return &FALSE_V; }
