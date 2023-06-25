@@ -126,8 +126,6 @@ struct senv* empty_env() {
         add_thing(BASE_ENV, "quote", make_quote());
         add_thing(BASE_ENV, "nil", make_nil());
         add_thing(BASE_ENV, "else", make_true());
-        add_thing(BASE_ENV, "#t", make_true());
-        add_thing(BASE_ENV, "#f", make_false());
         add_prim(BASE_ENV, "eq?", prim_eqp);
         add_prim(BASE_ENV, "+", prim_plus);
         add_prim(BASE_ENV, "-", prim_minus);
@@ -135,12 +133,12 @@ struct senv* empty_env() {
         add_prim(BASE_ENV, "car", prim_car);
         add_prim(BASE_ENV, "cdr", prim_cdr);
         add_prim(BASE_ENV, "nil?", prim_nilp);
-        add_prim(BASE_ENV, "empty?", prim_emptyp);
-        add_prim(BASE_ENV, "list?", prim_listp);
+        add_prim(BASE_ENV, "null?", prim_emptyp);
+        add_prim(BASE_ENV, "pair?", prim_listp);
         add_prim(BASE_ENV, "number?", prim_numberp);
         add_prim(BASE_ENV, "procedure?", prim_procedurep);
         add_prim(BASE_ENV, "list", prim_list);
-        add_prim(BASE_ENV, "print", prim_print);
+        add_prim(BASE_ENV, "display", prim_print);
     }
     return BASE_ENV;
 }

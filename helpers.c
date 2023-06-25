@@ -76,12 +76,12 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         else if (p==prim_plus) size = snprintf(buffer, n, "+");
         else if (p==prim_minus) size = snprintf(buffer, n, "-");
         else if (p==prim_nilp) size = snprintf(buffer, n, "nil?");
-        else if (p==prim_listp) size = snprintf(buffer, n, "list?");
+        else if (p==prim_listp) size = snprintf(buffer, n, "pair?");
         else if (p==prim_numberp) size = snprintf(buffer, n, "number?");
-        else if (p==prim_emptyp) size = snprintf(buffer, n, "empty?");
+        else if (p==prim_emptyp) size = snprintf(buffer, n, "null?");
         else if (p==prim_procedurep) size = snprintf(buffer, n, "procedure?");
         else if (p==prim_list) size = snprintf(buffer, n, "list");
-        else if (p==prim_print) size = snprintf(buffer, n, "print");
+        else if (p==prim_print) size = snprintf(buffer, n, "display");
         else if (p==prim_eqp) size = snprintf(buffer, n, "eq?");
         else size = snprintf(buffer, n, "<builtin %lx>", (unsigned long int) p);
     } else if (arg->tag == ERROR) {
