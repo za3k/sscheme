@@ -7,7 +7,7 @@ extern char *char_constant_names[140];
 extern char char_constant_values[140];
 
 // Singleton constants
-extern struct sval* CHARS[256];
+extern struct sval CHARS_V[256];
 
 extern struct sval* TRUE;
 extern struct sval* FALSE;
