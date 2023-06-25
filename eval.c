@@ -1,11 +1,12 @@
 #include "constants.h"
-#include "eval.h"
 #include "errors.h"
+#include "eval.h"
 #include "helpers.h"
-#include "types.h"
+#include "parser.h"
 #include "prims.h"
-#include <stdlib.h>
+#include "types.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 sval* evlist(sexp *args, struct senv *env);
 sval* evcond(sexp *conditions, struct senv *env);
@@ -17,6 +18,7 @@ sval* eval_all(sexp *expressions, struct senv *env) {
     sval *ret=0;
     while (!isempty(expressions)) {
         ret = eval1(car(expressions), env);
+        if (ret->tag == ERROR) return ret;
         expressions = cdr(expressions);
     }
     return ret;
@@ -46,7 +48,7 @@ sval* eval1(sexp* expression, struct senv* env) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
             struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
             if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
-            define(env, arg1->body.symbol, arg2);
+            define(env, arg1->body.symbol, eval1(arg2, env));
             return &NIL_V;
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
@@ -126,28 +128,35 @@ void define(struct senv *env, char* symbol, sval* thing) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
     env->frame.values = make_cons(thing, env->frame.values);
 }
+char STD_BUF[40000];
 struct senv* empty_env() {
-    if (isempty(BASE_ENV.frame.names)) {
-        // Set up initial bindings
-        define(&BASE_ENV, "lambda", &LAMBDA_V);
-        define(&BASE_ENV, "cond", &COND_V);
-        define(&BASE_ENV, "quote", &QUOTE_V);
-        define(&BASE_ENV, "define", &DEFINE_V);
-        define(&BASE_ENV, "nil", &NIL_V);
-        define(&BASE_ENV, "else", &TRUE_V);
-        define(&BASE_ENV, "eq?", make_prim(prim_eqp));
-        define(&BASE_ENV, "+", make_prim(prim_plus));
-        define(&BASE_ENV, "-", make_prim(prim_minus));
-        define(&BASE_ENV, "cons", make_prim(prim_cons));
-        define(&BASE_ENV, "car", make_prim(prim_car));
-        define(&BASE_ENV, "cdr", make_prim(prim_cdr));
-        define(&BASE_ENV, "nil?", make_prim(prim_nilp));
-        define(&BASE_ENV, "null?", make_prim(prim_emptyp));
-        define(&BASE_ENV, "pair?", make_prim(prim_listp));
-        define(&BASE_ENV, "number?", make_prim(prim_numberp));
-        define(&BASE_ENV, "procedure?", make_prim(prim_procedurep));
-        define(&BASE_ENV, "list", make_prim(prim_list));
-        define(&BASE_ENV, "display", make_prim(prim_print));
+    if (isempty(BUILTINS_ENV.frame.names)) {
+        // Set up builtins
+        define(&BUILTINS_ENV, "lambda", &LAMBDA_V);
+        define(&BUILTINS_ENV, "cond", &COND_V);
+        define(&BUILTINS_ENV, "quote", &QUOTE_V);
+        define(&BUILTINS_ENV, "define", &DEFINE_V);
+        define(&BUILTINS_ENV, "nil", &NIL_V);
+        define(&BUILTINS_ENV, "else", &TRUE_V);
+        define(&BUILTINS_ENV, "eq?", make_prim(prim_eqp));
+        define(&BUILTINS_ENV, "+", make_prim(prim_plus));
+        define(&BUILTINS_ENV, "-", make_prim(prim_minus));
+        define(&BUILTINS_ENV, "cons", make_prim(prim_cons));
+        define(&BUILTINS_ENV, "car", make_prim(prim_car));
+        define(&BUILTINS_ENV, "cdr", make_prim(prim_cdr));
+        define(&BUILTINS_ENV, "nil?", make_prim(prim_nilp));
+        define(&BUILTINS_ENV, "null?", make_prim(prim_emptyp));
+        define(&BUILTINS_ENV, "pair?", make_prim(prim_listp));
+        define(&BUILTINS_ENV, "number?", make_prim(prim_numberp));
+        define(&BUILTINS_ENV, "procedure?", make_prim(prim_procedurep));
+        define(&BUILTINS_ENV, "list", make_prim(prim_list));
+        define(&BUILTINS_ENV, "display", make_prim(prim_print));
+
+        // Run the standard library
+        char *stdlib = slurp_file("standard.txt", STD_BUF);
+        sval *std_expressions = parse(stdlib);
+        eval_all(std_expressions, &STANDARD_ENV);
     }
-    return bind(make_empty(), make_empty(), &BASE_ENV); // Return an empty frame so we can 'define' and modify it.
+
+    return bind(make_empty(), make_empty(), &STANDARD_ENV); // Return an empty frame so we can 'define' and modify it.
 }

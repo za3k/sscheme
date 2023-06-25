@@ -8,7 +8,8 @@ sexp LAMBDA_V = { SPECIAL_FORM, .body.form = form_lambda };
 sexp COND_V = { SPECIAL_FORM, .body.form = form_cond };
 sexp QUOTE_V = { SPECIAL_FORM, .body.form = form_quote };
 sexp DEFINE_V = { SPECIAL_FORM, .body.form = form_define };
-struct senv BASE_ENV = { { &EMPTY_V, &EMPTY_V }, 0 };
+struct senv BUILTINS_ENV = { { &EMPTY_V, &EMPTY_V }, 0 };
+struct senv STANDARD_ENV = { { &EMPTY_V, &EMPTY_V}, &BUILTINS_ENV };
 struct sval CHARS_V[128] = {
     {CONSTANT, .body.constant = C000},
     {CONSTANT, .body.constant = C001},

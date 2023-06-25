@@ -109,6 +109,13 @@ NewVar => err
     => :a
 
 (define x 2) x => 2
+(define x 1) (define y 2) x => 1
+(define x 1) (define y 2) y => 2
+(define x car) x => car
+
+(define x 1)
+(define y 2)
+x => 1
 
 ; Tests for each builtin
 (list) => ()
@@ -130,3 +137,20 @@ NewVar => err
 (- 1 2 3) => err
 (- 1 2 3 4) => err
 (- 1 (list 1 2)) => err
+
+; Tests for the standard library
+(first (list 1 2 3 4 5 6 7 8 9 10)) => 1
+(second (list 1 2 3 4 5 6 7 8 9 10)) => 2
+(third (list 1 2 3 4 5 6 7 8 9 10)) => 3
+(fourth (list 1 2 3 4 5 6 7 8 9 10)) => 4
+(fifth (list 1 2 3 4 5 6 7 8 9 10)) => 5
+(sixth (list 1 2 3 4 5 6 7 8 9 10)) => 6
+(seventh (list 1 2 3 4 5 6 7 8 9 10)) => 7
+(eighth (list 1 2 3 4 5 6 7 8 9 10)) => 8
+(ninth (list 1 2 3 4 5 6 7 8 9 10)) => 9
+(tenth (list 1 2 3 4 5 6 7 8 9 10)) => 10
+(last (list 1 2 3 4 5 6 7 8 9 10)) => 10
+(rest (list 1 2 3 4 5 6 7 8 9 10)) => (2 3 4 5 6 7 8 9 10)
+
+(= (+ 2 2) 4) => #t
+(= (+ 1 2) 4) => #f

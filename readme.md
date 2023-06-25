@@ -27,8 +27,8 @@ Finished features:
     - Lists
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
-- Special forms: `cond` `lambda` `quote`
-- Builtins: `+` `-` `car` `cdr` `cons` `empty?` `eq?` `list` `list?` `nil?` `number?` `print` `procedure?`
+- Special forms: `cond` `define` `lambda` `quote`
+- Builtins: `+` `-` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `first` (`second`, `third`...) `last` `list` `list?` `nil?` `number?` `print` `procedure?` `rest`
 
 Unfinished features:
 - Macros
@@ -36,14 +36,14 @@ Unfinished features:
 - comments
 - Data types
     - Strings
-- Special forms: `and` `define` `do` `for-each` `if` `let` `or` `set!` `set-car!` `set-cdr!`
+- Special forms: `and` `do` `for-each` `if` `let` `or` `set!` `set-car!` `set-cdr!`
 - Garbage collection
 - Input/output, either interactively from stdin or files.
 - Most of the standard library
     - Builtins: `*` `/` `<` `apply` `display` `error` `eval` `quotient` `random`
     - Builtins: `call/cc`
     - Builtins: `~` `^` `|`
-    - Functions: `<=` `=` `>` `>=` `abs` `append` `boolean?` `cadr` (`caar`, etc) `equal?` `even?` `expt` `filter` `first` (`second`, `rest`, `last`, etc) `length` `map` `max` `member?` `min` `newline` `not` `null?` `odd?` `repeated` `square` `write`
+    - Functions: `<=` `=` `>` `>=` `abs` `append` `boolean?` `equal?` `even?` `expt` `filter` `length` `map` `max` `member?` `min` `newline` `not` `null?` `odd?` `repeated` `square` `write`
 
 Non-features (will never be added):
 - Data types

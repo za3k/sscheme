@@ -17,6 +17,7 @@ extern sexp LAMBDA_V;
 extern sexp COND_V;
 extern sexp QUOTE_V;
 extern sexp DEFINE_V;
-extern struct senv BASE_ENV;
+extern struct senv BUILTINS_ENV;
+extern struct senv STANDARD_ENV;
 
 #endif // CONSTANTSH

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         return 2;
     }
     sexp* parsed = parse(EXAMPLE);
-    //print1nl(parsed);
+    print1nl(parsed);
 
     sval* result = eval_all(parsed, empty_env());
     print1nl(result);

@@ -64,6 +64,8 @@ sval* procedurep(sval *arg1) { return pred(arg1->tag == FUNCTION || arg1->tag ==
 
 sval* cons(sval *arg1, sval *arg2) {
     // Should we allow cons-ing to make non-lists? currently yes!
+    if (arg1 && arg1->tag == ERROR) return arg1;
+    if (arg2 && arg2->tag == ERROR) return arg2;
     return make_cons(arg1, arg2);
 }
 
@@ -71,6 +73,7 @@ sval* car(sval *arg1) {
     TYPE(islist, arg1);
 
     if (isempty(arg1)) return error(ERR_EMPTY_LIST);
+    if (arg1 && arg1->tag == ERROR) return arg1;
     else return arg1->body.list.car;
 }
 
@@ -78,6 +81,7 @@ sval* cdr(sval *arg1) {
     TYPE(islist, arg1);
 
     if (isempty(arg1)) return error(ERR_EMPTY_LIST);
+    if (arg1 && arg1->tag == ERROR) return arg1;
     else return arg1->body.list.cdr;
 }
 

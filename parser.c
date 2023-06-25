@@ -327,7 +327,12 @@ sexp* parse_sexp(char **s) {
 
 sexp* parse(char *s) {
     sexp *first = parse_sexp(&s);
-    if (first) return cons(first, parse(s));
-    else return make_empty();
+    if (!first) return make_empty();
+    else if (first->tag == ERROR) return first;
+    else {
+        sexp *rest = parse(s);
+        if (rest->tag == ERROR) return rest;
+        else return cons(first, rest);
+    }
 }
 
