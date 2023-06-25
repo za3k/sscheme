@@ -4,7 +4,7 @@ nil => nil
 #t => #t
 #f => #f
 
-# Numbers
+# Number parsing
 1 => 1
 10 => 10
 100 => 100
@@ -69,15 +69,10 @@ pair? => pair?
 number? => number?
 display => display
 procedure? => procedure?
-NewVar => err
 else => #t
+NewVar => err
 
-(list) => ()
-(list 1) => (1)
-(list 1 2) => (1 2)
-(list 1 2 3) => (1 2 3)
-(list 1 (list 2 (list 3))) => (1 (2 (3)))
-
+# Tests for each form
 (quote) => err
 (quote 1 2) => err
 (quote a) => :a
@@ -88,20 +83,6 @@ else => #t
 (quote nil) => :nil
 (quote #t) => #t
 (quote #f) => #f
-
-(+) => err
-(+ 1) => 1
-(+ 1 2) => 3
-(+ 1 2 3) => 6
-(+ 1 (list 2 3) 4) => err
-
-(-) => err
-(- 5) => -5
-(- 10 2) => 8
-(- 2 10) => -8
-(- 1 2 3) => err
-(- 1 2 3 4) => err
-(- 1 (list 1 2)) => err
 
 ((lambda () 1)) => 1
 ((lambda (x) 1) 2) => 1
@@ -123,3 +104,24 @@ else => #t
        ((eq? 2 4) 5)
        (else (quote b))))
     => :a
+
+# Tests for each builtin
+(list) => ()
+(list 1) => (1)
+(list 1 2) => (1 2)
+(list 1 2 3) => (1 2 3)
+(list 1 (list 2 (list 3))) => (1 (2 (3)))
+
+(+) => err
+(+ 1) => 1
+(+ 1 2) => 3
+(+ 1 2 3) => 6
+(+ 1 (list 2 3) 4) => err
+
+(-) => err
+(- 5) => -5
+(- 10 2) => 8
+(- 2 10) => -8
+(- 1 2 3) => err
+(- 1 2 3 4) => err
+(- 1 (list 1 2)) => err

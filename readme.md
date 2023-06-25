@@ -32,6 +32,8 @@ Finished features:
 
 Unfinished features:
 - Macros
+- lambda varargs support
+- comments
 - Data types
     - Strings
 - Special forms: `and` `define` `do` `for-each` `if` `let` `or` `set!` `set-car!` `set-cdr!`
