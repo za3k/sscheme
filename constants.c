@@ -149,6 +149,7 @@ struct sval CHARS_V[128] = {
 sexp LAMBDA_V = { SPECIAL_FORM, .body.form = lambda };
 sexp COND_V = { SPECIAL_FORM, .body.form = cond };
 sexp QUOTE_V = { SPECIAL_FORM, .body.form = quote };
+struct senv BASE_ENV = { { &EMPTY_V, &EMPTY_V }, 0 };
 
 char *char_constant_names[] = {
     "#\\nul", "#\\soh", "#\\stx", "#\\etx", // 0-3

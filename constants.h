@@ -16,5 +16,6 @@ extern struct sval NIL_V;
 extern sexp LAMBDA_V;
 extern sexp COND_V;
 extern sexp QUOTE_V;
+extern struct senv BASE_ENV;
 
 #endif // CONSTANTSH
