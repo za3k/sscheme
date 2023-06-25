@@ -73,18 +73,9 @@ sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);
 sval* make_symbol(char* name);
 
-// XXX How to move defs to .h file instead of using singleton "makers"?
-sval* make_true();
-sval* make_nil();
-sval* make_false();
 sval* make_empty();
 sval* make_prim(sval* primitive(sval*));
 sexp* make_function(sexp *parameters, sexp *body, struct senv *env);
 sval* make_character_constant (char c);
-
-sexp* make_cond();
-sexp* make_quote();
-sexp* make_lambda();
-sexp* make_define();
 
 #endif // __TYPES

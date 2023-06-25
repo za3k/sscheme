@@ -36,7 +36,7 @@ Unfinished features:
 - comments
 - Data types
     - Strings
-- Special forms: `and` `do` `for-each` `if` `let` `or` `set!` `set-car!` `set-cdr!`
+- Special forms: `and` `do` `for-each` `if` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`
 - Garbage collection
 - Input/output, either interactively from stdin or files.
 - Most of the standard library
