@@ -59,7 +59,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             case EMPTY_LIST: size = snprintf(buffer, n, "()"); break;
             case FALSE: size = snprintf(buffer, n, "#f"); break;
             case TRUE: size = snprintf(buffer, n, "#t"); break;
-            case C000...C127: size = snprintf(buffer, n, char_constant_names[arg->body.constant-C000]); break;
+            case C000...C127: size = snprintf(buffer, n, "%s", char_constant_names[arg->body.constant-C000]); break;
             //default: size = snprintf(buffer, n, "<Unknown constant>");
         }
     } else if (arg->tag == SPECIAL_FORM) {
