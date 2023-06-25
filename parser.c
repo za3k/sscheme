@@ -13,7 +13,7 @@ sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form, tok_constant, tok_eof } tag;
+    enum token_type { tok_close_paren, tok_constant, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_symbol, } tag;
     sexp* atom;
 };
 
@@ -31,7 +31,6 @@ int parse_int(char **s, int *result) {
                 *s = p;
                 *result = out*sign;
                 return 1;
-                break;
             default:
                 return 0;
         }
@@ -51,7 +50,6 @@ int parse_int_octal(char **s, int *result) {
                 *s = p;
                 *result = out*sign;
                 return 1;
-                break;
             default:
                 return 0;
         }
@@ -74,7 +72,6 @@ int parse_int_hex(char **s, int *result) {
                 *s = p;
                 *result = out*sign;
                 return 1;
-                break;
             default:
                 return 0;
         }
@@ -99,7 +96,6 @@ sexp* parse_character_constant(char**s) {
             case '(': case ')':
                 CONSTANT_BUF[length] = 0;
                 goto done;
-                break;
             default:
                 CONSTANT_BUF[length] = (*s)[length];
                 length++;
