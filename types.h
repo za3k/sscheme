@@ -43,7 +43,7 @@ typedef struct sval {
     int smallnum; // Small integer. No bignum support.
     enum {
        // TODO: We never look at this. Use only memory position?
-       FALSE, TRUE, EMPTY_LIST, NIL,
+       constant_false, constant_true, constant_empty_list, constant_nil,
        C000, C001, C002, C003, C004, C005, C006, C007, C008, C009,
        C010, C011, C012, C013, C014, C015, C016, C017, C018, C019,
        C020, C021, C022, C023, C024, C025, C026, C027, C028, C029,

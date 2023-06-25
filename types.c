@@ -75,7 +75,7 @@ sexp* make_macro(sexp *function) {
 
 sval* make_character_constant (char c) { 
     if (((unsigned int)c) >= 128) return 0;
-    return &CHARS_V[(int)c];
+    return CHARS[(int)c];
 };
 
-sval* make_empty() { return &EMPTY_V; }
+sval* make_empty() { return EMPTY_LIST; }

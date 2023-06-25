@@ -8,10 +8,10 @@
 // TODO: Include tests.txt and standard.txt as string constants instead of slurping them.
 
 int iserror(sval *arg) { return arg->tag == ERROR; }
-int isempty(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == EMPTY_LIST; }
-int isnil(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == NIL; }
-int isfalse(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == FALSE; }
-int istrue(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == TRUE; }
+int isempty(sval *arg) { return arg == EMPTY_LIST; }
+int isnil(sval *arg) { return arg == NIL; }
+int isfalse(sval *arg) { return arg == FALSE; }
+int istrue(sval *arg) { return arg == TRUE; }
 // TODO: Rename to ispair, name CONS->PAIR
 int islist(sval *arg) { return arg->tag == CONS || isempty(arg); }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
@@ -58,10 +58,10 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         size = snprintf(buffer, n, ":%s", arg->body.symbol);
     } else if (arg->tag == CONSTANT) {
         switch (arg->body.constant) {
-            case NIL: size = snprintf(buffer, n, "nil"); break;
-            case EMPTY_LIST: size = snprintf(buffer, n, "()"); break;
-            case FALSE: size = snprintf(buffer, n, "#f"); break;
-            case TRUE: size = snprintf(buffer, n, "#t"); break;
+            case constant_nil: size = snprintf(buffer, n, "nil"); break;
+            case constant_empty_list: size = snprintf(buffer, n, "()"); break;
+            case constant_false: size = snprintf(buffer, n, "#f"); break;
+            case constant_true: size = snprintf(buffer, n, "#t"); break;
             case C000...C127: size = snprintf(buffer, n, "%s", char_constant_names[arg->body.constant-C000]); break;
             //default: size = snprintf(buffer, n, "<Unknown constant>");
         }

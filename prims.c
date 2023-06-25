@@ -19,7 +19,7 @@ int listOf(sval *arg, int p(sval *arg)) {
 }
 
 inline static sval* pred(int x) {
-    return x ? &TRUE_V : &FALSE_V;
+    return x ? TRUE : FALSE;
 }
 
 /*  ============ Arity checkers and uniform function signatures ============= */
@@ -113,5 +113,5 @@ sval* print(sval *args) {
         print1nl(car(args));
         args = cdr(args);
     }
-    return &NIL_V;
+    return NIL;
 }
