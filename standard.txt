@@ -1,6 +1,7 @@
 (define empty? null?)
 (define eqv? eq?)
 (define = eq?)
+(define else #t)
 
 (define cadr (lambda (x) (car (cdr x))))
 (define cdar (lambda (x) (cdr (car x))))

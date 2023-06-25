@@ -152,7 +152,6 @@ struct senv* empty_env() {
         define(BUILTINS_ENV, "define", DEFINE);
         define(BUILTINS_ENV, "define-macro", DEFINE_MACRO);
         define(BUILTINS_ENV, "nil", NIL);
-        define(BUILTINS_ENV, "else", TRUE);
         for (int i=0; primitives[i]!=0; i++)
             define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
 
