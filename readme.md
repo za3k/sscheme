@@ -28,11 +28,10 @@ Finished features:
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
 - Comments
-- Special forms: `cond` `define` `lambda` `quote`
+- Special forms: `cond` `define` `define-macro` `lambda` `quote`
 - Builtins: `+` `-` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `first` (`second`, `third`...) `last` `list` `list?` `nil?` `number?` `print` `procedure?` `rest`
 
 Unfinished features:
-- Macros
 - lambda varargs support
 - Data types
     - Strings

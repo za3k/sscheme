@@ -12,6 +12,7 @@ int isempty(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == EM
 int isnil(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == NIL; }
 int isfalse(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == FALSE; }
 int istrue(sval *arg) { return arg->tag == CONSTANT && arg->body.constant == TRUE; }
+// TODO: Rename to ispair, name CONS->PAIR
 int islist(sval *arg) { return arg->tag == CONS || isempty(arg); }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
@@ -70,6 +71,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             case form_cond: size = snprintf(buffer, n, "cond"); break;
             case form_lambda: size = snprintf(buffer, n, "lambda"); break;
             case form_define: size = snprintf(buffer, n, "define"); break;
+            case form_define_macro: size = snprintf(buffer, n, "define-macro"); break;
             //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
@@ -92,6 +94,10 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         size = snprintf(buffer, n, "<error: %s>", arg->body.error);
     } else if (arg->tag == FUNCTION) {
         size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg->body);
+    } else if (arg->tag == MACRO) {
+        size = snprintf(buffer, n, "<macro ");
+        size += snprint1(buffer+size, n-size, arg->body.macro_procedure);
+        size += snprintf(buffer+size, n-size, ">");
     } else if (arg->tag == CONS) {
         size = snprintf(buffer, n, "(");
         sval *lst = arg;

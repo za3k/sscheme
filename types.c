@@ -66,6 +66,13 @@ sexp* make_function(sexp *parameters, sexp *body, struct senv *env) {
     return v;
 }
 
+sexp* make_macro(sexp *function) {
+    sval *v = make_cell();
+    v->tag = MACRO;
+    v->body.macro_procedure = function;
+    return v;
+}
+
 sval* make_character_constant (char c) { 
     if (((unsigned int)c) >= 128) return 0;
     return &CHARS_V[(int)c];

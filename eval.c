@@ -33,15 +33,10 @@ sval* eval1(sexp* expression, struct senv* env) {
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == ERROR) return expression;
     else if (expression->tag == CONS) { // An application
+        print1nl(expression);
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
-        if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
-            return car(rest);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
-            else return make_function(car(rest), car(cdr(rest)), env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
+        if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
             return evcond(car(rest), env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define) {
@@ -50,15 +45,29 @@ sval* eval1(sexp* expression, struct senv* env) {
             if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
             define(env, arg1->body.symbol, eval1(arg2, env));
             return &NIL_V;
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define_macro) {
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
+            if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
+            define(env, arg1->body.symbol, make_macro(eval1(arg2, env)));
+            return &NIL_V;
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            else return make_function(car(rest), car(cdr(rest)), env);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
+            return car(rest);
         } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
         else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
+        else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
         else if (proc->tag == ERROR) return proc;
         else return error(ERR_APPLY_NON_FUNCTION);
     } else return error(ERR_EVAL_UNKNOWN);
 }
 
 sval* apply(sval* proc, sval* args) {
-    if (args->tag == ERROR) return args;
+    if (proc->tag == ERROR) return proc;
+    else if (args->tag == ERROR) return args;
     return eval1(
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
@@ -136,6 +145,7 @@ struct senv* empty_env() {
         define(&BUILTINS_ENV, "cond", &COND_V);
         define(&BUILTINS_ENV, "quote", &QUOTE_V);
         define(&BUILTINS_ENV, "define", &DEFINE_V);
+        define(&BUILTINS_ENV, "define-macro", &DEFINE_MACRO_V);
         define(&BUILTINS_ENV, "nil", &NIL_V);
         define(&BUILTINS_ENV, "else", &TRUE_V);
         define(&BUILTINS_ENV, "eq?", make_prim(prim_eqp));

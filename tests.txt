@@ -93,6 +93,8 @@ NewVar => err
 ((lambda (x y) x) 1 2) => 1
 ((lambda (x y) y) 1 2) => 2
 (lambda (x) x) => proc
+((lambda (x y) (x y)) car (list 2 3)) => 2
+((lambda (x y) (x y)) (lambda (y) (car y)) (list 2 3)) => 2
 
 (cond (((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b)))) => :b
 (cond (((eq? 2 3) (quote a))
@@ -116,6 +118,8 @@ NewVar => err
 (define x 1)
 (define y 2)
 x => 1
+
+(define-macro f (lambda (x y) (list x y))) (f car (list 1 2)) => 1
 
 ; Tests for each builtin
 (list) => ()

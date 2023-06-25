@@ -36,12 +36,13 @@ struct sclosure {
 
 // Sh
 typedef struct sval {
-  enum stype { NUMBER, SYMBOL, CONS, SPECIAL_FORM, PRIMITIVE, FUNCTION, CONSTANT, ERROR } tag;
+  enum stype { CONS, CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PRIMITIVE, SPECIAL_FORM, SYMBOL } tag;
   union {
     struct scons list; // NIL is also considered the empty list
     char *symbol; // Symbols are parsed to strings instead of ints for convenience
     int smallnum; // Small integer. No bignum support.
     enum {
+       // TODO: We never look at this. Use only memory position?
        FALSE, TRUE, EMPTY_LIST, NIL,
        C000, C001, C002, C003, C004, C005, C006, C007, C008, C009,
        C010, C011, C012, C013, C014, C015, C016, C017, C018, C019,
@@ -58,8 +59,10 @@ typedef struct sval {
        C120, C121, C122, C123, C124, C125, C126, C127,
     } constant;
     enum { 
-        form_quote, form_lambda, form_cond, form_define, // Special forms
+       // TODO: We rarely look at this. Use only memory position?
+        form_cond, form_define, form_define_macro, form_lambda, form_quote // Special forms
     } form;
+    struct sval *macro_procedure;
     struct sval* (*primitive)(struct sval*);
     struct sclosure closure;
     char *error;
@@ -76,6 +79,7 @@ sval* make_symbol(char* name);
 sval* make_empty();
 sval* make_prim(sval* primitive(sval*));
 sexp* make_function(sexp *parameters, sexp *body, struct senv *env);
+sexp* make_macro(sexp *function);
 sval* make_character_constant (char c);
 
 #endif // __TYPES
