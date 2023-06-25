@@ -13,7 +13,16 @@ sval* lookup(sexp *symbol, struct senv *env);
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
 struct senv* bind(sexp *parameters, sval *values, struct senv *env);
 
-sval* eval(sexp* expression, struct senv* env) {
+sval* eval_all(sexp *expressions, struct senv *env) {
+    sval *ret=0;
+    while (!isempty(expressions)) {
+        ret = eval1(car(expressions), env);
+        expressions = cdr(expressions);
+    }
+    return ret;
+}
+
+sval* eval1(sexp* expression, struct senv* env) {
     if (expression->tag == NUMBER) return expression;
     else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
@@ -22,7 +31,7 @@ sval* eval(sexp* expression, struct senv* env) {
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == ERROR) return expression;
     else if (expression->tag == CONS) { // An application
-        sval *proc = eval(car(expression), env);
+        sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
         if (proc->tag == SPECIAL_FORM && proc->body.form == quote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
@@ -42,7 +51,7 @@ sval* eval(sexp* expression, struct senv* env) {
 
 sval* apply(sval* proc, sval* args) {
     if (args->tag == ERROR) return args;
-    return eval(
+    return eval1(
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
@@ -51,7 +60,7 @@ sval* evlist(sexp *args, struct senv *env) {
     if (args->tag == CONSTANT && args->body.constant == EMPTY_LIST) return args;
     else if(args->tag == CONS) {
         return make_cons(
-            eval(car(args), env),
+            eval1(car(args), env),
             evlist(cdr(args), env)
         );
     } else return error(ERR_EVLIST_NON_LIST);
@@ -60,10 +69,10 @@ sval* evlist(sexp *args, struct senv *env) {
 sval* evcond(sexp *conditions, struct senv *env) {
     if (isempty(conditions)) return make_nil();
     else {
-        sexp *condition = eval(car(car(conditions)), env);
+        sexp *condition = eval1(car(car(conditions)), env);
         if (condition->tag == ERROR) return condition;
         sexp *body = car(cdr(car(conditions)));
-        if (!isfalse(condition)) return eval(body, env);
+        if (!isfalse(condition)) return eval1(body, env);
         else return evcond(cdr(conditions), env);
     }
 }

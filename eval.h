@@ -1,7 +1,8 @@
 #include "types.h"
 
 // The core!
-sval* eval(sexp *expression, struct senv *env);
+sval* eval1(sexp *expression, struct senv *env);
+sval* eval_all(sexp *expressions, struct senv *env);
 sval* apply(sval *proc, sval *args);
 
 struct senv* empty_env();

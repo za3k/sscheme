@@ -22,6 +22,6 @@ int main(int argc, char *argv[]) {
     sexp* parsed = parse(EXAMPLE);
     //print1nl(parsed);
 
-    sval* result = eval(parsed, empty_env());
+    sval* result = eval_all(parsed, empty_env());
     print1nl(result);
 }

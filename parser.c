@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "errors.h"
+#include "prims.h"
 #include "constants.h"
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +13,7 @@ sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form, tok_constant } tag;
+    enum token_type { tok_open_paren, tok_close_paren, tok_symbol, tok_number, tok_quote, tok_form, tok_constant, tok_eof } tag;
     sexp* atom;
 };
 
@@ -238,8 +239,7 @@ struct token* parse_token(char **s) {
             }
             break;
         case '\0':
-            free(res);
-            return 0; // Done parsing!
+            res->tag = tok_eof; // Done parsing!
             break;
         case 'a'...'z':
         case 'A'...'Z':
@@ -313,6 +313,10 @@ sexp* parse_sexp(char **s) {
             ret = error(ERR_QUOTE_NOT_IMPL);
             free_tok(next_token);
             break;
+        case tok_eof:
+            free(next_token);
+            return 0;
+            break;
         default:
             ret = error(ERR_UNKNOWN_TOKEN);
             free_tok(next_token);
@@ -322,6 +326,8 @@ sexp* parse_sexp(char **s) {
 }
 
 sexp* parse(char *s) {
-    return parse_sexp(&s); // Ignore anything after it for simplicity.
+    sexp *first = parse_sexp(&s);
+    if (first) return cons(first, parse(s));
+    else return make_empty();
 }
 

@@ -47,19 +47,18 @@ static char file_buffer[10000];
 int read_tests(char *path, char** inputs, char **expected_outputs) {
     // Return number of tests read
     int i;
-    printf("Reading file... ");
     char *remaining_file = slurp_file(path, file_buffer);
-    printf("Reading file... ");
+    //printf("Reading file... ");
     strip_comments(file_buffer);
-    printf("done\n");
-    printf("Reading test... ");
+    //printf("done\n");
+    //printf("Reading test... ");
     for(i=0;;i++) {
         inputs[i] = malloc(1000);
         expected_outputs[i] = malloc(1000);
         if (!read_test(&remaining_file, inputs[i], expected_outputs[i])) break;
-        printf("%d,",i+1);
+        //printf("%d,",i+1);
     }
-    printf("finished\n");
+    //printf("finished\n");
     return i;
 }
 
@@ -69,14 +68,14 @@ int run_test(char* input, char* expected_output) {
     //printf("Toparse: %s\n", input);
     sexp* parsed = parse(input);
     //print1nl(parsed);
-    sval* result = eval(parsed, empty_env());
+    sval* result = eval_all(parsed, empty_env());
 
     snprint1(output, sizeof(output), result);
     int success = strcmp(output,expected_output)==0 ||
       (strcmp("proc", expected_output)==0 && result->tag == FUNCTION) ||
       (strcmp("err", expected_output)==0 && result->tag == ERROR);
     if (success) {
-        printf("pass\n");
+        //printf("pass\n");
     } else {
         printf("\nTest: %s\n", input);
         printf("          => %s\n", output);
@@ -94,10 +93,10 @@ int run_tests() {
 
     num_tests = read_tests(TESTS_FILE, inputs, expected_outputs);
     for (i=0; i<num_tests;i++) {
-        printf("Running test %d... ", i+1);
+        //printf("Running test %d... ", i+1);
         failed_tests += run_test(inputs[i], expected_outputs[i]);
     }
-    printf("%d/%d tests passed\n", num_tests-failed_tests, num_tests);
+    printf("%d/%d tests passed: ", num_tests-failed_tests, num_tests);
     if (failed_tests > 0) printf("FAILURE\n");
     else printf("SUCCESS\n");
     return failed_tests > 0;

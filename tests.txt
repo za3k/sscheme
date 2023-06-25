@@ -54,7 +54,7 @@ nil => nil
 
 ; Lists
 (1 2 3) => err
-(list 1 2 3)) => (1 2 3)
+(list 1 2 3) => (1 2 3)
 (quote (1 2 3)) => (1 2 3)
 
 ; Primitive/symbol resolution
@@ -71,6 +71,9 @@ display => display
 procedure? => procedure?
 else => #t
 NewVar => err
+
+; Make sure multiple expressions works
+1 2 => 2
 
 ; Tests for each form
 (quote) => err

@@ -1,4 +1,4 @@
-// TODO: String, char
+// TODO: String
 
 #ifndef __TYPES
 #define __TYPES
