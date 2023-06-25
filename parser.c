@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: String parsing: "abc\n"
+#include <stdio.h>
+
 // TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
 // TODO: Intern symbols to save space and allow == comparison
 
@@ -13,9 +14,44 @@ sexp* parse_list_right(char **s);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_close_paren, tok_constant, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_symbol, } tag;
+    enum token_type { tok_close_paren, tok_constant, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol, } tag;
     sexp* atom;
 };
+
+char STRING_BUF[1000];
+char* parse_string(char **s) {
+    int len=0;
+    (*s)++; // Initial quote
+    while (1) {
+        char p=**s;
+        switch(p) {
+            case 0: return 0;
+            case '\"':
+                (*s)++;
+                STRING_BUF[len]=0;
+                return strdup(STRING_BUF);
+            case '\\':
+                (*s)++;
+                p=**s;
+                switch(p) {
+                    case 'a': p='\a'; break;
+                    case 'b': p='\b'; break;
+                    case 'f': p='\f'; break;
+                    case 'n': p='\n'; break;
+                    case 'r': p='\r'; break;
+                    case 't': p='\t'; break;
+                    case 'v': p='\v'; break;
+                    case '0': p='\0'; break; // Will break the string, whatever.
+                    case 0: return 0;
+                    // default: p=p
+                }
+            default:
+                STRING_BUF[len++]=p;
+        }
+        (*s)++;
+    }
+    return 0;
+}
 
 int parse_int(char **s, int *result) {
     int out = 0;
@@ -191,8 +227,7 @@ struct token* parse_token(char **s) {
             res->atom = make_int(parsed_int);
             break;
         case ';': // Ignore comments, don't output a token.
-            (*s)++;
-            while (**s != '\n') (*s)++;
+            while (*(++*s) != '\n');
             (*s)++;
             goto start;
         case '(':
@@ -254,6 +289,12 @@ struct token* parse_token(char **s) {
             free(parsed_symbol);
             break;
         case '"':
+            parsed_symbol = parse_string(s);
+            if (!parsed_symbol) { free(res); return 0; }
+            res->tag = tok_string;
+            res->atom = make_string(parsed_symbol);
+            free(parsed_symbol);
+            break;
         default:
             free(res);
             return 0; // Nope! Not allowed
@@ -303,10 +344,11 @@ sexp* parse_sexp(char **s) {
             ret = error(ERR_UNEXPECTED_CLOSE);
             free_tok(next_token);
             break;
-        case tok_form:
-        case tok_symbol:
-        case tok_number:
         case tok_constant:
+        case tok_form:
+        case tok_number:
+        case tok_string:
+        case tok_symbol:
             ret = next_token->atom;
             free(next_token);
             break;
@@ -317,7 +359,6 @@ sexp* parse_sexp(char **s) {
         case tok_eof:
             free(next_token);
             return 0;
-            break;
         default:
             ret = error(ERR_UNKNOWN_TOKEN);
             free_tok(next_token);
@@ -336,4 +377,3 @@ sexp* parse(char *s) {
         else return cons(first, rest);
     }
 }
-

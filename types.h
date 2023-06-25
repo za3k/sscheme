@@ -1,5 +1,3 @@
-// TODO: String
-
 #ifndef __TYPES
 #define __TYPES
 
@@ -36,7 +34,7 @@ struct sclosure {
 
 // Sh
 typedef struct sval {
-  enum stype { CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, SYMBOL } tag;
+  enum stype { CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
     struct scons list; // NIL is also considered the empty list
     char *symbol; // Symbols are parsed to strings instead of ints for convenience
@@ -75,6 +73,7 @@ sval* make_cell();
 sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);
 sval* make_symbol(char* name);
+sval* make_string(char* str);
 
 sval* make_empty();
 sval* make_prim(sval* primitive(sval*));

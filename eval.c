@@ -30,6 +30,7 @@ sval* eval1(sexp* expression, struct senv* env) {
     else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
     else if (expression->tag == PRIMITIVE) return expression;
+    else if (expression->tag == STRING) return expression;
     else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
     else if (expression->tag == ERROR) return expression;

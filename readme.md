@@ -27,6 +27,7 @@ Finished features:
     - Lists
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
+    - Strings
 - Comments
 - Special forms: `cond` `define` `define-macro` `lambda` `quote`
 - Builtins: `+` `-` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `first` (`second`, `third`...) `last` `list` `list?` `nil?` `number?` `print` `procedure?` `rest`
@@ -34,8 +35,6 @@ Finished features:
 Unfinished features:
 - lambda varargs support
 - `(define (f arg1 arg) ...)` syntax
-- Data types
-    - Strings
 - Special forms: `and` `do` `for-each` `if` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`
 - Garbage collection
 - Input/output, either interactively from stdin or files.

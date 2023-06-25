@@ -18,6 +18,7 @@ int iseq(sval *arg1, sval *arg2);
 
 int islistoflength(sval *arg, int l);
 
+// Print is repr-style
 void print1(sval *arg1);
 void print1nl(sval *arg1);
 int snprint1(char* buffer, size_t n, sval *arg);

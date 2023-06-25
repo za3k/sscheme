@@ -88,6 +88,25 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         size = snprintf(buffer, n, "<macro ");
         size += snprint1(buffer+size, n-size, arg->body.macro_procedure);
         size += snprintf(buffer+size, n-size, ">");
+    } else if (arg->tag == STRING) {
+        char *s = arg->body.symbol;
+        char c;
+        int size=snprintf(buffer, n, "\"");
+        while ((c=*(s++))) {
+            switch (c) {
+                case '\a': size += snprintf(buffer+size, n-size-1, "\\a"); break;
+                case '\b': size += snprintf(buffer+size, n-size-1, "\\b"); break;
+                case '\f': size += snprintf(buffer+size, n-size-1, "\\f"); break;
+                case '\n': size += snprintf(buffer+size, n-size-1, "\\n"); break;
+                case '\r': size += snprintf(buffer+size, n-size-1, "\\r"); break;
+                case '\t': size += snprintf(buffer+size, n-size-1, "\\t"); break;
+                case '\v': size += snprintf(buffer+size, n-size-1, "\\v"); break;
+                case '"':  size += snprintf(buffer+size, n-size-1, "\\\""); break;
+                case '\\': size += snprintf(buffer+size, n-size-1, "\\\\"); break;
+                default:   size += snprintf(buffer+size, n-size-1, "%c", c);
+            }
+        }
+        size+=snprintf(buffer+size, n-size, "\"");
     } else if (arg->tag == PAIR) {
         size = snprintf(buffer, n, "(");
         sval *lst = arg;
@@ -98,19 +117,14 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             size += snprint1(buffer+size,n-size,lst->body.list.car);
             lst = lst->body.list.cdr;
         }
-        if (ispair(lst)) { // We finished a normal-style list. Done.
-            // ()
-            // (1 2 3)
-            // (1)
-        } else { // This is a 'cons', not a list.
-            // (1 . 2)
-            // (1 2 3 . 4)
+        if (ispair(lst)) {} // We finished a normal-style list. Done. (); (1 2 3); (1)
+        else { // This is a 'cons', not a list. (1 . 2); (1 2 3 . 4)
             size += snprintf(buffer+size,n-size," . ");
             size += snprint1(buffer+size,n-size,lst);
         }
         size += snprintf(buffer+size,n-size,")");
     } else {
-        size = printf(buffer, n, "<Unknown value>");
+        size = snprintf(buffer, n, "<Unknown value>");
     }
     return size;
 }

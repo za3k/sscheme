@@ -39,11 +39,14 @@ sval* make_int(int i) {
 
 sval* make_symbol(char* name) {
     sval *v = make_cell();
-    int l = strlen(name);
-    char *s = malloc(l+1);
-    memcpy(s, name, l+1);
     v->tag = SYMBOL;
-    v->body.symbol = s;
+    v->body.symbol = strdup(name);
+    return v;
+}
+sval* make_string(char* str) {
+    sval *v = make_cell();
+    v->tag = STRING;
+    v->body.symbol = strdup(str);
     return v;
 }
 
