@@ -1,4 +1,5 @@
 #include "tests.h"
+#include "tests.inc.h"
 #include "types.h"
 #include "eval.h"
 #include "parser.h"
@@ -29,13 +30,10 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
     return 1;
 }
 
-static char file_buffer[10000];
 int read_tests(char *path, char** inputs, char **expected_outputs) {
     // Return number of tests read
     int i;
-    //printf("Reading file... ");
-    char *remaining_file = slurp_file(path, file_buffer);
-    //printf("done\n");
+    char *remaining_file = tests_txt;
     //printf("Reading test... ");
     for(i=0;;i++) {
         inputs[i] = malloc(1000);

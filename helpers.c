@@ -5,8 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 
-// TODO: Include tests.txt and standard.txt as string constants instead of slurping them.
-
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isnil(sval *arg) { return arg == NIL; }
@@ -120,17 +118,6 @@ int snprint1(char* buffer, size_t n, sval *arg) {
 int islistoflength(sval *arg, int l) {
     if (l == 0) return isempty(arg);
     else return ispair(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
-}
-
-char* slurp_file(char *path, char* buffer) {
-    FILE *infile = fopen(path, "r");
-    fseek(infile, 0L, SEEK_END);
-    int numbytes = ftell(infile);
-    fseek(infile, 0L, SEEK_SET);
-    fread(buffer, sizeof(char), numbytes, infile);
-    fclose(infile);
-    buffer[numbytes]='\0';
-    return buffer;
 }
 
 char *slurp_stdin(char* buffer) {

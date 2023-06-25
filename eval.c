@@ -4,6 +4,7 @@
 #include "helpers.h"
 #include "parser.h"
 #include "prims.h"
+#include "standard.inc.h"
 #include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -156,9 +157,7 @@ struct senv* empty_env() {
             define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
 
         // Run the standard library
-        char *stdlib = slurp_file("standard.txt", STD_BUF);
-        sval *std_expressions = parse(stdlib);
-        eval_all(std_expressions, STANDARD_ENV);
+        eval_all(parse(standard_txt), STANDARD_ENV);
     }
 
     return bind(make_empty(), make_empty(), STANDARD_ENV); // Return an empty frame so we can 'define' and modify it.

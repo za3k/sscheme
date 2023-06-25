@@ -23,6 +23,5 @@ void print1nl(sval *arg1);
 int snprint1(char* buffer, size_t n, sval *arg);
 
 char* slurp_stdin(char *buffer);
-char* slurp_file(char *path, char *buffer);
 
 #endif //__HELPERS
