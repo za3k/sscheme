@@ -34,7 +34,7 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
 char* strip_comments(char* f) {
     int in=0, out=0;
     while (f[in] != 0) {
-        while (f[in] == '#' && f[in+1] == ' ') { // Skip the comment(s)
+        while (f[in] == ';' && f[in+1] == ' ') { // Skip the comment(s)
             while (f[in] != '\n' && f[in] != '\0') in++;
             if (f[in] == '\n') f[out++] = f[in++];
         }

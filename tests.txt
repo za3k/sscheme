@@ -1,17 +1,17 @@
-# Constants
+; Constants
 () => ()
 nil => nil
 #t => #t
 #f => #f
 
-# Number parsing
+; Number parsing
 1 => 1
 10 => 10
 100 => 100
 -10 => -10
 -symbol_name => err
 
-# Decimal, Octal, Hex parsing
+; Decimal, Octal, Hex parsing
 #d10 => 10
 #o10 => 8
 #x10 => 16
@@ -23,7 +23,7 @@ nil => nil
 #x12 => 18
 #x100 => 256
 
-# Character constants
+; Character constants
 #\a => #\a
 #\m => #\m
 #\z => #\z
@@ -52,12 +52,12 @@ nil => nil
 #\space     => #\sp
 #\delete    => #\del
 
-# Lists
+; Lists
 (1 2 3) => err
 (list 1 2 3)) => (1 2 3)
 (quote (1 2 3)) => (1 2 3)
 
-# Primitive/symbol resolution
+; Primitive/symbol resolution
 + => +
 - => -
 car => car
@@ -72,7 +72,7 @@ procedure? => procedure?
 else => #t
 NewVar => err
 
-# Tests for each form
+; Tests for each form
 (quote) => err
 (quote 1 2) => err
 (quote a) => :a
@@ -105,7 +105,7 @@ NewVar => err
        (else (quote b))))
     => :a
 
-# Tests for each builtin
+; Tests for each builtin
 (list) => ()
 (list 1) => (1)
 (list 1 2) => (1 2)
