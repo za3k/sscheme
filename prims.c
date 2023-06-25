@@ -115,3 +115,31 @@ sval* print(sval *args) {
     }
     return NIL;
 }
+
+
+
+sval* (*primitives[])(sval *args) = {
+    &prim_car,
+    &prim_cdr,
+    &prim_cons,
+
+    &prim_plus,
+    &prim_minus,
+
+    &prim_nilp,
+    &prim_listp,
+    &prim_numberp,
+    &prim_emptyp,
+    &prim_procedurep,
+
+    &prim_eqp,
+    &prim_list,
+    &prim_print,
+    0,
+};
+char* primitive_names[] = {
+    "car", "cdr", "cons",
+    "+", "-",
+    "nil?", "pair?", "number?", "null?", "procedure?",
+    "eq?", "list", "display",
+};

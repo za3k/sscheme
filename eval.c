@@ -147,19 +147,8 @@ struct senv* empty_env() {
         define(BUILTINS_ENV, "define-macro", DEFINE_MACRO);
         define(BUILTINS_ENV, "nil", NIL);
         define(BUILTINS_ENV, "else", TRUE);
-        define(BUILTINS_ENV, "eq?", make_prim(prim_eqp));
-        define(BUILTINS_ENV, "+", make_prim(prim_plus));
-        define(BUILTINS_ENV, "-", make_prim(prim_minus));
-        define(BUILTINS_ENV, "cons", make_prim(prim_cons));
-        define(BUILTINS_ENV, "car", make_prim(prim_car));
-        define(BUILTINS_ENV, "cdr", make_prim(prim_cdr));
-        define(BUILTINS_ENV, "nil?", make_prim(prim_nilp));
-        define(BUILTINS_ENV, "null?", make_prim(prim_emptyp));
-        define(BUILTINS_ENV, "pair?", make_prim(prim_listp));
-        define(BUILTINS_ENV, "number?", make_prim(prim_numberp));
-        define(BUILTINS_ENV, "procedure?", make_prim(prim_procedurep));
-        define(BUILTINS_ENV, "list", make_prim(prim_list));
-        define(BUILTINS_ENV, "display", make_prim(prim_print));
+        for (int i=0; primitives[i]!=0; i++)
+            define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
 
         // Run the standard library
         char *stdlib = slurp_file("standard.txt", STD_BUF);

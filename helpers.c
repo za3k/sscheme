@@ -75,21 +75,14 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
-        sval* (*p)(sval*) = arg->body.primitive;
-        if (p==prim_cons) size = snprintf(buffer, n, "cons");
-        else if (p==prim_car) size = snprintf(buffer, n, "car");
-        else if (p==prim_cdr) size = snprintf(buffer, n, "cdr");
-        else if (p==prim_plus) size = snprintf(buffer, n, "+");
-        else if (p==prim_minus) size = snprintf(buffer, n, "-");
-        else if (p==prim_nilp) size = snprintf(buffer, n, "nil?");
-        else if (p==prim_listp) size = snprintf(buffer, n, "pair?");
-        else if (p==prim_numberp) size = snprintf(buffer, n, "number?");
-        else if (p==prim_emptyp) size = snprintf(buffer, n, "null?");
-        else if (p==prim_procedurep) size = snprintf(buffer, n, "procedure?");
-        else if (p==prim_list) size = snprintf(buffer, n, "list");
-        else if (p==prim_print) size = snprintf(buffer, n, "display");
-        else if (p==prim_eqp) size = snprintf(buffer, n, "eq?");
-        else size = snprintf(buffer, n, "<builtin %lx>", (unsigned long int) p);
+        int i;
+        for (i=0; primitives[i]!=0; i++) {
+            if (primitives[i]==arg->body.primitive) {
+                size = snprintf(buffer, n, "%s", primitive_names[i]);
+                break;
+            }
+        }
+        if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long int) arg->body.primitive);
     } else if (arg->tag == ERROR) {
         size = snprintf(buffer, n, "<error: %s>", arg->body.error);
     } else if (arg->tag == FUNCTION) {

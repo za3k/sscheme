@@ -3,22 +3,8 @@
 // TODO: add definitions in scheme
 
 // Primitive functions -- uniform signature
-sval* prim_car(sval *args);
-sval* prim_cdr(sval *args);
-sval* prim_cons(sval *args);
-
-sval* prim_plus(sval *args);
-sval* prim_minus(sval *args);
-
-sval* prim_nilp(sval *args);
-sval* prim_listp(sval *args);
-sval* prim_numberp(sval *args);
-sval* prim_emptyp(sval *args);
-sval* prim_procedurep(sval *args);
-
-sval* prim_eqp(sval *args);
-sval* prim_list(sval *args);
-sval* prim_print(sval *args);
+extern sval* (*primitives[])(sval *args);
+extern char* primitive_names[];
 
 // Primitive functions -- core
 sval* cons(sval *arg1, sval *arg2);
