@@ -74,6 +74,12 @@ nil => nil
 (list 1 2 3) => (1 2 3)
 (quote (1 2 3)) => (1 2 3)
 
+; Pairs
+(quote (1 2 . 3)) => (1 2 . 3)
+(quote (1 . 2)) => (1 . 2)
+(quote (. 2)) => err
+(quote (1 2 . 3 4)) => err
+
 ; Primitive/symbol resolution
 + => +
 - => -

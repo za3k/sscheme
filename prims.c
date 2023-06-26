@@ -7,13 +7,13 @@
 // Type and arity checker macros
 #define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
 #define TYPE(p, arg) if (!p(arg)) return error(ERR_WRONG_TYPE);
-#define VARITY(args) if (!ispair(args)) return error(ERR_NON_LIST);
+#define VARITY(args) if (!ispair(args) && !isempty(args)) return error(ERR_NON_LIST);
 #define VARITY_TYPE(p, args) if (!listOf(args, p)) return error(ERR_WRONG_TYPE);
 
 // Helpers
 int listOf(sval *arg, int p(sval *arg)) {
-    if (!ispair(arg)) return 0;
     if (isempty(arg)) return 1;
+    if (!ispair(arg)) return 0;
     if (!p(car(arg))) return 0;
     return listOf(cdr(arg), p);
 }

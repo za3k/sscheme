@@ -10,7 +10,7 @@ int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isnil(sval *arg) { return arg == NIL; }
 int isfalse(sval *arg) { return arg == FALSE; }
 int istrue(sval *arg) { return arg == TRUE; }
-int ispair(sval *arg) { return arg->tag == PAIR || isempty(arg); }
+int ispair(sval *arg) { return arg->tag == PAIR; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
 
@@ -111,13 +111,13 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         size = snprintf(buffer, n, "(");
         sval *lst = arg;
         int first=1;
-        while (ispair(lst) && !isempty(lst)) {
+        while (ispair(lst)) {
             if (first) first=0;
             else size += snprintf(buffer+size,n-size," ");
             size += snprint1(buffer+size,n-size,lst->body.list.car);
             lst = lst->body.list.cdr;
         }
-        if (ispair(lst)) {} // We finished a normal-style list. Done. (); (1 2 3); (1)
+        if (isempty(lst)) {} // We finished a normal-style list. Done. (); (1 2 3); (1)
         else { // This is a 'cons', not a list. (1 . 2); (1 2 3 . 4)
             size += snprintf(buffer+size,n-size," . ");
             size += snprint1(buffer+size,n-size,lst);
@@ -131,7 +131,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
 
 int islistoflength(sval *arg, int l) {
     if (l == 0) return isempty(arg);
-    else return ispair(arg) && !isempty(arg) && islistoflength(arg->body.list.cdr, l-1);
+    else return ispair(arg) && islistoflength(arg->body.list.cdr, l-1);
 }
 
 char *slurp_stdin(char* buffer) {

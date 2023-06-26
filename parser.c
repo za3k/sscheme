@@ -1,20 +1,19 @@
-#include "parser.h"
-#include "errors.h"
-#include "prims.h"
 #include "constants.h"
+#include "errors.h"
+#include "helpers.h"
+#include "parser.h"
+#include "prims.h"
 #include <stdlib.h>
 #include <string.h>
-
-#include <stdio.h>
 
 // TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
 // TODO: Intern symbols to save space and allow == comparison
 
-sexp* parse_list_right(char **s);
+sexp* parse_list_right(char **s, int atleastone);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_close_paren, tok_constant, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol, } tag;
+    enum token_type { tok_close_paren, tok_constant, tok_dot, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol, } tag;
     sexp* atom;
 };
 
@@ -175,8 +174,8 @@ char* parse_symbol(char **s) {
             case '0'...'9':
             case '!': case '@': case '$': case '%': case '^':
             case '&': case '*': case '_': case '=': case '+':
-            case '?': case '>': case '<': case '.': case '/':
-            case ':': case '~':
+            case '?': case '>': case '<': case '/': case ':': case '~':
+            case '.':
             case '-':
                 break;
             default:
@@ -277,12 +276,19 @@ struct token* parse_token(char **s) {
         case '\0':
             res->tag = tok_eof; // Done parsing!
             break;
+        case '.':
+            switch ((*s)[1]) {
+                case ' ': case '\t': case '\n': case '\r': case '\0':
+                    (*s)++;
+                    res->tag = tok_dot;
+                    return res;
+            }
+            // Fall through and parse a symbol like .foo
         case 'a'...'z':
         case 'A'...'Z':
         case '!': case '@': case '$': case '%': case '^':
         case '&': case '*': case '_': case '=': case '+':
-        case '?': case '>': case '<': case '.': case '/':
-        case ':': case '~':
+        case '?': case '>': case '<': case '/': case ':': case '~':
             parsed_symbol = parse_symbol(s);
             res->tag = tok_symbol;
             res->atom = make_symbol(parsed_symbol);
@@ -318,27 +324,41 @@ int peek_token(char **s) {
     return tag;
 }
 
-sexp* parse_list_right(char **s) {
-    // We just read "(". Parse the rest of the list, then return
-    if (peek_token(s) == tok_close_paren) {
+sexp* parse_list_right(char **s, int atleastone) {
+    // We just read "(<init1> <init2> ...".
+    // Parse the rest of the list, then return
+    if (peek_token(s) == tok_close_paren) { // )
         free(parse_token(s));
         return make_empty();
+    } else if (peek_token(s) == tok_dot) { // . <final>)
+        free(parse_token(s)); // Consume the dot
+        if (!atleastone) return error(ERR_UNEXPECTED_DOT);
+        sexp *last = parse_sexp(s);
+        if (!last) return 0;
+        if (last->tag == ERROR) return last;
+        sexp *rest = parse_list_right(s, 1);
+        if (isempty(rest)) {
+            return last;
+        } else { // We will leak the rest of the list, but it only happens on error
+            return error(ERR_UNEXPECTED_DOT);
+        }
+    } else { // <initial> ...)
+        sexp *first = parse_sexp(s);
+        sexp *rest = parse_list_right(s, 1);
+        return make_cons(first, rest);
     }
-    sexp *first = parse_sexp(s);
-    sexp *rest = parse_list_right(s);
-    return make_cons(first, rest);
 }
 
 sexp* parse_sexp(char **s) {
     struct token *next_token;
     sexp *ret;
     next_token = parse_token(s);
-    // Stream of (non-whitespace) tokens here
+    // Stream of (non-whitespace, non-comment) tokens here
     if (next_token==0) return error(ERR_INVALID_CHAR);
     switch(next_token->tag) {
         case tok_open_paren:
             free_tok(next_token);
-            ret = parse_list_right(s);
+            ret = parse_list_right(s, 0);
             break;
         case tok_close_paren:
             ret = error(ERR_UNEXPECTED_CLOSE);
@@ -359,6 +379,10 @@ sexp* parse_sexp(char **s) {
         case tok_eof:
             free(next_token);
             return 0;
+        case tok_dot:
+            ret = error(ERR_UNEXPECTED_DOT);
+            free_tok(next_token);
+            break;
         default:
             ret = error(ERR_UNKNOWN_TOKEN);
             free_tok(next_token);
