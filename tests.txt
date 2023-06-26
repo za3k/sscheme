@@ -240,9 +240,19 @@ x => 1
 (* 2 2 2 2 2 2) => 64
 
 (modulo 12 4) => 0
-(modulo 13 4) => 1
 (remainder 12 4) => 0
+
+(modulo 13 4) => 1
 (remainder 13 4) => 1
+
+(modulo -13 4) => 3
+(remainder -13 4) => -1
+
+(modulo 13 -4) => -3
+(remainder 13 -4) => 1
+
+(modulo -13 -4) => -1
+(remainder -13 -4) => -1
 ; TODO: Make negative cases work right
 
 (odd? 0) => #f

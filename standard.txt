@@ -91,13 +91,16 @@
 (define (negative? x) (< x 0))
 (define (positive? x) (< 0 x))
 (define (zero? x) (= x 0))
-(define (remainder x y) ; Probably not correct
+(define (remainder x y)
  (- x (* (quotient x y) y)))
-(define modulo remainder)
+(define (modulo x y)
+ (if (or (and (negative? x) (negative? y))
+         (and (not (negative? x)) (positive? y)))
+     (remainder x y)
+     (+ (remainder x y) y)))
 (define (even? x) (= (modulo x 2) 0))
 (define (odd? x) (= (modulo x 2) 1))
-(define (abs x)
- (if (negative? x) (- x) x))
+(define (abs x) (if (negative? x) (- x) x))
 
 ; TODO: gcd lcm expt
 ; TODO: range
