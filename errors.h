@@ -26,9 +26,10 @@
 #define ERR_TOO_MANY_PARAM     "Too many parameters passed to function"
 
 // Primitive execution
-#define ERR_EMPTY_LIST "primitive passed an empty list (car/cdr)"
-#define ERR_NON_LIST   "prim_* passed a non-list"
-#define ERR_WRONG_NUM  "primitive passed wrong number of arguments"
-#define ERR_WRONG_TYPE "primitive passed the wrong argument type(s)"
+#define ERR_EMPTY_LIST  "primitive passed an empty list (car/cdr)"
+#define ERR_NON_LIST    "prim_* passed a non-list"
+#define ERR_WRONG_NUM   "primitive passed wrong number of arguments"
+#define ERR_WRONG_TYPE  "primitive passed the wrong argument type(s)"
+#define ERR_DIV_BY_ZERO "division by zero"
 
 #endif // __ERROR

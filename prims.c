@@ -6,7 +6,8 @@
 
 // Type and arity checker macros
 #define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
-#define TYPE(p, arg) if (!p(arg)) return error(ERR_WRONG_TYPE);
+// TODO: Check for null pointer, check for error
+#define TYPE(p, arg) if (!arg || !p(arg)) return error(ERR_WRONG_TYPE);
 #define VARITY(args) if (!ispair(args) && !isempty(args)) return error(ERR_NON_LIST);
 #define VARITY_TYPE(p, args) if (!listOf(args, p)) return error(ERR_WRONG_TYPE);
 
@@ -30,9 +31,12 @@ sval* prim_cdr(sval *args)     { FARITY(1, args); return cdr(car(args)); }
 sval* prim_nilp(sval *args)    { FARITY(1, args); return nilp(car(args)); }
 sval* prim_emptyp(sval *args)  { FARITY(1, args); return emptyp(car(args)); }
 sval* prim_listp(sval *args)   { FARITY(1, args); return listp(car(args)); }
+sval* prim_lt(sval *args)      { FARITY(2, args); return lt(car(args), car(cdr(args))); }
 sval* prim_numberp(sval *args) { FARITY(1, args); return numberp(car(args)); }
 sval* prim_procedurep(sval *args) { FARITY(1, args); return procedurep(car(args)); }
 sval* prim_eqp(sval *args)     { FARITY(2, args); return eqp(car(args), car(cdr(args))); }
+sval* prim_multiply(sval *args)      { FARITY(2, args); return multiply(car(args), car(cdr(args))); }
+sval* prim_divide(sval *args)      { FARITY(2, args); return divide(car(args), car(cdr(args))); }
 
 sval* prim_list(sval *args)    { VARITY(args);    return args; }
 
@@ -63,32 +67,50 @@ sval* eqp(sval *arg1, sval *arg2) { return pred(iseq(arg1, arg2)); }
 sval* procedurep(sval *arg1) { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
 
 sval* cons(sval *arg1, sval *arg2) {
-    // Should we allow cons-ing to make non-lists? currently yes!
-    if (arg1 && arg1->tag == ERROR) return arg1;
-    if (arg2 && arg2->tag == ERROR) return arg2;
+    if (arg1->tag == ERROR) return arg1;
+    if (arg2->tag == ERROR) return arg2;
     return make_cons(arg1, arg2);
 }
 
 sval* car(sval *arg1) {
     TYPE(ispair, arg1);
 
-    if (isempty(arg1)) return error(ERR_EMPTY_LIST);
-    if (arg1 && arg1->tag == ERROR) return arg1;
+    if (arg1->tag == ERROR) return arg1;
     else return arg1->body.list.car;
 }
 
 sval* cdr(sval *arg1) {
     TYPE(ispair, arg1);
 
-    if (isempty(arg1)) return error(ERR_EMPTY_LIST);
-    if (arg1 && arg1->tag == ERROR) return arg1;
+    if (arg1->tag == ERROR) return arg1;
     else return arg1->body.list.cdr;
+}
+
+sval* lt(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg1);
+
+    return pred(arg1->body.smallnum < arg2->body.smallnum);
 }
 
 sval* negative(sval *arg1) {
     TYPE(isnumber, arg1);
 
     return make_int(-arg1->body.smallnum);
+}
+
+sval* multiply(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg2);
+
+    return make_int(arg1->body.smallnum*arg2->body.smallnum);
+}
+sval* divide(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg2);
+
+    if (arg2->body.smallnum == 0) return error(ERR_DIV_BY_ZERO);
+    return make_int(arg1->body.smallnum/arg2->body.smallnum);
 }
 
 sval* subtract(sval *arg1, sval *arg2) {
@@ -102,6 +124,7 @@ sval* add(sval *args) {
     VARITY_TYPE(isnumber, args);
     int sum = 0;
     while (!isempty(args)) {
+        TYPE(isnumber, car(args));
         sum += car(args)->body.smallnum;
         args = cdr(args);
     }
@@ -119,6 +142,8 @@ sval* print(sval *args) {
 
 
 sval* (*primitives[])(sval *args) = {
+    prim_multiply,
+    prim_lt,
     prim_plus,
     prim_minus,
     prim_car,
@@ -132,9 +157,12 @@ sval* (*primitives[])(sval *args) = {
     prim_numberp,
     prim_listp,
     prim_procedurep,
+    prim_divide,
     0,
 };
 char* primitive_names[] = {
+    "*",
+    "<",
     "+",
     "-",
     "car",
@@ -148,4 +176,5 @@ char* primitive_names[] = {
     "number?",
     "pair?",
     "procedure?",
+    "quotient",
 };

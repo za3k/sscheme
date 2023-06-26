@@ -2,6 +2,7 @@
 (define eqv? eq?)
 (define = eq?)
 (define else #t)
+(define / quotient)
 
 (define-macro (if x y z)
   (list (quote cond) (list x y) (list else z)))
@@ -38,6 +39,13 @@
           (cons (car lst) (filter pred (cdr lst)))
           (filter pred (cdr lst)))))
   
+(define (> x y) (< y x))
+(define (<= x y) (or (< x y) (= x y)))
+(define (>= x y) (<= y x))
+
+; TODO: Upgrade to builtins to support not exactly 2 arguments: - / * + < <= > >= =
+
+
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
 (define (cdar x) (cdr (car x)))
@@ -141,9 +149,8 @@
 ; equal? write display newline
 
 ; Numbers
-; quotient remainder modulo
-; / * max min abs gcd lcm expt
-; = < > <= >=
+; remainder modulo
+; max min abs gcd lcm expt
 ; zero? positive? negative? odd? even?
 ; number->string string->number
 ; range
