@@ -4,7 +4,7 @@
 (define else #t)
 
 (define-macro if (lambda (x y z)
-  (list cond (list (list x y) (list else z)))))
+  (list cond (list x y) (list else z))))
 (define not (lambda (x) (if x #f #t)))
 
 ; Helpers for later definitions
@@ -117,9 +117,9 @@
   (assoc v lst eq?)))
 
 (define boolean? (lambda (x)
-  (cond (((eq? x #t) #t)
-         ((eq? x #f) #t)
-         ((else) #f)))))
+  (cond ((eq? x #t) #t)
+        ((eq? x #f) #t)
+        ((else) #f))))
     
 
 ; Waiting on and/or: memq memv member

@@ -6,4 +6,4 @@ sval* eval_all(sexp *expressions, struct senv *env);
 sval* apply(sval *proc, sval *args);
 
 struct senv* empty_env();
-void define(struct senv *env, char* symbol, sval* val);
+sval* define(struct senv *env, sval* symbol, sval* val);

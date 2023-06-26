@@ -38,21 +38,22 @@ sval* eval1(sexp* expression, struct senv* env) {
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
         if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
-            return evcond(car(rest), env);
+            // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
+            return evcond(rest, env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define) {
+            // (define x <value>)
+            // (define (<func-name> <param1> <param2>) <body>)
+            // (define (<func-name> . <params>) <body>)
+            // (define (<func-name> <param1> <param2> . <params>) <body>)
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
-            struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
-            if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
-            define(env, arg1->body.symbol, eval1(arg2, env));
-            return NIL;
+            return define(env, car(rest), eval1(car(cdr(rest)), env));
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define_macro) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
-            struct sval *arg1= car(rest), *arg2 = car(cdr(rest));
-            if (!issymbol(arg1)) return error(ERR_DEFINE_NONSYMBOL);
-            define(env, arg1->body.symbol, make_macro(eval1(arg2, env)));
-            return NIL;
+            return define(env, car(rest), make_macro(eval1(car(cdr(rest)), env)));
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
+            // (lambda (<param1> <param2>) <body>)
+            // (lambda (<param1> <param2> . <params>) <body>)
+            // (lambda <params> <body>)
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
             else return make_function(car(rest), car(cdr(rest)), env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
@@ -75,6 +76,7 @@ sval* apply(sval* proc, sval* args) {
 }
 
 sval* evlist(sexp *args, struct senv *env) {
+    // TODO: complain if we pass a macro, since it will not work right
     if (isempty(args)) return args;
     else if(args->tag == PAIR) {
         return make_cons(
@@ -134,9 +136,14 @@ sval* lookup(sexp *symbol, struct senv *env) {
     else return lookup(symbol, env->parent);
 }
 
-void define(struct senv *env, char* symbol, sval* thing) {
+void _define(struct senv *env, char* symbol, sval* thing) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
     env->frame.values = make_cons(thing, env->frame.values);
+}
+sval* define(struct senv *env, sval* symbol, sval* thing) {
+    if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
+    _define(env, symbol->body.symbol, thing);
+    return NIL;
 }
 struct senv* empty_env() {
     if (isempty(BUILTINS_ENV->frame.names)) {
@@ -147,14 +154,14 @@ struct senv* empty_env() {
         }
 
         // Set up builtins
-        define(BUILTINS_ENV, "lambda", LAMBDA);
-        define(BUILTINS_ENV, "cond", COND);
-        define(BUILTINS_ENV, "quote", QUOTE);
-        define(BUILTINS_ENV, "define", DEFINE);
-        define(BUILTINS_ENV, "define-macro", DEFINE_MACRO);
-        define(BUILTINS_ENV, "nil", NIL);
+        _define(BUILTINS_ENV, "lambda", LAMBDA);
+        _define(BUILTINS_ENV, "cond", COND);
+        _define(BUILTINS_ENV, "quote", QUOTE);
+        _define(BUILTINS_ENV, "define", DEFINE);
+        _define(BUILTINS_ENV, "define-macro", DEFINE_MACRO);
+        _define(BUILTINS_ENV, "nil", NIL);
         for (int i=0; primitives[i]!=0; i++)
-            define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
+            _define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
 
         // Run the standard library
         eval_all(parse(standard_txt), STANDARD_ENV);

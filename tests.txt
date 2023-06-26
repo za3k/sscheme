@@ -114,18 +114,18 @@ NewVar => err
 ((lambda (x y) (x y)) car (list 2 3)) => 2
 ((lambda (x y) (x y)) (lambda (y) (car y)) (list 2 3)) => 2
 
-(cond (((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b)))) => :b
-(cond (((eq? 2 3) (quote a))
-       ((eq? 2 4) 5)
-       (else (quote b))))
+(cond ((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b))) => :b
+(cond ((eq? 2 3) (quote a))
+      ((eq? 2 4) 5)
+      (else (quote b)))
     => :b
-(cond (((eq? 2 3) (quote a))
-       ((eq? 4 4) 5)
-       (else (quote b))))
+(cond ((eq? 2 3) (quote a))
+      ((eq? 4 4) 5)
+      (else (quote b)))
     => 5
-(cond (((eq? 2 2) (quote a))
-       ((eq? 2 4) 5)
-       (else (quote b))))
+(cond ((eq? 2 2) (quote a))
+      ((eq? 2 4) 5)
+      (else (quote b)))
     => :a
 
 (define x 2) x => 2
