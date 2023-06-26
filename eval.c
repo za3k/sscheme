@@ -14,7 +14,6 @@
 sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
-sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
 sval* bind(sexp *parameters, sval *values, sval *env);
 
 sval* eval_all(sexp *expressions, sval *env) {
@@ -76,8 +75,7 @@ sval* _eval1(sexp* expression, sval* env) {
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
             return car(rest);
-        } else if (proc->tag == PRIMITIVE) return apply_primitive(proc->body.primitive, evlist(rest, env));
-        else if (proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
+        } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
         else if (proc->tag == ERROR) return proc;
         else return error(ERR_APPLY_NON_FUNCTION);
@@ -91,7 +89,9 @@ sval* _eval1(sexp* expression, sval* env) {
 sval* _apply(sval* proc, sval* args) {
     if (proc->tag == ERROR) return proc;
     else if (args->tag == ERROR) return args;
-    return eval1(
+
+    if (proc->tag == PRIMITIVE) return proc->body.primitive(args);
+    else return eval1(
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
@@ -116,11 +116,6 @@ sval* evcond(sexp *conditions, sval *env) {
         if (!isfalse(condition)) return eval1(body, env);
         else return evcond(cdr(conditions), env);
     }
-}
-
-sval* _apply_primitive(sval* (*primitive)(sval*), sexp *args) {
-    if (args->tag == ERROR) return args;
-    else return primitive(args);
 }
 
 sval* bind(sexp *parameters, sval *values, sexp *env) {
@@ -208,13 +203,6 @@ sval* empty_env() {
 #ifdef LOGGING_ON
 static int indent = 0;
 #endif
-inline sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
-    #ifdef LOGGING_ON
-        for (int i=0; i<indent; i++) printf(" ");
-        printf("Apply-primitive "); print1(make_prim(primitive)); printf(" TO "); print1nl(args);
-    #endif
-    return _apply_primitive(primitive, args);
-}
 inline sval* apply(sval* proc, sval* args) {
     #ifdef LOGGING_ON
         for (int i=0; i<indent; i++) printf(" ");
