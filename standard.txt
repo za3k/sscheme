@@ -3,8 +3,8 @@
 (define = eq?)
 (define else #t)
 
-(define-macro if (lambda (x y z)
-  (list cond (list x y) (list else z))))
+(define-macro (if x y z)
+  (list cond (list x y) (list else z)))
 (define (not x) (if x #f #t))
 
 ; Helpers for later definitions
@@ -122,7 +122,7 @@
 
 ; TODO list
 
-; quote ' if set! case and or let let* letrec begin do quasiquote
+; ' if set! case and or let let* letrec begin do quasiquote
 
 ; General
 ; equal? write display newline

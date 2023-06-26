@@ -40,20 +40,27 @@ sval* eval1(sexp* expression, sval* env) {
         if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define) {
+        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_define || proc->body.form == form_define_macro)) {
+            // (define (<func-name> <param1> <param2>) <body>)
+            // (define (<func-name> . <params>) <body>)
+            // (define (<func-name> <param1> <param2> . <params>) <body>)
+            // (define x <value>)
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            sval *name;
+            sval *value;
             if (ispair(car(rest))) {
-                // (define (<func-name> <param1> <param2>) <body>)
-                // (define (<func-name> . <params>) <body>)
-                // (define (<func-name> <param1> <param2> . <params>) <body>)
-                return define(env, car(car(rest)), make_function(cdr(car(rest)), car(cdr(rest)), env));
+                sval *params;
+                sval *body;
+                name = car(car(rest));
+                params = cdr(car(rest));
+                body = car(cdr(rest));
+                value = make_function(params, body, env);
             } else {
-                // (define x <value>)
-                return define(env, car(rest), eval1(car(cdr(rest)), env));
+                name = car(rest);
+                value = eval1(car(cdr(rest)), env);
             }
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define_macro) {
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
-            return define(env, car(rest), make_macro(eval1(car(cdr(rest)), env)));
+            if (proc->body.form == form_define_macro) value = make_macro(value);
+            return define(env, name, value);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
             // (lambda (<param1> <param2>) <body>)
             // (lambda (<param1> <param2> . <params>) <body>)
