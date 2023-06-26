@@ -6,8 +6,7 @@
 
 // Type and arity checker macros
 #define FARITY(x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM);
-// TODO: Check for null pointer, check for error
-#define TYPE(p, arg) if (!arg || !p(arg)) return error(ERR_WRONG_TYPE);
+#define TYPE(p, arg) if (!arg) { return error(ERR_NULL_PTR); } else if (arg->tag == ERROR) { return arg; } else if (!p(arg)) { return error(ERR_WRONG_TYPE); }
 #define VARITY(args) if (!ispair(args) && !isempty(args)) return error(ERR_NON_LIST);
 #define VARITY_TYPE(p, args) if (!listOf(args, p)) return error(ERR_WRONG_TYPE);
 
@@ -66,15 +65,13 @@ sval* cons(sval *arg1, sval *arg2) {
 sval* car(sval *arg1) {
     TYPE(ispair, arg1);
 
-    if (arg1->tag == ERROR) return arg1;
-    else return arg1->body.list.car;
+    return arg1->body.list.car;
 }
 
 sval* cdr(sval *arg1) {
     TYPE(ispair, arg1);
 
-    if (arg1->tag == ERROR) return arg1;
-    else return arg1->body.list.cdr;
+    return arg1->body.list.cdr;
 }
 
 sval* error_prim(sval *arg1) {

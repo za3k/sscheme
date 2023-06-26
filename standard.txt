@@ -13,16 +13,9 @@
 (define else #t)
 (define / quotient)
 
-; ============== MACROS ================
+; ============== FORMS (MACROS) ================
 (define-macro (if x y z)
   (list (quote cond) (list x y) (list else z)))
-
-; TODO: case let let* letrec begin do quasiquote for-each
-; TODO: force delay
-
-; ============== BOOLEANS ================
-(define (boolean? x)
-  (or (eq? x #t) (eq? x #f)))
 (define-macro (and . clauses)
   (cond ((null? clauses) #t)
         ((null? (cdr clauses)) (car clauses))
@@ -36,6 +29,13 @@
             (list (quote if) (car clauses)
                              (car clauses)
                              (cons (quote or) (cdr clauses))))))
+
+; TODO: case let let* letrec begin do quasiquote for-each
+; TODO: force delay
+
+; ============== BOOLEANS ================
+(define (boolean? x)
+  (or (eq? x #t) (eq? x #f)))
 (define (not x) (if x #f #t))
 
 ; ============== HELPERS ================
