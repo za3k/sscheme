@@ -86,6 +86,7 @@ nil => nil
 - => proc
 car => proc
 cdr => proc
+char? => proc
 cons => proc
 eq? => proc
 list => proc
@@ -93,6 +94,7 @@ pair? => proc
 number? => proc
 display => proc
 procedure? => proc
+string? => proc
 else => #t
 NewVar => err
 
@@ -224,10 +226,44 @@ x => 1
 (last (list 1 2 3 4 5 6 7 8 9 10)) => 10
 (rest (list 1 2 3 4 5 6 7 8 9 10)) => (2 3 4 5 6 7 8 9 10)
 
+; Upgraded builtins
 (+) => err
 (+ 1) => 1
 (+ 1 2 3) => 6
 (+ 1 (list 2 3) 4) => err
+(/ 1) => 1
+(/ 100) => 0
+(/ 10 100) => 0
+(/ 100 10) => 10
+(/ 101 10) => 10
+(/ 100 5 5) => 4
+(* 2 2 2 2 2 2) => 64
+
+(modulo 12 4) => 0
+(modulo 13 4) => 1
+(remainder 12 4) => 0
+(remainder 13 4) => 1
+; TODO: Make negative cases work right
+
+(odd? 0) => #f
+(odd? 1) => #t
+(odd? 2) => #f
+(even? 0) => #t
+(even? 1) => #f
+(even? 2) => #t
+(positive? -1) => #f
+(positive? 0) => #f
+(positive? 1) => #t
+(zero? -1) => #f
+(zero? 0) => #t
+(zero? 1) => #f
+(negative? -1) => #t
+(negative? 0) => #f
+(negative? 1) => #f
+
+(abs 2) => 2
+(abs 0) => 0
+(abs -2) => 2
 
 (list? ()) => #t
 (list? (list 1 2 3)) => #t

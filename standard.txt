@@ -1,11 +1,30 @@
+; ============== BUILTINS ================
+; TODO: set! set-cdr! set-car! '
+
+; TODO: symbol->string string->symbol
+; TODO: number->string string->number
+; TODO: string->list list->string
+
+; ============== ALIASES ================
 (define empty? null?)
 (define eqv? eq?)
 (define = eq?)
 (define else #t)
 (define / quotient)
 
+; ============== MACROS ================
 (define-macro (if x y z)
   (list (quote cond) (list x y) (list else z)))
+
+; TODO: case let let* letrec begin do quasiquote for-each
+; TODO: force delay
+
+; ============== SYMBOLS ================
+; (none)
+
+; ============== BOOLEANS ================
+(define (boolean? x)
+  (or (eq? x #t) (eq? x #f)))
 (define-macro (and . clauses)
   (cond ((null? clauses) #t)
         ((null? (cdr clauses)) (car clauses))
@@ -21,6 +40,7 @@
                              (cons (quote or) (cdr clauses))))))
 (define (not x) (if x #f #t))
 
+; ============== HELPERS ================
 ; Helpers for later definitions
 (define (map f l) ; todo varargs
   (if (null? l) l
@@ -29,7 +49,7 @@
 (define (foldl proc init lst) ; todo vargs
   (if (null? lst)
       init
-      (foldl proc (proc (car lst) init) (cdr lst))))
+      (foldl proc (proc init (car lst)) (cdr lst))))
 (define (foldr proc init lst) ; todo vargs
   (foldl proc init (reverse lst)))
 (define (filter pred lst)
@@ -39,14 +59,16 @@
           (cons (car lst) (filter pred (cdr lst)))
           (filter pred (cdr lst)))))
   
+; TODO: equal? 
 
-; TODO: Upgrade to builtins to support not exactly 2 arguments: - / * + < <= > >= =
+; ============== NUMBERS ================
+; Upgrade to builtins to support not exactly 2 arguments: - + * / < <= > >= =
+; TODO: < <= > >= =
 (define _builtin- -)
 (define _builtin+ +)
 (define _builtin* *)
 (define _builtin/ /)
 (define _builtin< <)
-
 (define (+ . lst)
     (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
           (else (foldl _builtin+ 0 lst))))
@@ -54,7 +76,35 @@
     (cond ((= (length lst) 1) (_builtin- 0 (car lst)))
           ((= (length lst) 2) (_builtin- (car lst) (cadr lst)))
           (else (error "WRONG_NUM_ARGUMENTS"))))
+(define (* . lst) (foldl _builtin* 1 lst))
+(define (/ . lst)
+    (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
+          ((= (length lst) 1) (_builtin/ 1 (car lst)))
+          (else (foldl _builtin/ (car lst) (cdr lst)))))
 
+(define (max . lst)
+  (foldl (lambda (x y) (if (< x y) y x))
+         (car lst)
+         (cdr lst)))
+(define (min . lst)
+  (foldl (lambda (x y) (if (< x y) x y))
+         (car lst)
+         (cdr lst)))
+(define (negative? x) (< x 0))
+(define (positive? x) (< 0 x))
+(define (zero? x) (= x 0))
+(define (remainder x y) ; Probably not correct
+ (- x (* (quotient x y) y)))
+(define modulo remainder)
+(define (even? x) (= (modulo x 2) 0))
+(define (odd? x) (= (modulo x 2) 1))
+(define (abs x)
+ (if (negative? x) (- x) x))
+
+; TODO: gcd lcm expt
+; TODO: range
+
+; ============== LISTS AND PAIRS ================
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
 (define (cdar x) (cdr (car x)))
@@ -143,58 +193,32 @@
 (define (assv v lst) (assoc v lst eqv?))
 (define (assq v lst) (assoc v lst eq?))
 
-(define (boolean? x)
-  (cond ((eq? x #t) #t)
-        ((eq? x #f) #t)
-        ((else) #f)))
+; TODO: memq memv member
 
-; Waiting on and/or: memq memv member
-
-; TODO list
-
-; ' if set! case and or let let* letrec begin do quasiquote
-
-; General
-; equal? write display newline
-
-; Numbers
-; remainder modulo
-; max min abs gcd lcm expt
-; zero? positive? negative? odd? even?
-; number->string string->number
-; range
-
-; boolean?
-
-; Lists and pairs
-; set-car! set-cdr!
-; list? length append reverse list-tail list-ref memq memv member assq assv assoc 
-
-; Symbol
-; symbol->string string->symbol
-
-; Characters
+; ============== CHARACTERS ================
 ; char->integer integer->char
 ; char? char=? char<? char>? char<=? char>=?
 ; char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
 ; char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case?
 ; char-upcase char-downcase
+; ============== STRINGS ================
+; TODO: symbol->string string->symbol
+; TODO: number->string string->number
+; TODO: string->list list->string
+; TODO: string? string string-length string-ref string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
 
-; Strings
-; string->list list->string
-; string? string string-length string-ref string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
+; ============== I/O ================
+; write display newline
 
-; apply eval
-; map for-each force delay
-; scheme-report-environment null-environment interaction-environment
-; call/cc
-; call-with-current-continuation values call-with-values call-with-values dynamic-wind
-
-; IO
 ; read read-char peek-char eof-object? char-ready? write display newline write-char
 
-; Files
 ; load transcript-on transcript-off call-with-input-file call-with-output-file input-port? output-port? current-input-port current-output-port with-input-from-file with-output-to-file open-input-file open-output-file close-input-port close-output-port
 
-; TODO: standard error message
-; TODO: support default values in lambda syntax
+; ============== CONTINUATIONS AND ENVIRONMENT ================
+; scheme-report-environment null-environment interaction-environment
+; call-with-current-continuation values call-with-values call-with-values dynamic-wind
+
+; ============== MISC ================
+
+; TODO: standard error messages
+; TODO: support default values in lambda syntax?

@@ -5,6 +5,7 @@
 #define __HELPERS
 // car, cdr, and cons are listed under 'prims', not here
 
+int ischar(sval *arg);
 int iserror(sval *arg);
 int isempty(sval *arg);
 int isnil(sval *arg);

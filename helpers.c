@@ -5,16 +5,17 @@
 #include <string.h>
 #include <unistd.h>
 
+int ischar(sval *arg) { return arg->tag == CONSTANT && arg->body.constant >= C000; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
-int isnil(sval *arg) { return arg == NIL; }
-int isfalse(sval *arg) { return arg == FALSE; }
-int istrue(sval *arg) { return arg == TRUE; }
-int ispair(sval *arg) { return arg->tag == PAIR; }
-int isnumber(sval *arg) { return arg->tag == NUMBER; }
-int issymbol(sval *arg) { return arg->tag == SYMBOL; }
-int isstring(sval *arg) { return arg->tag == STRING; }
 int isenv(sval *arg) { return arg->tag == ENV; }
+int isfalse(sval *arg) { return arg == FALSE; }
+int isnil(sval *arg) { return arg == NIL; }
+int isnumber(sval *arg) { return arg->tag == NUMBER; }
+int ispair(sval *arg) { return arg->tag == PAIR; }
+int isstring(sval *arg) { return arg->tag == STRING; }
+int issymbol(sval *arg) { return arg->tag == SYMBOL; }
+int istrue(sval *arg) { return arg == TRUE; }
 
 int symboleq(sval *arg1, sval *arg2) {
     int ret = strcmp(arg1->body.symbol,arg2->body.symbol) == 0;
