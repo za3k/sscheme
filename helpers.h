@@ -13,6 +13,7 @@ int istrue(sval *arg);
 int ispair(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
+int isstring(sval *arg);
 int isenv(sval *arg);
 int symboleq(sval *arg1, sval *arg2);
 int iseq(sval *arg1, sval *arg2);

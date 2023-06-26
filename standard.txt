@@ -39,12 +39,21 @@
           (cons (car lst) (filter pred (cdr lst)))
           (filter pred (cdr lst)))))
   
-(define (> x y) (< y x))
-(define (<= x y) (or (< x y) (= x y)))
-(define (>= x y) (<= y x))
 
 ; TODO: Upgrade to builtins to support not exactly 2 arguments: - / * + < <= > >= =
+(define _builtin- -)
+(define _builtin+ +)
+(define _builtin* *)
+(define _builtin/ /)
+(define _builtin< <)
 
+(define (+ . lst)
+    (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
+          (else (foldl _builtin+ 0 lst))))
+(define (- . lst)
+    (cond ((= (length lst) 1) (_builtin- 0 (car lst)))
+          ((= (length lst) 2) (_builtin- (car lst) (cadr lst)))
+          (else (error "WRONG_NUM_ARGUMENTS"))))
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
@@ -187,4 +196,5 @@
 ; Files
 ; load transcript-on transcript-off call-with-input-file call-with-output-file input-port? output-port? current-input-port current-output-port with-input-from-file with-output-to-file open-input-file open-output-file close-input-port close-output-port
 
-5
+; TODO: standard error message
+; TODO: support default values in lambda syntax

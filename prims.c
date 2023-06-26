@@ -30,32 +30,18 @@ sval* prim_car(sval *args)     { FARITY(1, args); return car(car(args)); }
 sval* prim_cdr(sval *args)     { FARITY(1, args); return cdr(car(args)); }
 sval* prim_nilp(sval *args)    { FARITY(1, args); return nilp(car(args)); }
 sval* prim_emptyp(sval *args)  { FARITY(1, args); return emptyp(car(args)); }
+sval* prim_error(sval *args)   { FARITY(1, args); return error_prim(car(args)); }
 sval* prim_listp(sval *args)   { FARITY(1, args); return listp(car(args)); }
 sval* prim_lt(sval *args)      { FARITY(2, args); return lt(car(args), car(cdr(args))); }
 sval* prim_numberp(sval *args) { FARITY(1, args); return numberp(car(args)); }
 sval* prim_procedurep(sval *args) { FARITY(1, args); return procedurep(car(args)); }
 sval* prim_eqp(sval *args)     { FARITY(2, args); return eqp(car(args), car(cdr(args))); }
-sval* prim_multiply(sval *args)      { FARITY(2, args); return multiply(car(args), car(cdr(args))); }
-sval* prim_divide(sval *args)      { FARITY(2, args); return divide(car(args), car(cdr(args))); }
-
+sval* prim_multiply(sval *args){ FARITY(2, args); return multiply(car(args), car(cdr(args))); }
+sval* prim_divide(sval *args)  { FARITY(2, args); return divide(car(args), car(cdr(args))); }
+sval* prim_add(sval *args)     { FARITY(2, args); return add(car(args), car(cdr(args))); }
+sval* prim_subtract(sval *args){ FARITY(2, args); return subtract(car(args), car(cdr(args))); }
+sval* prim_print(sval *args)   { FARITY(1, args); print1(car(args)); return NIL; }
 sval* prim_list(sval *args)    { VARITY(args);    return args; }
-
-sval* prim_plus(sval *args) {
-    VARITY(args);
-    if (islistoflength(args, 0)) return error(ERR_WRONG_NUM);
-    return add(args);
-}
-
-sval* prim_minus(sval *args) {
-    if (islistoflength(args, 1)) return negative(car(args));
-    if (islistoflength(args, 2)) return subtract(car(args), car(cdr(args)));
-    else return error(ERR_WRONG_NUM);
-}
-
-sval* prim_print(sval *args) {
-    VARITY(args);
-    return print(args);
-}
 
 /*  ============ Definitions of primitives ============= */
 
@@ -84,6 +70,12 @@ sval* cdr(sval *arg1) {
 
     if (arg1->tag == ERROR) return arg1;
     else return arg1->body.list.cdr;
+}
+
+sval* error_prim(sval *arg1) {
+    TYPE(isstring, arg1);
+
+    return error(arg1->body.symbol);
 }
 
 sval* lt(sval *arg1, sval *arg2) {
@@ -120,15 +112,11 @@ sval* subtract(sval *arg1, sval *arg2) {
     return make_int(arg1->body.smallnum-arg2->body.smallnum);
 }
 
-sval* add(sval *args) {
-    VARITY_TYPE(isnumber, args);
-    int sum = 0;
-    while (!isempty(args)) {
-        TYPE(isnumber, car(args));
-        sum += car(args)->body.smallnum;
-        args = cdr(args);
-    }
-    return make_int(sum);
+sval* add(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg2);
+
+    return make_int(arg1->body.smallnum+arg2->body.smallnum);
 }
 
 sval* print(sval *args) {
@@ -144,12 +132,13 @@ sval* print(sval *args) {
 sval* (*primitives[])(sval *args) = {
     prim_multiply,
     prim_lt,
-    prim_plus,
-    prim_minus,
+    prim_add,
+    prim_subtract,
     prim_car,
     prim_cdr,
     prim_cons,
     prim_print,
+    prim_error,
     prim_eqp,
     prim_list,
     prim_nilp,
@@ -169,6 +158,7 @@ char* primitive_names[] = {
     "cdr",
     "cons",
     "display",
+    "error",
     "eq?",
     "list",
     "nil?",

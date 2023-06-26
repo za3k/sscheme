@@ -13,6 +13,7 @@ int istrue(sval *arg) { return arg == TRUE; }
 int ispair(sval *arg) { return arg->tag == PAIR; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
+int isstring(sval *arg) { return arg->tag == STRING; }
 int isenv(sval *arg) { return arg->tag == ENV; }
 
 int symboleq(sval *arg1, sval *arg2) {
@@ -76,7 +77,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         int i;
         for (i=0; primitives[i]!=0; i++) {
             if (primitives[i]==arg->body.primitive) {
-                size = snprintf(buffer, n, "%s", primitive_names[i]);
+                size = snprintf(buffer, n, "<primitive %s>", primitive_names[i]);
                 break;
             }
         }

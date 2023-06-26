@@ -82,17 +82,17 @@ nil => nil
 (quote (1 2 3 . ())) => (1 2 3)
 
 ; Primitive/symbol resolution
-+ => +
-- => -
-car => car
-cdr => cdr
-cons => cons
-eq? => eq?
-list => list
-pair? => pair?
-number? => number?
-display => display
-procedure? => procedure?
++ => proc
+- => proc
+car => proc
+cdr => proc
+cons => proc
+eq? => proc
+list => proc
+pair? => proc
+number? => proc
+display => proc
+procedure? => proc
 else => #t
 NewVar => err
 
@@ -149,7 +149,7 @@ NewVar => err
 (define x 2) x => 2
 (define x 1) (define y 2) x => 1
 (define x 1) (define y 2) y => 2
-(define x car) x => car
+(define x car) x => proc
 
 (define x 1)
 (define y 2)
@@ -171,11 +171,8 @@ x => 1
 (list 1 2 3) => (1 2 3)
 (list 1 (list 2 (list 3))) => (1 (2 (3)))
 
-(+) => err
-(+ 1) => 1
 (+ 1 2) => 3
-(+ 1 2 3) => 6
-(+ 1 (list 2 3) 4) => err
+(+ 1 (list 2 3)) => err
 
 (-) => err
 (- 5) => -5
@@ -226,6 +223,11 @@ x => 1
 (tenth (list 1 2 3 4 5 6 7 8 9 10)) => 10
 (last (list 1 2 3 4 5 6 7 8 9 10)) => 10
 (rest (list 1 2 3 4 5 6 7 8 9 10)) => (2 3 4 5 6 7 8 9 10)
+
+(+) => err
+(+ 1) => 1
+(+ 1 2 3) => 6
+(+ 1 (list 2 3) 4) => err
 
 (list? ()) => #t
 (list? (list 1 2 3)) => #t
