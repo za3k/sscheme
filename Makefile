@@ -5,7 +5,7 @@ DATA_H_FILES = $(patsubst %.txt,%.inc.h,$(DATA_FILES))
 H_FILES = $(DATA_H_FILES) $(wildcard *.h)
 O_FILES = $(patsubst %.c,%.o,$(C_FILES))
 
-all: eval
+all: eval eval-static
 
 clean:
 	rm -f eval *.o *.inc.h
@@ -14,3 +14,6 @@ $(O_FILES): $(H_FILES)
 	xxd -i $< | sed -e "s/};/,0x00};/" | sed -e "s/unsigned //" >$@
 eval: main.o $(O_FILES)
 	$(CC) $(CFLAGS) -o $@ $(O_FILES)
+eval-static: main.o $(O_FILES)
+	musl-gcc -static $(CFLAGS) -o $@ $(O_FILES)
+	strip $@
