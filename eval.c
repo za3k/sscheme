@@ -9,13 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-sval* evlist(sexp *args, struct senv *env);
-sval* evcond(sexp *conditions, struct senv *env);
-sval* lookup(sexp *symbol, struct senv *env);
+sval* evlist(sexp *args, sval *env);
+sval* evcond(sexp *conditions, sval *env);
+sval* lookup(sexp *symbol, sval *env);
 sval* apply_primitive(sval* (*primitive)(sval*), sexp *args);
-struct senv* bind(sexp *parameters, sval *values, struct senv *env);
+sval* bind(sexp *parameters, sval *values, sval *env);
 
-sval* eval_all(sexp *expressions, struct senv *env) {
+sval* eval_all(sexp *expressions, sval *env) {
     sval *ret=0;
     while (!isempty(expressions)) {
         ret = eval1(car(expressions), env);
@@ -25,7 +25,7 @@ sval* eval_all(sexp *expressions, struct senv *env) {
     return ret;
 }
 
-sval* eval1(sexp* expression, struct senv* env) {
+sval* eval1(sexp* expression, sval* env) {
     if (expression->tag == NUMBER) return expression;
     else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
@@ -41,12 +41,16 @@ sval* eval1(sexp* expression, struct senv* env) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define) {
-            // (define x <value>)
-            // (define (<func-name> <param1> <param2>) <body>)
-            // (define (<func-name> . <params>) <body>)
-            // (define (<func-name> <param1> <param2> . <params>) <body>)
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
-            return define(env, car(rest), eval1(car(cdr(rest)), env));
+            if (ispair(car(rest))) {
+                // (define (<func-name> <param1> <param2>) <body>)
+                // (define (<func-name> . <params>) <body>)
+                // (define (<func-name> <param1> <param2> . <params>) <body>)
+                return define(env, car(car(rest)), make_function(cdr(car(rest)), car(cdr(rest)), env));
+            } else {
+                // (define x <value>)
+                return define(env, car(rest), eval1(car(cdr(rest)), env));
+            }
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_define_macro) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
             return define(env, car(rest), make_macro(eval1(car(cdr(rest)), env)));
@@ -75,7 +79,7 @@ sval* apply(sval* proc, sval* args) {
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
 
-sval* evlist(sexp *args, struct senv *env) {
+sval* evlist(sexp *args, sval *env) {
     // TODO: complain if we pass a macro, since it will not work right
     if (isempty(args)) return args;
     else if(args->tag == PAIR) {
@@ -86,7 +90,7 @@ sval* evlist(sexp *args, struct senv *env) {
     } else return error(ERR_EVLIST_NON_LIST);
 }
 
-sval* evcond(sexp *conditions, struct senv *env) {
+sval* evcond(sexp *conditions, sval *env) {
     if (isempty(conditions)) return NIL;
     else {
         sexp *condition = eval1(car(car(conditions)), env);
@@ -102,13 +106,25 @@ sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
     else return primitive(args);
 }
 
-struct senv* bind(sexp *parameters, sval *values, struct senv *env) {
-    // TODO: Check if 'parameters' and 'values' are lists of the same length, complain if not
-    struct senv *new_env = malloc(sizeof(struct senv));
-    new_env->parent = env;
-    new_env->frame.names = parameters;
-    new_env->frame.values = values;
-    return new_env;
+sval* bind(sexp *parameters, sval *values, sexp *env) {
+    sval* newenv;
+    if (env->tag == ERROR) return env;
+    if (parameters->tag == ERROR) return parameters;
+    if (values->tag == ERROR) return values;
+
+    if (isempty(parameters) && isempty(values)) { // Base case
+        return make_env(env);
+    } else if (ispair(parameters) && ispair(values)) { // Recursion
+        newenv = bind(cdr(parameters), cdr(values), env);
+        define(newenv, car(parameters), car(values));
+        return newenv;
+    } else if (issymbol(parameters)) { // varargs
+        newenv = make_env(env);
+        define(newenv, parameters, values);
+        return newenv;
+    } else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);
+    else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
+    else return error(ERR_BIND_UNKNOWN);
 }
 
 sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
@@ -129,24 +145,25 @@ sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
     }
 }
 
-sval* lookup(sexp *symbol, struct senv *env) {
+sval* lookup(sexp *symbol, sval *env) {
     if (env == 0) return error(ERR_SYMBOL_NOT_FOUND);
-    sval* res = lookup_frame(symbol, env->frame.names, env->frame.values);
+    if (iserror(env)) return env;
+    if (!isenv(env)) return error(ERR_EXPECTED_ENV);
+    sval* res = lookup_frame(symbol, env->body.env.frame.names, env->body.env.frame.values);
     if (res != 0) return res;
-    else return lookup(symbol, env->parent);
+    else return lookup(symbol, env->body.env.parent);
 }
 
-void _define(struct senv *env, char* symbol, sval* thing) {
-    env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
-    env->frame.values = make_cons(thing, env->frame.values);
-}
-sval* define(struct senv *env, sval* symbol, sval* thing) {
+sval* define(sval *env, sval* symbol, sval* thing) {
     if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
-    _define(env, symbol->body.symbol, thing);
+    if (iserror(env)) return env;
+    if (!isenv(env)) return error(ERR_EXPECTED_ENV);
+    env->body.env.frame.names = make_cons(symbol, env->body.env.frame.names);
+    env->body.env.frame.values = make_cons(thing, env->body.env.frame.values);
     return NIL;
 }
-struct senv* empty_env() {
-    if (isempty(BUILTINS_ENV->frame.names)) {
+sval* empty_env() {
+    if (isempty(BUILTINS_ENV->body.env.frame.names)) {
         // Set up character constants
         for (int i=0; i<128; i++) {
             CHARS_V[i].tag = CONSTANT;
@@ -154,14 +171,14 @@ struct senv* empty_env() {
         }
 
         // Set up builtins
-        _define(BUILTINS_ENV, "lambda", LAMBDA);
-        _define(BUILTINS_ENV, "cond", COND);
-        _define(BUILTINS_ENV, "quote", QUOTE);
-        _define(BUILTINS_ENV, "define", DEFINE);
-        _define(BUILTINS_ENV, "define-macro", DEFINE_MACRO);
-        _define(BUILTINS_ENV, "nil", NIL);
+        define(BUILTINS_ENV, make_symbol("lambda"), LAMBDA);
+        define(BUILTINS_ENV, make_symbol("cond"), COND);
+        define(BUILTINS_ENV, make_symbol("quote"), QUOTE);
+        define(BUILTINS_ENV, make_symbol("define"), DEFINE);
+        define(BUILTINS_ENV, make_symbol("define-macro"), DEFINE_MACRO);
+        define(BUILTINS_ENV, make_symbol("nil"), NIL);
         for (int i=0; primitives[i]!=0; i++)
-            _define(BUILTINS_ENV, primitive_names[i], make_prim(primitives[i]));
+            define(BUILTINS_ENV, make_symbol(primitive_names[i]), make_prim(primitives[i]));
 
         // Run the standard library
         eval_all(parse(standard_txt), STANDARD_ENV);

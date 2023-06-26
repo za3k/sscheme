@@ -9,8 +9,8 @@ sexp COND_V = { SPECIAL_FORM, .body.form = form_cond };
 sexp QUOTE_V = { SPECIAL_FORM, .body.form = form_quote };
 sexp DEFINE_V = { SPECIAL_FORM, .body.form = form_define };
 sexp DEFINE_MACRO_V = { SPECIAL_FORM, .body.form = form_define_macro };
-struct senv BUILTINS_ENV_V = { { &EMPTY_LIST_V, &EMPTY_LIST_V }, 0 };
-struct senv STANDARD_ENV_V = { { &EMPTY_LIST_V, &EMPTY_LIST_V}, &BUILTINS_ENV_V };
+sval BUILTINS_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V }, 0} };
+sval STANDARD_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V}, &BUILTINS_ENV_V} };
 struct sval CHARS_V[128] = {
     {CONSTANT, .body.constant = C000},
 };
@@ -83,5 +83,5 @@ sexp *COND = &COND_V;
 sexp *QUOTE = &QUOTE_V;
 sexp *DEFINE = &DEFINE_V;
 sexp *DEFINE_MACRO = &DEFINE_MACRO_V;
-struct senv* BUILTINS_ENV = &BUILTINS_ENV_V;
-struct senv* STANDARD_ENV = &STANDARD_ENV_V;
+sval* BUILTINS_ENV = &BUILTINS_ENV_V;
+sval* STANDARD_ENV = &STANDARD_ENV_V;

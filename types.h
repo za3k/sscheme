@@ -6,37 +6,16 @@
 struct sval;
 struct scons;
 
-struct scons {
-    struct sval *car;
-    struct sval *cdr;
-};
-
-// Internal types
 //   sexp (an sexp evaluates to an sval. we happen to use the same representation for both)
 typedef struct sval sexp;
-//   Environment
-struct senv {
-    struct {
-        //char **names;
-        //struct sval **vals;
-        struct sval *names; // list of symbols
-        struct sval *values; // list of svals
-    } frame;
-    struct senv *parent;
-};
-//   Closure (represents a function)
-struct sclosure {
-    sexp *parameters; // (unevaluated) list of parameter symbols
-    sexp *body; // Unevaluated function body
-    struct senv *env;
-};
 
-
-// Sh
 typedef struct sval {
-  enum stype { CONSTANT, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
+  enum stype { CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
-    struct scons list; // NIL is also considered the empty list
+    struct scons {
+        struct sval *car;
+        struct sval *cdr;
+    } list;
     char *symbol; // Symbols are parsed to strings instead of ints for convenience
     int smallnum; // Small integer. No bignum support.
     enum {
@@ -62,7 +41,20 @@ typedef struct sval {
     } form;
     struct sval *macro_procedure;
     struct sval* (*primitive)(struct sval*);
-    struct sclosure closure;
+    //   Closure (represents a function)
+    struct sclosure {
+        sexp *parameters; // (unevaluated) list of parameter symbols
+        sexp *body; // Unevaluated function body
+        struct sval *env;
+    } closure;
+    // Environment
+    struct senv {
+        struct {
+            struct sval *names; // list of symbols
+            struct sval *values; // list of svals
+        } frame;
+        struct sval *parent;
+    } env;
     char *error;
   } body;
 } sval;
@@ -74,10 +66,11 @@ sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);
 sval* make_symbol(char* name);
 sval* make_string(char* str);
+sval* make_env(sval* env);
 
 sval* make_empty();
 sval* make_prim(sval* primitive(sval*));
-sexp* make_function(sexp *parameters, sexp *body, struct senv *env);
+sexp* make_function(sexp *parameters, sexp *body, sval *env);
 sexp* make_macro(sexp *function);
 sval* make_character_constant (char c);
 

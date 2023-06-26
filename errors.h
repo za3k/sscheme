@@ -15,6 +15,8 @@
 #define ERR_EVAL_CLOSURE       "eval: Tried to eval a closure"
 #define ERR_EVLIST_NON_LIST    "evlist: Tried to evlist a non-list"
 #define ERR_EVAL_UNKNOWN       "eval: An unknown type was encountered"
+#define ERR_BIND_UNKNOWN       "bind: An unknown type was encountered"
+#define ERR_EXPECTED_ENV       "Expected an argument to be of type ENV"
 #define ERR_FRAME_NON_LIST     "lookup_frame: A non-list was passed"
 #define ERR_FRAME_NON_SYMBOL   "lookup_frame: A non-symbol was present in a parameter list"
 #define ERR_SYMBOL_NOT_FOUND   "The symbol was unbound"

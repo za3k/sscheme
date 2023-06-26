@@ -18,7 +18,7 @@ extern sexp* COND;
 extern sexp* QUOTE;
 extern sexp* DEFINE;
 extern sexp* DEFINE_MACRO;
-extern struct senv* BUILTINS_ENV;
-extern struct senv* STANDARD_ENV;
+extern sval* BUILTINS_ENV;
+extern sval* STANDARD_ENV;
 
 #endif // CONSTANTSH

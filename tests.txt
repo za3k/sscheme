@@ -79,6 +79,7 @@ nil => nil
 (quote (1 . 2)) => (1 . 2)
 (quote (. 2)) => err
 (quote (1 2 . 3 4)) => err
+(quote (1 2 3 . ())) => (1 2 3)
 
 ; Primitive/symbol resolution
 + => +
@@ -119,6 +120,17 @@ NewVar => err
 (lambda (x) x) => proc
 ((lambda (x y) (x y)) car (list 2 3)) => 2
 ((lambda (x y) (x y)) (lambda (y) (car y)) (list 2 3)) => 2
+  ; Wrong argument counts
+((lambda (x) x) 1) => 1
+((lambda (x) x) 1 2) => err
+((lambda (x) x)) => err
+
+; Variadic arguments
+((lambda x (car x)) (list 1 2 3) (list 4 5 6)) => (1 2 3)
+((lambda (x . y) (car x)) (list 1 2 3) (list 4 5 6)) => 1
+((lambda (x . y) (car y)) (list 1 2 3) (list 4 5 6)) => (4 5 6)
+((lambda (x y) (car y)) (list 1 2 3) (list 4 5 6)) => 4
+
 
 (cond ((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b))) => :b
 (cond ((eq? 2 3) (quote a))
@@ -142,6 +154,13 @@ NewVar => err
 (define x 1)
 (define y 2)
 x => 1
+
+(define (f x y) (car y))
+(f (list 1 2 3) (list 4 5 6)) => 4
+(define (f . y) (car y))
+(f (list 1 2 3) (list 4 5 6)) => (1 2 3)
+(define (f x . y) (car y))
+(f (list 1 2 3) (list 4 5 6)) => (4 5 6)
 
 (define-macro f (lambda (x y) (list x y))) (f car (list 1 2)) => 1
 

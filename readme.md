@@ -24,7 +24,7 @@ Finished features:
     - Symbols
     - Builtin functions
     - Lambda functions (including closures)
-    - Lists
+    - Pairs, Lists
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
     - Strings

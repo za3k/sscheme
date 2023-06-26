@@ -13,6 +13,7 @@ int istrue(sval *arg) { return arg == TRUE; }
 int ispair(sval *arg) { return arg->tag == PAIR; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
+int isenv(sval *arg) { return arg->tag == ENV; }
 
 int symboleq(sval *arg1, sval *arg2) {
     int ret = strcmp(arg1->body.symbol,arg2->body.symbol) == 0;

@@ -30,6 +30,18 @@ sval* make_cons(sval *car, sval *cdr) {
     return v;
 }
 
+sval* make_env(sval* env) {
+    // Caller is expected to mutate to set frame
+    if (env->tag == ERROR) return env;
+    if (env->tag != ENV) return 0;
+    sval *v = make_cell();
+    v->tag = ENV;
+    v->body.env.parent = env;
+    v->body.env.frame.names = make_empty();
+    v->body.env.frame.values = make_empty();
+    return v;
+}
+
 sval* make_int(int i) {
     sval *v = make_cell();
     v->tag = NUMBER;
@@ -57,8 +69,10 @@ sval* make_prim(sval* (*primitive)(sval*)) {
     return v;
 }
 
-sexp* make_function(sexp *parameters, sexp *body, struct senv *env) {
+sexp* make_function(sexp *parameters, sexp *body, sval *env) {
     sval *v = make_cell();
+    if (env->tag == ERROR) return env;
+    if (env->tag != ENV) return 0;
 
     v->tag = FUNCTION;
     v->body.closure.parameters = parameters;
