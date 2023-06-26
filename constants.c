@@ -1,6 +1,5 @@
 #include "types.h"
 
-
 struct sval TRUE_V = { CONSTANT, .body.constant = constant_true };
 struct sval FALSE_V = { CONSTANT, .body.constant = constant_false };
 struct sval EMPTY_LIST_V = { CONSTANT, .body.constant = constant_empty_list };

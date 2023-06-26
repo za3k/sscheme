@@ -48,7 +48,7 @@ void print1nl(sval *arg) {
 }
 
 int snprint1(char* buffer, size_t n, sval *arg) {
-    int size;
+    int size = 0;
     if (arg->tag == NUMBER) {
         size = snprintf(buffer, n, "%d", arg->body.smallnum);
     } else if (arg->tag == SYMBOL) {

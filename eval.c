@@ -138,7 +138,6 @@ void define(struct senv *env, char* symbol, sval* thing) {
     env->frame.names = make_cons(make_symbol(symbol), env->frame.names);
     env->frame.values = make_cons(thing, env->frame.values);
 }
-char STD_BUF[40000];
 struct senv* empty_env() {
     if (isempty(BUILTINS_ENV->frame.names)) {
         // Set up character constants
