@@ -62,7 +62,7 @@
 
 ; ============== NUMBERS ================
 ; Upgrade to builtins to support not exactly 2 arguments: - + * / < <= > >= =
-; TODO: < <= > >= =
+; TODO: <= > >= =
 (define _builtin- -)
 (define _builtin+ +)
 (define _builtin* *)
@@ -81,11 +81,11 @@
           ((= (length lst) 1) (_builtin/ 1 (car lst)))
           (else (foldl _builtin/ (car lst) (cdr lst)))))
 
-;(define (< . lst)
-;  (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
-;        ((null? (cdr lst)) #t)
-;        ((not (_builtin< (first lst) (second lst))) #f)
-;        (apply < (cdr lst))))
+(define (< . lst)
+  (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
+        ((null? (cdr lst)) #t)
+        ((not (_builtin< (first lst) (second lst))) #f)
+        (else (apply < (cdr lst)))))
 
 (define (max . lst)
   (foldl (lambda (x y) (if (< x y) y x))

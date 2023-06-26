@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#define LOGGING_ON
-
 sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
@@ -207,8 +205,15 @@ inline sval* apply(sval* proc, sval* args) {
     #ifdef LOGGING_ON
         for (int i=0; i<indent; i++) printf(" ");
         printf("Apply: "); print1(proc); printf(" TO "); print1nl(args);
+        indent += 2;
     #endif
-    return _apply(proc, args);
+    sval *ret = _apply(proc, args);
+    #ifdef LOGGING_ON
+        indent -= 2;
+        for (int i=0; i<indent; i++) printf(" ");
+        printf("=> "); print1nl(ret);
+    #endif
+    return ret;
 }
 
 inline sval* eval1(sexp* expression, sval* env) {
@@ -219,6 +224,7 @@ inline sval* eval1(sexp* expression, sval* env) {
     #endif
     sval *ret = _eval1(expression, env);
     #ifdef LOGGING_ON
+        indent -= 2;
         for (int i=0; i<indent; i++) printf(" ");
         printf("=> "); print1nl(ret);
     #endif
