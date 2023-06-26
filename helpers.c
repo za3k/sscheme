@@ -39,17 +39,6 @@ int iseq(sval *arg1, sval *arg2) {
     }
 }
 
-static char print_buffer[1000];
-void print1(sval *arg) {
-    snprint1(print_buffer, sizeof(print_buffer), arg);
-    printf("%s",print_buffer);
-}
-
-void print1nl(sval *arg) {
-    snprint1(print_buffer, sizeof(print_buffer), arg);
-    printf("%s\n",print_buffer);
-}
-
 int snprint1(char* buffer, size_t n, sval *arg) {
     int size = 0;
     if (arg->tag == NUMBER) {
@@ -82,9 +71,11 @@ int snprint1(char* buffer, size_t n, sval *arg) {
                 break;
             }
         }
-        if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long int) arg->body.primitive);
+        if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long) arg->body.primitive);
     } else if (arg->tag == ERROR) {
         size = snprintf(buffer, n, "<error: %s>", arg->body.error);
+    } else if (arg->tag == ENV) {
+        size = snprintf(buffer, n, "<env: 0x%lx>", (unsigned long) &arg->body.env);
     } else if (arg->tag == FUNCTION) {
         size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg->body);
     } else if (arg->tag == MACRO) {

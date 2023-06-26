@@ -24,37 +24,38 @@ inline static sval* pred(int x) {
 
 /*  ============ Arity checkers and uniform function signatures ============= */
 
-sval* prim_add(sval *args)     { FARITY(2, args); return add(car(args), car(cdr(args))); }
-sval* prim_cons(sval *args)    { FARITY(2, args); return cons(car(args), car(cdr(args))); }
-sval* prim_car(sval *args)     { FARITY(1, args); return car(car(args)); }
-sval* prim_charp(sval *args)   { FARITY(1, args); return charp(car(args)); }
-sval* prim_cdr(sval *args)     { FARITY(1, args); return cdr(car(args)); }
-sval* prim_divide(sval *args)  { FARITY(2, args); return divide(car(args), car(cdr(args))); }
-sval* prim_nilp(sval *args)    { FARITY(1, args); return nilp(car(args)); }
-sval* prim_emptyp(sval *args)  { FARITY(1, args); return emptyp(car(args)); }
-sval* prim_eqp(sval *args)     { FARITY(2, args); return eqp(car(args), car(cdr(args))); }
-sval* prim_error(sval *args)   { FARITY(1, args); return error_prim(car(args)); }
-sval* prim_listp(sval *args)   { FARITY(1, args); return listp(car(args)); }
-sval* prim_lt(sval *args)      { FARITY(2, args); return lt(car(args), car(cdr(args))); }
-sval* prim_multiply(sval *args){ FARITY(2, args); return multiply(car(args), car(cdr(args))); }
-sval* prim_numberp(sval *args) { FARITY(1, args); return numberp(car(args)); }
-sval* prim_print(sval *args)   { FARITY(1, args); print1(car(args)); return NIL; }
+sval* prim_apply(sval *args)      { FARITY(2, args); return apply(car(args), car(cdr(args))); }
+sval* prim_add(sval *args)        { FARITY(2, args); return add(car(args), car(cdr(args))); }
+sval* prim_cons(sval *args)       { FARITY(2, args); return cons(car(args), car(cdr(args))); }
+sval* prim_car(sval *args)        { FARITY(1, args); return car(car(args)); }
+sval* prim_charp(sval *args)      { FARITY(1, args); return charp(car(args)); }
+sval* prim_cdr(sval *args)        { FARITY(1, args); return cdr(car(args)); }
+sval* prim_divide(sval *args)     { FARITY(2, args); return divide(car(args), car(cdr(args))); }
+sval* prim_nilp(sval *args)       { FARITY(1, args); return nilp(car(args)); }
+sval* prim_emptyp(sval *args)     { FARITY(1, args); return emptyp(car(args)); }
+sval* prim_eqp(sval *args)        { FARITY(2, args); return eqp(car(args), car(cdr(args))); }
+sval* prim_error(sval *args)      { FARITY(1, args); return error_prim(car(args)); }
+sval* prim_listp(sval *args)      { FARITY(1, args); return listp(car(args)); }
+sval* prim_lt(sval *args)         { FARITY(2, args); return lt(car(args), car(cdr(args))); }
+sval* prim_multiply(sval *args)   { FARITY(2, args); return multiply(car(args), car(cdr(args))); }
+sval* prim_numberp(sval *args)    { FARITY(1, args); return numberp(car(args)); }
+sval* prim_print(sval *args)      { FARITY(1, args); return print1(car(args)); }
 sval* prim_procedurep(sval *args) { FARITY(1, args); return procedurep(car(args)); }
-sval* prim_stringp(sval *args) { FARITY(1, args); return stringp(car(args)); }
-sval* prim_subtract(sval *args){ FARITY(2, args); return subtract(car(args), car(cdr(args))); }
+sval* prim_stringp(sval *args)    { FARITY(1, args); return stringp(car(args)); }
+sval* prim_subtract(sval *args)   { FARITY(2, args); return subtract(car(args), car(cdr(args))); }
 
-sval* prim_list(sval *args)    { VARITY(args);    return args; }
+sval* prim_list(sval *args)       { VARITY(args);    return args; }
 
 /*  ============ Definitions of primitives ============= */
 
-sval* charp(sval *arg1) { return pred(ischar(arg1)); }
-sval* emptyp(sval *arg1) { return pred(isempty(arg1)); }
+sval* charp(sval *arg1)           { return pred(ischar(arg1)); }
+sval* emptyp(sval *arg1)          { return pred(isempty(arg1)); }
 sval* eqp(sval *arg1, sval *arg2) { return pred(iseq(arg1, arg2)); }
-sval* listp(sval *arg1) { return pred(ispair(arg1)); }
-sval* nilp(sval *arg1) { return pred(isnil(arg1)); }
-sval* numberp(sval *arg1) { return pred(isnumber(arg1)); }
-sval* procedurep(sval *arg1) { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
-sval* stringp(sval *arg1) { return pred(isstring(arg1)); }
+sval* listp(sval *arg1)           { return pred(ispair(arg1)); }
+sval* nilp(sval *arg1)            { return pred(isnil(arg1)); }
+sval* numberp(sval *arg1)         { return pred(isnumber(arg1)); }
+sval* procedurep(sval *arg1)      { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
+sval* stringp(sval *arg1)         { return pred(isstring(arg1)); }
 
 sval* cons(sval *arg1, sval *arg2) {
     if (arg1->tag == ERROR) return arg1;
@@ -130,12 +131,26 @@ sval* print(sval *args) {
 }
 
 
+static char print_buffer[1000];
+sval* print1(sval *arg) {
+    snprint1(print_buffer, sizeof(print_buffer), arg);
+    printf("%s",print_buffer);
+    return NIL;
+}
+
+sval* print1nl(sval *arg) {
+    snprint1(print_buffer, sizeof(print_buffer), arg);
+    printf("%s\n",print_buffer);
+    return NIL;
+}
+
 
 sval* (*primitives[])(sval *args) = {
     prim_multiply,
     prim_lt,
     prim_add,
     prim_subtract,
+    prim_apply,
     prim_car,
     prim_cdr,
     prim_charp,
@@ -158,6 +173,7 @@ char* primitive_names[] = {
     "<",
     "+",
     "-",
+    "apply",
     "car",
     "cdr",
     "char?",

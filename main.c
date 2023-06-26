@@ -1,8 +1,9 @@
-#include "parser.h"
-#include "tests.h"
-#include "helpers.h"
-#include "types.h"
 #include "eval.h"
+#include "helpers.h"
+#include "parser.h"
+#include "prims.h"
+#include "tests.h"
+#include "types.h"
 #include <stdio.h>
 
 char buffer[10000]={0};

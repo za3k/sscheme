@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//#define LOGGING_ON
+
 sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
@@ -21,11 +23,14 @@ sval* eval_all(sexp *expressions, sval *env) {
         ret = eval1(car(expressions), env);
         if (ret->tag == ERROR) return ret;
         expressions = cdr(expressions);
+        #ifdef LOGGING_ON
+        printf("\n");
+        #endif
     }
     return ret;
 }
 
-sval* eval1(sexp* expression, sval* env) {
+sval* _eval1(sexp* expression, sval* env) {
     if (expression->tag == NUMBER) return expression;
     else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
@@ -82,7 +87,8 @@ sval* eval1(sexp* expression, sval* env) {
     }
 }
 
-sval* apply(sval* proc, sval* args) {
+
+sval* _apply(sval* proc, sval* args) {
     if (proc->tag == ERROR) return proc;
     else if (args->tag == ERROR) return args;
     return eval1(
@@ -112,7 +118,7 @@ sval* evcond(sexp *conditions, sval *env) {
     }
 }
 
-sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
+sval* _apply_primitive(sval* (*primitive)(sval*), sexp *args) {
     if (args->tag == ERROR) return args;
     else return primitive(args);
 }
@@ -196,4 +202,37 @@ sval* empty_env() {
     }
 
     return bind(make_empty(), make_empty(), STANDARD_ENV); // Return an empty frame so we can 'define' and modify it.
+}
+
+
+#ifdef LOGGING_ON
+static int indent = 0;
+#endif
+inline sval* apply_primitive(sval* (*primitive)(sval*), sexp *args) {
+    #ifdef LOGGING_ON
+        for (int i=0; i<indent; i++) printf(" ");
+        printf("Apply-primitive "); print1(make_prim(primitive)); printf(" TO "); print1nl(args);
+    #endif
+    return _apply_primitive(primitive, args);
+}
+inline sval* apply(sval* proc, sval* args) {
+    #ifdef LOGGING_ON
+        for (int i=0; i<indent; i++) printf(" ");
+        printf("Apply: "); print1(proc); printf(" TO "); print1nl(args);
+    #endif
+    return _apply(proc, args);
+}
+
+inline sval* eval1(sexp* expression, sval* env) {
+    #ifdef LOGGING_ON
+        for (int i=0; i<indent; i++) printf(" ");
+        printf("Eval: "); print1(expression); printf(" IN "); print1(env); printf("\n");
+        indent += 2;
+    #endif
+    sval *ret = _eval1(expression, env);
+    #ifdef LOGGING_ON
+        for (int i=0; i<indent; i++) printf(" ");
+        printf("=> "); print1nl(ret);
+    #endif
+    return ret;
 }

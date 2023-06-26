@@ -3,7 +3,6 @@
 
 #ifndef __HELPERS
 #define __HELPERS
-// car, cdr, and cons are listed under 'prims', not here
 
 int ischar(sval *arg);
 int iserror(sval *arg);
@@ -22,8 +21,6 @@ int iseq(sval *arg1, sval *arg2);
 int islistoflength(sval *arg, int l);
 
 // Print is repr-style
-void print1(sval *arg1);
-void print1nl(sval *arg1);
 int snprint1(char* buffer, size_t n, sval *arg);
 
 char* slurp_stdin(char *buffer);

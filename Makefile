@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Werror -std=gnu99 -g -Os -fdiagnostics-color=always
+CFLAGS = -Wall -Werror -std=gnu99 -g -O0 -fdiagnostics-color=always
 C_FILES = $(wildcard *.c)
 DATA_FILES = $(wildcard *.txt)
 DATA_H_FILES = $(patsubst %.txt,%.inc.h,$(DATA_FILES))

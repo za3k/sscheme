@@ -8,6 +8,7 @@ extern char* primitive_names[];
 
 // Primitive functions -- core
 sval* add(sval *arg1, sval *arg2);
+sval* apply(sval *arg1, sval *arg2);
 sval* cons(sval *arg1, sval *arg2);
 sval* car(sval *arg1);
 sval* charp(sval *arg1);
@@ -21,6 +22,8 @@ sval* lt(sval *arg1, sval *arg2);
 sval* multiply(sval *arg1, sval *arg2);
 sval* nilp(sval *arg1);
 sval* numberp(sval *arg1);
+sval* print1(sval *arg1);
+sval* print1nl(sval *arg1);
 sval* procedurep(sval *arg1);
 sval* stringp(sval *arg1);
 sval* subtract(sval *arg1, sval *arg2);
