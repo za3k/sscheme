@@ -4,7 +4,20 @@
 (define else #t)
 
 (define-macro (if x y z)
-  (list cond (list x y) (list else z)))
+  (list (quote cond) (list x y) (list else z)))
+(define-macro (and . clauses)
+  (cond ((null? clauses) #t)
+        ((null? (cdr clauses)) (car clauses))
+        (else
+            (list (quote if) (car clauses)
+                             (cons (quote and) (cdr clauses))
+                             #f))))
+(define-macro (or . clauses) ; Note - this evaluates the truthy clause twice
+  (cond ((null? clauses) #f)
+        (else
+            (list (quote if) (car clauses)
+                             (car clauses)
+                             (cons (quote or) (cdr clauses))))))
 (define (not x) (if x #f #t))
 
 ; Helpers for later definitions

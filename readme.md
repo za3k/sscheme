@@ -29,14 +29,14 @@ Finished features:
     - Characters `#\d` `#\newline`
     - Strings
 - Comments
-- Special forms: `cond` `define` `define-macro` `if` `lambda` `quote`
+- Special forms: `and` `cond` `define` `define-macro` `if` `lambda` `or` `quote`
 - Builtins: `+` `-` `append` `assf` `assoc` `assv` `assq` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `filter` `first` (`second`, `third`...) `last` `length` `list` `list?` `list-tail` `list-ref` `map` `nil?` `not` `number?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse`
 - About 60K compiled statically.
 
 Unfinished features:
 - lambda varargs support
 - `(define (f arg1 arg) ...)` syntax
-- Special forms: `and` `do` `for-each` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`
+- Special forms: `do` `for-each` `let` `letrec` `set!` `set-car!` `set-cdr!`
 - Garbage collection
 - Detect infinite loops or out of memory
 - Print where errors happen

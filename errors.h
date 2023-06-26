@@ -13,6 +13,8 @@
 #define ERR_APPLY_NON_FUNCTION "Tried to apply a non-function"
 #define ERR_DEFINE_NONSYMBOL   "Define can only be used to define a symbol (no lambda syntax yet)"
 #define ERR_EVAL_CLOSURE       "eval: Tried to eval a closure"
+#define ERR_EVAL_PRIMITIVE     "eval: Tried to eval a primitive"
+#define ERR_EVAL_MACRO         "eval: Tried to eval a macro"
 #define ERR_EVLIST_NON_LIST    "evlist: Tried to evlist a non-list"
 #define ERR_EVAL_UNKNOWN       "eval: An unknown type was encountered"
 #define ERR_BIND_UNKNOWN       "bind: An unknown type was encountered"

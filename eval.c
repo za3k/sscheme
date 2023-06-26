@@ -29,10 +29,11 @@ sval* eval1(sexp* expression, sval* env) {
     if (expression->tag == NUMBER) return expression;
     else if (expression->tag == SYMBOL) return lookup(expression, env);
     else if (expression->tag == CONSTANT) return expression;
-    else if (expression->tag == PRIMITIVE) return expression;
     else if (expression->tag == STRING) return expression;
     else if (expression->tag == SPECIAL_FORM) return expression;
     else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
+    else if (expression->tag == PRIMITIVE) return error(ERR_EVAL_PRIMITIVE);
+    else if (expression->tag == MACRO) return error(ERR_EVAL_MACRO);
     else if (expression->tag == ERROR) return expression;
     else if (expression->tag == PAIR) { // An application
         sval *proc = eval1(car(expression), env);
@@ -41,14 +42,13 @@ sval* eval1(sexp* expression, sval* env) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
         } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_define || proc->body.form == form_define_macro)) {
-            // (define (<func-name> <param1> <param2>) <body>)
-            // (define (<func-name> . <params>) <body>)
-            // (define (<func-name> <param1> <param2> . <params>) <body>)
-            // (define x <value>)
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
             sval *name;
             sval *value;
             if (ispair(car(rest))) {
+                // (define (<func-name> <param1> <param2>) <body>)
+                // (define (<func-name> . <params>) <body>)
+                // (define (<func-name> <param1> <param2> . <params>) <body>)
                 sval *params;
                 sval *body;
                 name = car(car(rest));
@@ -56,6 +56,7 @@ sval* eval1(sexp* expression, sval* env) {
                 body = car(cdr(rest));
                 value = make_function(params, body, env);
             } else {
+                // (define x <value>)
                 name = car(rest);
                 value = eval1(car(cdr(rest)), env);
             }
@@ -75,7 +76,10 @@ sval* eval1(sexp* expression, sval* env) {
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
         else if (proc->tag == ERROR) return proc;
         else return error(ERR_APPLY_NON_FUNCTION);
-    } else return error(ERR_EVAL_UNKNOWN);
+    } else {
+        env->body.symbol[2000000]++;
+        return error(ERR_EVAL_UNKNOWN);
+    }
 }
 
 sval* apply(sval* proc, sval* args) {
