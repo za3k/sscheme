@@ -3,8 +3,32 @@
 (define = eq?)
 (define else #t)
 
+(define-macro if (lambda (x y z)
+  (list cond (list (list x y) (list else z)))))
+(define not (lambda (x) (if x #f #t)))
+
+; Helpers for later definitions
+(define map (lambda (f l) ; todo varargs
+  (if (null? l) l
+      (cons (f (car l))
+            (map f (cdr l))))))
+(define foldl (lambda (proc init lst) ; todo vargs
+  (if (null? lst)
+      init
+      (foldl proc (proc (car lst) init) (cdr lst)))))
+(define foldr (lambda (proc init lst) ; todo vargs
+  (foldl proc init (reverse lst))))
+(define filter (lambda (pred lst)
+  (if (null? lst)
+      lst
+      (if (pred (car lst))
+          (cons (car lst) (filter pred (cdr lst)))
+          (filter pred (cdr lst))))))
+  
+(define caar (lambda (x) (car (car x))))
 (define cadr (lambda (x) (car (cdr x))))
 (define cdar (lambda (x) (cdr (car x))))
+(define cddr (lambda (x) (cdr (cdr x))))
 (define caaar (lambda (x) (car (car (car x)))))
 (define caadr (lambda (x) (car (car (cdr x)))))
 (define cadar (lambda (x) (car (cdr (car x)))))
@@ -42,5 +66,109 @@
 (define tenth (lambda (x) (cadr (cddddr (cddddr x)))))
 
 (define last (lambda (l)
- (cond (((null? (cdr l)) (car l))
-       (else (last (cdr l)))))))
+ (if (null? (cdr l))
+     (car l)
+     (last (cdr l)))))
+(define list? (lambda (l)
+ (if (null? l) 
+     #t
+     (if (pair? l)
+         (list? (cdr l))
+         #f))))
+(define length (lambda (l)
+  (if (null? l)
+      0
+      (+ 1 (length (cdr l))))))
+(define append (lambda (l1 l2) ; todo varargs
+  (if (null? l1)
+      l2
+      (cons (car l1) (append (cdr l1) l2)))))
+(define reverse (lambda (l)
+  (if (null? l)
+      l
+      (append (reverse (cdr l)) (list (car l))))))
+(define list-tail (lambda (lst pos)
+  (if (= pos 0) lst
+      (list-tail (cdr lst) (- pos 1)))))
+(define list-ref (lambda (lst pos)
+  (car (list-tail lst pos))))
+
+(define remove (lambda (v lst proc) ; todo proc=equal? optional
+  (if (null? lst) lst
+      (if (proc v (car lst))
+          (cdr lst)
+          (cons (car lst) (remove v (cdr lst) proc))))))
+(define remq (lambda (v lst)
+  (remove v lst eq?)))
+(define remv (lambda (v lst)
+  (remove v lst eqv?)))
+
+(define assf (lambda (pred lst)
+  (if (null? lst)
+      #f
+      (if (pred (caar lst))
+          (car lst)
+          (assf pred (cdr lst))))))
+(define assoc (lambda (v lst is-equal?) ; todo is-equal?=equal? is optional
+  (assf (lambda (k) (is-equal? k v)) lst)))
+(define assv (lambda (v lst)
+  (assoc v lst eqv?)))
+(define assq (lambda (v lst)
+  (assoc v lst eq?)))
+
+(define boolean? (lambda (x)
+  (cond (((eq? x #t) #t)
+         ((eq? x #f) #t)
+         ((else) #f)))))
+    
+
+; Waiting on and/or: memq memv member
+
+; TODO list
+
+; quote ' if set! case and or let let* letrec begin do quasiquote
+
+; General
+; equal? write display newline
+
+; Numbers
+; quotient remainder modulo
+; / * max min abs gcd lcm expt
+; = < > <= >=
+; zero? positive? negative? odd? even?
+; number->string string->number
+; range
+
+; boolean?
+
+; Lists and pairs
+; set-car! set-cdr!
+; list? length append reverse list-tail list-ref memq memv member assq assv assoc 
+
+; Symbol
+; symbol->string string->symbol
+
+; Characters
+; char->integer integer->char
+; char? char=? char<? char>? char<=? char>=?
+; char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
+; char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case?
+; char-upcase char-downcase
+
+; Strings
+; string->list list->string
+; string? string string-length string-ref string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
+
+; apply eval
+; map for-each force delay
+; scheme-report-environment null-environment interaction-environment
+; call/cc
+; call-with-current-continuation values call-with-values call-with-values dynamic-wind
+
+; IO
+; read read-char peek-char eof-object? char-ready? write display newline write-char
+
+; Files
+; load transcript-on transcript-off call-with-input-file call-with-output-file input-port? output-port? current-input-port current-output-port with-input-from-file with-output-to-file open-input-file open-output-file close-input-port close-output-port
+
+5

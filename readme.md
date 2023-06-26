@@ -29,20 +29,22 @@ Finished features:
     - Characters `#\d` `#\newline`
     - Strings
 - Comments
-- Special forms: `cond` `define` `define-macro` `lambda` `quote`
-- Builtins: `+` `-` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `first` (`second`, `third`...) `last` `list` `list?` `nil?` `number?` `print` `procedure?` `rest`
+- Special forms: `cond` `define` `define-macro` `if` `lambda` `quote`
+- Builtins: `+` `-` `append` `assf` `assoc` `assv` `assq` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `filter` `first` (`second`, `third`...) `last` `length` `list` `list?` `list-tail` `list-ref` `map` `nil?` `not` `number?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse`
 
 Unfinished features:
 - lambda varargs support
 - `(define (f arg1 arg) ...)` syntax
-- Special forms: `and` `do` `for-each` `if` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`
+- Special forms: `and` `do` `for-each` `let` `letrec` `or` `set!` `set-car!` `set-cdr!`
 - Garbage collection
+- Detect infinite loops or out of memory
+- Print where errors happen
 - Input/output, either interactively from stdin or files.
 - Most of the standard library
     - Builtins: `*` `/` `<` `apply` `display` `error` `eval` `quotient` `random`
     - Builtins: `call/cc`
     - Builtins: `~` `^` `|`
-    - Functions: `<=` `=` `>` `>=` `abs` `append` `boolean?` `equal?` `even?` `expt` `filter` `length` `map` `max` `member?` `min` `newline` `not` `null?` `odd?` `repeated` `square` `write`
+    - Functions: `<=` `=` `>` `>=` `abs` `boolean?` `equal?` `even?` `expt` `max` `member?` `min` `newline` `null?` `odd?` `repeated` `square` `write`
 
 Non-features (will never be added):
 - Data types
