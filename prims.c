@@ -55,10 +55,11 @@ sval* numberp(sval *arg1)         { return pred(isnumber(arg1)); }
 sval* procedurep(sval *arg1)      { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
 sval* stringp(sval *arg1)         { return pred(isstring(arg1)); }
 
-sval* cons(sval *arg1, sval *arg2) {
-    if (arg1->tag == ERROR) return arg1;
-    if (arg2->tag == ERROR) return arg2;
-    return make_cons(arg1, arg2);
+sval* add(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg2);
+
+    return make_int(arg1->body.smallnum+arg2->body.smallnum);
 }
 
 sval* car(sval *arg1) {
@@ -73,6 +74,21 @@ sval* cdr(sval *arg1) {
     return arg1->body.list.cdr;
 }
 
+sval* cons(sval *arg1, sval *arg2) {
+    if (arg1->tag == ERROR) return arg1;
+    if (arg2->tag == ERROR) return arg2;
+    return make_cons(arg1, arg2);
+}
+
+sval* divide(sval *arg1, sval *arg2) {
+    TYPE(isnumber, arg1);
+    TYPE(isnumber, arg2);
+
+    if (arg2->body.smallnum == 0) return error(ERR_DIV_BY_ZERO);
+    return make_int(arg1->body.smallnum/arg2->body.smallnum);
+}
+
+
 sval* error_prim(sval *arg1) {
     TYPE(isstring, arg1);
 
@@ -86,24 +102,17 @@ sval* lt(sval *arg1, sval *arg2) {
     return pred(arg1->body.smallnum < arg2->body.smallnum);
 }
 
-sval* negative(sval *arg1) {
-    TYPE(isnumber, arg1);
-
-    return make_int(-arg1->body.smallnum);
-}
-
 sval* multiply(sval *arg1, sval *arg2) {
     TYPE(isnumber, arg1);
     TYPE(isnumber, arg2);
 
     return make_int(arg1->body.smallnum*arg2->body.smallnum);
 }
-sval* divide(sval *arg1, sval *arg2) {
-    TYPE(isnumber, arg1);
-    TYPE(isnumber, arg2);
 
-    if (arg2->body.smallnum == 0) return error(ERR_DIV_BY_ZERO);
-    return make_int(arg1->body.smallnum/arg2->body.smallnum);
+sval* negative(sval *arg1) {
+    TYPE(isnumber, arg1);
+
+    return make_int(-arg1->body.smallnum);
 }
 
 sval* subtract(sval *arg1, sval *arg2) {
@@ -112,22 +121,6 @@ sval* subtract(sval *arg1, sval *arg2) {
 
     return make_int(arg1->body.smallnum-arg2->body.smallnum);
 }
-
-sval* add(sval *arg1, sval *arg2) {
-    TYPE(isnumber, arg1);
-    TYPE(isnumber, arg2);
-
-    return make_int(arg1->body.smallnum+arg2->body.smallnum);
-}
-
-sval* print(sval *args) {
-    while (!isempty(args)) {
-        print1nl(car(args));
-        args = cdr(args);
-    }
-    return NIL;
-}
-
 
 static char print_buffer[1000];
 sval* print1(sval *arg) {

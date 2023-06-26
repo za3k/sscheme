@@ -14,7 +14,7 @@
 (define / quotient)
 
 ; ============== FORMS (MACROS) ================
-(define (list . x) x)
+(define (list . x) x) ; Not a macro but very needed until we get ' notation
 (define-macro (if x y z)
   (list (quote cond) (list x y) (list else z)))
 (define-macro (and . clauses)
