@@ -29,6 +29,7 @@
 ; TODO: force delay
 
 ; ============== BOOLEANS ================
+(define (boolean x) (if x #t #f))
 (define (boolean? x)
   (or (eq? x #t) (eq? x #f)))
 (define (not x) (if x #f #t))
@@ -201,17 +202,46 @@
 (define (assv v lst) (assoc v lst eqv?))
 (define (assq v lst) (assoc v lst eq?))
 
-; TODO: memq memv member
+(define (member v lst cmp) ; todo proc=equal? optional
+  (cond ((null? lst) #f)
+        ((cmp v (car lst)) lst)
+        (else (member v (cdr lst) cmp))))
+(define (memv v lst) (member v lst eqv?))
+(define (memq v lst) (member v lst eq?))
 
 ; ============== CHARACTERS ================
 (define char=? eq?)
-; TODO: char<? char>? char<=? char>=?
-; TODO: char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
-; TODO: char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case?
-; TODO: char-upcase char-downcase
+(define (char<?  a b) (<  (char->integer a) (char->integer b)))
+(define (char<=? a b) (<= (char->integer a) (char->integer b)))
+(define (char>?  a b) (>  (char->integer a) (char->integer b)))
+(define (char>=? a b) (>= (char->integer a) (char->integer b)))
+
+(define (char-upper-case? c) (boolean (memq c (string->list "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))))
+(define (char-lower-case? c) (boolean (memq c (string->list "abcdefghijklmnopqrstuvwxyz"))))
+(define (char-numeric? c) (boolean (memq c (string->list "0123456789"))))
+(define (char-alphabetic? c) (or (char-upper-case? c) (char-lower-case? c)))
+(define (char-whitespace? c) (boolean (memq c (list #\space #\tab #\page #\linefeed #\return))))
+
+(define (char-upcase c)
+  (if (char-lower-case? c)
+      (integer->char (- (char->integer c) 32))
+      c))
+(define (char-downcase c)
+  (if (char-upper-case? c)
+      (integer->char (+ (char->integer c) 32))
+      c))
+
+(define (char-ci=? x y) (char=? (char-downcase x) (char-downcase y)))
+(define (char-ci<? x y) (char<? (char-downcase x) (char-downcase y)))
+(define (char-ci<=? x y) (char<=? (char-downcase x) (char-downcase y)))
+(define (char-ci>? x y) (char>? (char-downcase x) (char-downcase y)))
+(define (char-ci>=? x y) (char>=? (char-downcase x) (char-downcase y)))
 
 ; ============== STRINGS ================
-; TODO: string string-length string-ref string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
+(define (string . chars) (list->string chars))
+(define (string-length l) (length (string->list l)))
+(define (string-ref l k) (list-ref (string->list l) k))
+; TODO: string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
 
 ; ============== SYMBOLS ================
 ; (none)
