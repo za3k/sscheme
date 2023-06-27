@@ -1,14 +1,9 @@
 ; ============== BUILTINS ================
 ; TODO: set! set-cdr! set-car! '
 
-; TODO: symbol->string string->symbol
-; TODO: string->list list->string
-; TODO: char->integer integer->char
-
 ; ============== ALIASES ================
 (define empty? null?)
 (define eqv? eq?)
-(define = eq?)
 (define else #t)
 (define / quotient)
 
@@ -61,7 +56,6 @@
 
 ; ============== NUMBERS ================
 ; Upgrade to builtins to support not exactly 2 arguments: - + * / < <= > >= =
-; TODO: <= > >= =
 (define _builtin- -)
 (define _builtin+ +)
 (define _builtin* *)
@@ -80,11 +74,17 @@
           ((= (length lst) 1) (_builtin/ 1 (car lst)))
           (else (foldl _builtin/ (car lst) (cdr lst)))))
 
-(define (< . lst)
-  (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
-        ((null? (cdr lst)) #t)
-        ((not (_builtin< (first lst) (second lst))) #f)
-        (else (apply < (cdr lst)))))
+(define (monotone cmp)
+  (lambda lst
+    (cond ((null? lst) (error "WRONG_NUM_ARGUMENTS"))
+          ((null? (cdr lst)) #t)
+          ((not (cmp (first lst) (second lst))) #f)
+          (else (apply (monotone cmp) (cdr lst))))))
+(define <  (monotone _builtin<))
+(define =  (monotone eq?))
+(define <= (monotone (lambda (x y) (not (_builtin< y x)))))
+(define >  (monotone (lambda (x y)      (_builtin< y x))))
+(define >= (monotone (lambda (x y) (not (_builtin< x y)))))
 
 (define (max . lst)
   (foldl (lambda (x y) (if (< x y) y x))
@@ -204,7 +204,8 @@
 ; TODO: memq memv member
 
 ; ============== CHARACTERS ================
-; TODO: char=? char<? char>? char<=? char>=?
+(define char=? eq?)
+; TODO: char<? char>? char<=? char>=?
 ; TODO: char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
 ; TODO: char-alphabetic? char-numeric? char-whitespace? char-upper-case? char-lower-case?
 ; TODO: char-upcase char-downcase
