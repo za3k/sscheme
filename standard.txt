@@ -2,7 +2,6 @@
 ; TODO: set! set-cdr! set-car! '
 
 ; TODO: symbol->string string->symbol
-; TODO: number->string string->number
 ; TODO: string->list list->string
 ; TODO: char->integer integer->char
 
@@ -111,6 +110,7 @@
 
 ; TODO: gcd lcm expt
 ; TODO: range
+; TODO: number->string string->number
 
 ; ============== LISTS AND PAIRS ================
 (define (caar x) (car (car x)))

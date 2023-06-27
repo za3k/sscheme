@@ -44,6 +44,13 @@ sval* prim_procedurep(sval *args) { FARITY(1, args); return procedurep(car(args)
 sval* prim_stringp(sval *args)    { FARITY(1, args); return stringp(car(args)); }
 sval* prim_subtract(sval *args)   { FARITY(2, args); return subtract(car(args), car(cdr(args))); }
 
+sval* prim_char2integer(sval *args)    { FARITY(1, args); return char2integer(car(args)); }
+sval* prim_integer2char(sval *args)    { FARITY(1, args); return integer2char(car(args)); }
+sval* prim_list2string(sval *args)    { FARITY(1, args); return list2string(car(args)); }
+sval* prim_string2list(sval *args)    { FARITY(1, args); return string2list(car(args)); }
+sval* prim_string2symbol(sval *args)    { FARITY(1, args); return string2symbol(car(args)); }
+sval* prim_symbol2string(sval *args)    { FARITY(1, args); return symbol2string(car(args)); }
+
 /*  ============ Definitions of primitives ============= */
 
 sval* charp(sval *arg1)           { return pred(ischar(arg1)); }
@@ -135,6 +142,55 @@ sval* print1nl(sval *arg) {
     return NIL;
 }
 
+sval* char2integer(sval *arg1) {
+    TYPE(ischar, arg1);
+    return make_int(arg1->body.constant-C000);
+}
+
+sval* integer2char(sval *arg1) {
+    TYPE(isnumber, arg1);
+    int i = arg1->body.smallnum;
+    if (0 <= i && i < 128) return &CHARS_V[i];
+    else return error(ERR_CHAR_OUT_OF_RANGE);
+}
+
+char LTS_BUFFER[1000]; // list2string crashes if it's longer than 1K
+sval* list2string(sval *arg1) {
+    int i;
+    if (!arg1) return error(ERR_NULL_PTR);
+    else if (arg1->tag == ERROR) return arg1;
+    else if (isempty(arg1)) return make_string("");
+    else if (ispair(arg1)) {
+        for (i=0; !isempty(arg1); i++, arg1=cdr(arg1)) {
+            TYPE(ischar, car(arg1));
+            LTS_BUFFER[i] = car(arg1)->body.constant-C000;
+        }
+        LTS_BUFFER[i]=0;
+        return make_string(LTS_BUFFER);
+    } else return error(ERR_WRONG_TYPE);
+}
+
+sval* string2list(sval *arg1) {
+    TYPE(isstring, arg1);
+
+    char *string = arg1->body.symbol;
+    int l=strlen(string);
+    sval *ret = EMPTY_LIST;
+    for (int i=l-1; i>=0; i--) ret = make_cons(&CHARS_V[(int) string[i]], ret);
+    return ret;
+}
+
+sval* string2symbol(sval *arg1) {
+    TYPE(isstring, arg1)
+
+    return make_symbol(arg1->body.symbol);
+}
+
+sval* symbol2string(sval *arg1) {
+    TYPE(issymbol, arg1)
+
+    return make_string(arg1->body.symbol);
+}
 
 sval* (*primitives[])(sval *args) = {
     prim_multiply,
@@ -156,6 +212,12 @@ sval* (*primitives[])(sval *args) = {
     prim_procedurep,
     prim_divide,
     prim_stringp,
+    prim_char2integer,
+    prim_integer2char,
+    prim_list2string,
+    prim_string2list,
+    prim_string2symbol,
+    prim_symbol2string,
     0,
 };
 char* primitive_names[] = {
@@ -178,4 +240,10 @@ char* primitive_names[] = {
     "procedure?",
     "quotient",
     "string?",
+    "char->integer",
+    "integer->char",
+    "list->string",
+    "string->list",
+    "string->symbol",
+    "symbol->string",
 };

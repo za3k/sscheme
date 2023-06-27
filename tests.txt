@@ -199,6 +199,13 @@ x => 1
 (* -5 5) => -25
 (* -5 -5) => 25
 
+(char->integer #\a) => 97
+(integer->char 97) => #\a
+(list->string (list #\a #\b #\c)) => "abc"
+(string->list "abc") => (#\a #\b #\c)
+(string->symbol "abc") => :abc
+(symbol->string (quote abc)) => "abc"
+
 ; Tests for the standard library
 (if #t 1 2) => 1
 (if #f 1 2) => 2

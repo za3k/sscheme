@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: Simple and advanced cons-notation: (1 . 2) or (3 4 5 . 6)
 // TODO: Intern symbols to save space and allow == comparison
 
 sexp* parse_list_right(char **s, int atleastone);

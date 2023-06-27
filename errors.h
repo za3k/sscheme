@@ -32,5 +32,6 @@
 #define ERR_WRONG_NUM   "primitive passed wrong number of arguments"
 #define ERR_WRONG_TYPE  "primitive passed the wrong argument type(s)"
 #define ERR_DIV_BY_ZERO "division by zero"
+#define ERR_CHAR_OUT_OF_RANGE  "integer->char out of range"
 
 #endif // __ERROR

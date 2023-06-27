@@ -30,7 +30,7 @@ Finished features:
     - Strings
 - Comments
 - Special forms: `and` `cond` `define` `define-macro` `if` `lambda` `or` `quote`
-- Functions: `+` `-` `/` `*` `append` `assf` `assoc` `assv` `assq` `car` `cdr` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `filter` `first` (`second`, `third`...) `last` `length` `list` `list?` `list-tail` `list-ref` `map` `nil?` `not` `number?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse`
+- Functions: `+` `-` `/` `*` `append` `assf` `assoc` `assv` `assq` `car` `cdr` `char?` `char->integer` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `filter` `first` (`second`, `third`...) `integer->char` `last` `length` `list` `list?` `list->string` `list-tail` `list-ref` `map` `nil?` `not` `number?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse` `string->list` `string->symbol` `symbol->string`
 - About 60K compiled statically.
 
 Unfinished features:

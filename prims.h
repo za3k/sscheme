@@ -27,3 +27,10 @@ sval* print1nl(sval *arg1);
 sval* procedurep(sval *arg1);
 sval* stringp(sval *arg1);
 sval* subtract(sval *arg1, sval *arg2);
+
+sval* char2integer(sval *arg1);
+sval* integer2char(sval *arg1);
+sval* list2string(sval *arg1);
+sval* string2list(sval *arg1);
+sval* string2symbol(sval *arg1);
+sval* symbol2string(sval *arg1);
