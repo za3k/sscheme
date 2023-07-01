@@ -156,17 +156,18 @@ sval* integer2char(sval *arg1) {
     else return error(ERR_CHAR_OUT_OF_RANGE);
 }
 
-char LTS_BUFFER[MAX_STRING_SIZE]; // list2string crashes if it's longer
+char LTS_BUFFER[MAX_STRING_SIZE+1];
 sval* list2string(sval *arg1) {
     int i;
     if (!arg1) return error(ERR_NULL_PTR);
     else if (arg1->tag == ERROR) return arg1;
     else if (isempty(arg1)) return make_string("");
     else if (ispair(arg1)) {
-        for (i=0; !isempty(arg1); i++, arg1=cdr(arg1)) {
+        for (i=0; i<=MAX_STRING_SIZE && !isempty(arg1); i++, arg1=cdr(arg1)) {
             TYPE(ischar, car(arg1));
             LTS_BUFFER[i] = car(arg1)->body.constant-C000;
         }
+        if (i==MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
         LTS_BUFFER[i]=0;
         return make_string(LTS_BUFFER);
     } else return error(ERR_WRONG_TYPE);

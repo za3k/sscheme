@@ -31,11 +31,9 @@ enum token_type {
 enum token_type detect_token_type(char **s);
 
 // All parse_* function "consume" some of *s by mutating it to point later unless otherwise noted.
-int parse_int_decimal(char **s, int *result);
-int parse_int_octal(char **s, int *result);
-int parse_int_hex(char **s, int *result);
-char* parse_string(char **s);
-char* parse_symbol(char **s);
+sexp* parse_int(char **s, int base);
+sexp* parse_string(char **s);
+sexp* parse_symbol(char **s);
 sexp* parse_character_constant(char**s);
 sexp* parse_constant(char**s);
 void parse_comment(char **s);
@@ -95,18 +93,17 @@ enum token_type detect_token_type(char **s) {
 }
 
 char STRING_BUF[MAX_STRING_SIZE + 1];
-char* parse_string(char **s) {
-    // TODO: Warn about too-long strings or use malloc/salloc
+sexp* parse_string(char **s) {
     int len=0;
     (*s)++; // Initial quote
     while (1) {
         char p=**s;
         switch(p) {
-            case 0: return 0;
+            case 0: return error(ERR_INVALID_CHAR);
             case '\"':
                 (*s)++;
                 STRING_BUF[len]=0;
-                return strdup(STRING_BUF);
+                return make_string(STRING_BUF);
             case '\\':
                 (*s)++;
                 p=**s;
@@ -124,73 +121,41 @@ char* parse_string(char **s) {
                 }
             default:
                 STRING_BUF[len++]=p;
+                if (len >= MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
         }
         (*s)++;
     }
-    return 0;
+    return error(ERR_INVALID_CHAR);
 }
 
-int parse_int_decimal(char **s, int *result) {
-    int out = 0;
-    int sign=1;
-    if ((*s)[0] == '#' && (*s)[1]=='d') (*s)+=2;
+sexp* parse_int(char **s, int base) {
+    int out=0, sign=1, digit;
+    if ((*s)[0] == '#') {
+        if (((*s)[1]=='d' && base==10) ||
+            ((*s)[1]=='o' && base==8) ||
+            ((*s)[1]=='x' && base==16)) (*s)+=2;
+        else return error(ERR_INVALID_CHAR);
+    }
     if (**s == '-') { (*s)++; sign=-1; }
     for (char* p=*s;; p++) {
         switch (*p) {
             case '0' ... '9':
-                out = out * 10 + (*p-'0');
+                digit = *p-'0';
+                break;
+            case 'a' ... 'z':
+                digit = *p-'a'+10;
+                break;
+            case 'A' ... 'Z':
+                digit = *p-'a'+10;
                 break;
             case ' ': case '\t': case '\n': case '\r':
             case ')': case '(': case '\0':
                 *s = p;
-                *result = out*sign;
-                return 1;
-            default:
-                return 0;
+                return make_int(out*sign);
+            default: return error(ERR_INVALID_CHAR);
         }
-    }
-}
-int parse_int_octal(char **s, int *result) {
-    int out = 0;
-    int sign=1;
-    if ((*s)[0] == '#' && (*s)[1]=='o') (*s)+=2;
-    if (**s == '-') { (*s)++; sign=-1; }
-    for (char* p=*s;; p++) {
-        switch (*p) {
-            case '0' ... '7':
-                out = out * 8 + (*p-'0');
-                break;
-            case ' ': case '\t': case '\n': case '\r':
-            case ')': case '(': case '\0':
-                *s = p;
-                *result = out*sign;
-                return 1;
-            default:
-                return 0;
-        }
-    }
-}
-int parse_int_hex(char **s, int *result) {
-    int out = 0;
-    int sign=1;
-    if ((*s)[0] == '#' && (*s)[1]=='x') (*s)+=2;
-    if (**s == '-') { (*s)++; sign=-1; }
-    for (char* p=*s;; p++) {
-        switch (*p) {
-            case '0' ... '9':
-                out = out * 16 + (*p-'0'); break;
-            case 'a' ... 'f':
-                out = out * 16 + (*p-'a'+10); break;
-            case 'A' ... 'F':
-                out = out * 16 + (*p-'A'+10); break;
-            case ' ': case '\t': case '\n': case '\r':
-            case ')': case '(': case '\0':
-                *s = p;
-                *result = out*sign;
-                return 1;
-            default:
-                return 0;
-        }
+        if (digit >= base) return error(ERR_INVALID_CHAR);
+        out = out * base + digit;
     }
 }
 
@@ -231,6 +196,7 @@ sexp* parse_character_constant(char**s) {
 }
 
 sexp* parse_constant(char **s) {
+    // Assume (*s)=='#'
     switch((*s)[1]) {
         case 't': // #t
             (*s)+=2;
@@ -238,16 +204,13 @@ sexp* parse_constant(char **s) {
         case 'f': // #f
             (*s)+=2;
             return FALSE;
-        case '\\': // Character constant
-            return parse_character_constant(s);
-        default:
-            return 0;
+        case '\\': return parse_character_constant(s);
+        default: return error(ERR_INVALID_CHAR);
     }
 }
 
 char SYMBOL_BUF[MAX_SYMBOL_SIZE + 1];
-char* parse_symbol(char **s) {
-    // TODO: Warn about too-long symbols
+sexp* parse_symbol(char **s) {
     int length;
     for (char* p=*s;; p++) {
         switch (*p) {
@@ -262,13 +225,13 @@ char* parse_symbol(char **s) {
                 break;
             default:
                 length = p-*s;
+                if (length > MAX_SYMBOL_SIZE) return error(ERR_SYMBOL_TOO_BIG);
                 memcpy(SYMBOL_BUF, *s, length);
                 SYMBOL_BUF[length]=0;
                 *s += length;
-                return SYMBOL_BUF;
+                return make_symbol(SYMBOL_BUF);
         }
     }
-
 }
 
 
@@ -328,9 +291,6 @@ sexp* parse_list_right(char **s, int atleastone) {
 
 sexp* parse_sexp(char **s) {
     enum token_type next_type = parse_token_type(s);
-    int parsed_int;
-    char *parsed_symbol;
-    sexp *parsed_constant;
     // Stream of (non-whitespace, non-comment) tokens here
     switch(next_type) {
         case tok_close_paren:
@@ -339,35 +299,21 @@ sexp* parse_sexp(char **s) {
         case tok_comment:
             parse_comment(s);
             return error(ERR_LOGIC);
-        case tok_constant:
-            parsed_constant = parse_constant(s);
-            if (parsed_constant) return parsed_constant;
-            else return error(ERR_INVALID_CHAR);
+        case tok_constant: return parse_constant(s);
         case tok_dot:
             parse_dot(s);
             return error(ERR_UNEXPECTED_DOT);
         case tok_eof: return 0;
         case tok_invalid: return error(ERR_INVALID_CHAR);
-        case tok_number_decimal:
-            if(parse_int_decimal(s, &parsed_int)) return make_int(parsed_int);
-            else return error(ERR_INVALID_CHAR);
-        case tok_number_hex:
-            if(parse_int_hex(s, &parsed_int)) return make_int(parsed_int);
-            else return error(ERR_INVALID_CHAR);
-        case tok_number_octal:
-            if(parse_int_octal(s, &parsed_int)) return make_int(parsed_int);
-            else return error(ERR_INVALID_CHAR);
+        case tok_number_decimal: return parse_int(s,10);
+        case tok_number_hex: return parse_int(s,16);
+        case tok_number_octal: return parse_int(s,8);
         case tok_open_paren:
             parse_open_paren(s);
             return parse_list_right(s, 0);
         case tok_quote: return error(ERR_QUOTE_NOT_IMPL);
-        case tok_string:
-            parsed_symbol = parse_string(s);
-            if (!parsed_symbol) return error(ERR_INVALID_CHAR);
-            return make_string(parsed_symbol);
-        case tok_symbol:
-            parsed_symbol = parse_symbol(s);
-            return make_symbol(parsed_symbol);
+        case tok_string: return parse_string(s);
+        case tok_symbol: return parse_symbol(s);
         case tok_whitespace:
             parse_whitespace(s);
             return error(ERR_LOGIC);

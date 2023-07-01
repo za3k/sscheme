@@ -34,5 +34,7 @@
 #define ERR_WRONG_TYPE  "primitive passed the wrong argument type(s)"
 #define ERR_DIV_BY_ZERO "division by zero"
 #define ERR_CHAR_OUT_OF_RANGE  "integer->char out of range"
+#define ERR_STRING_TOO_BIG     "Tried to make a string bigger than allowed"
+#define ERR_SYMBOL_TOO_BIG     "Tried to make a symbol bigger than allowed"
 
 #endif // __ERROR
