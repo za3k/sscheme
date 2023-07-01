@@ -274,7 +274,7 @@ sexp* parse_pair_right(char **s, int atleastone) {
         parse_dot(s);
         if (!atleastone) return error(ERR_UNEXPECTED_DOT);
         sexp *last = parse_sexp(s);
-        if (!last) return 0;
+        if (!last) return error(ERR_UNEXPECTED_DOT);
         if (last->tag == ERROR) return last;
         sexp *rest = parse_pair_right(s, 1);
         if (isempty(rest)) {
@@ -291,7 +291,10 @@ sexp* parse_pair_right(char **s, int atleastone) {
 
 sexp* parse_quote(char **s) {
     (*s)++;
-    return error(ERR_QUOTE_NOT_IMPL);
+    sexp *rest = parse_sexp(s);
+    if (!rest) return error(ERR_QUOTE_UNTERMINATED);
+    else if (rest->tag==ERROR) return rest;
+    else return make_cons(QUOTE, make_cons(rest, EMPTY_LIST));
 }
 
 sexp* parse_pair(char **s) {
