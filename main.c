@@ -20,9 +20,13 @@ int main(int argc, char *argv[]) {
         printf("Usage: eval [SCHEME CODE]\n");
         return 2;
     }
+    sexp *env = empty_env();
+
+    //printf("------------------Start Execution--------------\n");
+
     sexp* parsed = parse(EXAMPLE);
     print1nl(parsed);
 
-    sval* result = eval_all(parsed, empty_env());
+    sval* result = eval_all(parsed, env);
     print1nl(result);
 }

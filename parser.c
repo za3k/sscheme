@@ -7,17 +7,19 @@
 #include <string.h>
 
 // TODO: Intern symbols to save space and allow == comparison
+// TODO: Point to where an error is--save the source location of each sexp and token
 
 sexp* parse_list_right(char **s, int atleastone);
 sexp* parse_sexp(char **s);
 
 struct token {
-    enum token_type { tok_close_paren, tok_constant, tok_dot, tok_eof, tok_form, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol, } tag;
+    enum token_type { tok_close_paren, tok_constant, tok_dot, tok_eof, tok_form, tok_invalid, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol } tag;
     sexp* atom;
 };
 
 char STRING_BUF[1000];
 char* parse_string(char **s) {
+    // TODO: Warn about too-long strings or use malloc/salloc
     int len=0;
     (*s)++; // Initial quote
     while (1) {
@@ -163,9 +165,10 @@ sexp* parse_constant(char **s) {
     }
 }
 
+char SYMBOL_BUF[1000];
 char* parse_symbol(char **s) {
+    // TODO: Warn about too-long symbols
     int length;
-    char *out;
     for (char* p=*s;; p++) {
         switch (*p) {
             case 'a'...'z':
@@ -179,50 +182,35 @@ char* parse_symbol(char **s) {
                 break;
             default:
                 length = p-*s;
-                out = malloc(length+1);
-                memcpy(out, *s, length);
-                out[length]=0;
+                memcpy(SYMBOL_BUF, *s, length);
+                SYMBOL_BUF[length]=0;
                 *s += length;
-                return out;
+                return SYMBOL_BUF;
         }
     }
 
 }
 
-struct token* parse_token(char **s) {
-    struct token *res = malloc(sizeof(struct token));
-    res->atom = 0;
+struct token parse_token(char **s) {
+    struct token res;
+    res.tag = tok_invalid;
+    res.atom = 0;
     int parsed_int;
     char *parsed_symbol;
     start:
     switch(**s) {
         case '-':
             switch((*s)[1]) {
-                case '0'...'9':
-                    if(!parse_int(s, &parsed_int)) {
-                        // Not a legal number!
-                        free(res);
-                        return 0;
-                    }
-                    res->tag = tok_number;
-                    res->atom = make_int(parsed_int);
-                    break;
-                default:
-                    parsed_symbol = parse_symbol(s);
-                    res->tag = tok_symbol;
-                    res->atom = make_symbol(parsed_symbol);
-                    free(parsed_symbol);
-                    break;
+                case 0: break;
+                case '0'...'9': goto decimal;
+                default: goto symbol;
             }
             break;
         case '0' ... '9': 
-            if(!parse_int(s, &parsed_int)) {
-                // Not a legal number!
-                free(res);
-                return 0;
-            }
-            res->tag = tok_number;
-            res->atom = make_int(parsed_int);
+            decimal:
+            if(!parse_int(s, &parsed_int)) break;
+            res.tag = tok_number;
+            res.atom = make_int(parsed_int);
             break;
         case ';': // Ignore comments, don't output a token.
             while (*(++*s) != '\n');
@@ -230,56 +218,50 @@ struct token* parse_token(char **s) {
             goto start;
         case '(':
             (*s)++;
-            res->tag = tok_open_paren;
+            res.tag = tok_open_paren;
             break;
         case ')':
             (*s)++;
-            res->tag = tok_close_paren;
+            res.tag = tok_close_paren;
             break;
         case ' ': case '\t': case '\n': case '\r':
             // Ignore whitespace, don't output a token
             (*s)++;
             goto start;
         case '\'':
-            res->tag = tok_quote;
+            res.tag = tok_quote;
             break;
         case '#':
             switch((*s)[1]) {
                 case 't':
                 case 'f':
                 case '\\':
-                    res->tag = tok_constant;
-                    res->atom = parse_constant(s);
+                    res.tag = tok_constant;
+                    res.atom = parse_constant(s);
                     break;
                 case 'o':
                     (*s)+=2;
-                    if(!parse_int_octal(s, &parsed_int)) { free(res); return 0; }
-                    res->tag = tok_number;
-                    res->atom = make_int(parsed_int);
+                    if(!parse_int_octal(s, &parsed_int)) break;
+                    res.tag = tok_number;
+                    res.atom = make_int(parsed_int);
                     break;
-                case 'd':
-                    (*s)+=2;
-                    if(!parse_int(s, &parsed_int)) { free(res); return 0; }
-                    res->tag = tok_number;
-                    res->atom = make_int(parsed_int);
-                    break;
+                case 'd': (*s)+=2; goto decimal;
                 case 'x':
                     (*s)+=2;
-                    if(!parse_int_hex(s, &parsed_int)) { free(res); return 0; }
-                    res->tag = tok_number;
-                    res->atom = make_int(parsed_int);
+                    if(!parse_int_hex(s, &parsed_int)) break;
+                    res.tag = tok_number;
+                    res.atom = make_int(parsed_int);
                     break;
-                default: free(res); return 0;
             }
             break;
         case '\0':
-            res->tag = tok_eof; // Done parsing!
+            res.tag = tok_eof; // Done parsing!
             break;
         case '.':
             switch ((*s)[1]) {
                 case ' ': case '\t': case '\n': case '\r': case '\0':
                     (*s)++;
-                    res->tag = tok_dot;
+                    res.tag = tok_dot;
                     return res;
             }
             // Fall through and parse a symbol like .foo
@@ -288,21 +270,19 @@ struct token* parse_token(char **s) {
         case '!': case '@': case '$': case '%': case '^':
         case '&': case '*': case '_': case '=': case '+':
         case '?': case '>': case '<': case '/': case ':': case '~':
+            symbol:
             parsed_symbol = parse_symbol(s);
-            res->tag = tok_symbol;
-            res->atom = make_symbol(parsed_symbol);
-            free(parsed_symbol);
+            res.tag = tok_symbol;
+            res.atom = make_symbol(parsed_symbol);
+            // No need to free because we have only one buffer
             break;
         case '"':
             parsed_symbol = parse_string(s);
-            if (!parsed_symbol) { free(res); return 0; }
-            res->tag = tok_string;
-            res->atom = make_string(parsed_symbol);
-            free(parsed_symbol);
+            if (!parsed_symbol) break;
+            res.tag = tok_string;
+            res.atom = make_string(parsed_symbol);
+            // No need to free because we have only one buffer
             break;
-        default:
-            free(res);
-            return 0; // Nope! Not allowed
     }
 
     return res;
@@ -315,22 +295,20 @@ void free_tok(struct token *t) {
 
 int peek_token(char **s) {
     char *old = *s;
-    struct token *tok = parse_token(s);
-    if (tok == 0) return 0;
-    int tag = tok->tag;
-    free_tok(tok);
+    struct token tok = parse_token(s);
     *s = old; // Reset, thus 'peek' instead of parse
-    return tag;
+    return tok.tag;
 }
 
 sexp* parse_list_right(char **s, int atleastone) {
     // We just read "(<init1> <init2> ...".
     // Parse the rest of the list, then return
-    if (peek_token(s) == tok_close_paren) { // )
-        free(parse_token(s));
+    int peeked = peek_token(s);
+    if (peeked == tok_close_paren) { // )
+        parse_token(s); // Consume the close-paren
         return make_empty();
-    } else if (peek_token(s) == tok_dot) { // . <final>)
-        free(parse_token(s)); // Consume the dot
+    } else if (peeked == tok_dot) { // . <final>)
+        parse_token(s); // Consume the dot
         if (!atleastone) return error(ERR_UNEXPECTED_DOT);
         sexp *last = parse_sexp(s);
         if (!last) return 0;
@@ -349,45 +327,23 @@ sexp* parse_list_right(char **s, int atleastone) {
 }
 
 sexp* parse_sexp(char **s) {
-    struct token *next_token;
-    sexp *ret;
-    next_token = parse_token(s);
+    struct token next_token = parse_token(s);
     // Stream of (non-whitespace, non-comment) tokens here
-    if (next_token==0) return error(ERR_INVALID_CHAR);
-    switch(next_token->tag) {
-        case tok_open_paren:
-            free_tok(next_token);
-            ret = parse_list_right(s, 0);
-            break;
-        case tok_close_paren:
-            ret = error(ERR_UNEXPECTED_CLOSE);
-            free_tok(next_token);
-            break;
+    switch(next_token.tag) {
         case tok_constant:
         case tok_form:
         case tok_number:
         case tok_string:
         case tok_symbol:
-            ret = next_token->atom;
-            free(next_token);
-            break;
-        case tok_quote:
-            ret = error(ERR_QUOTE_NOT_IMPL);
-            free_tok(next_token);
-            break;
-        case tok_eof:
-            free(next_token);
-            return 0;
-        case tok_dot:
-            ret = error(ERR_UNEXPECTED_DOT);
-            free_tok(next_token);
-            break;
-        default:
-            ret = error(ERR_UNKNOWN_TOKEN);
-            free_tok(next_token);
-            break;
+            return next_token.atom;
+        case tok_invalid: return error(ERR_INVALID_CHAR);
+        case tok_open_paren: return parse_list_right(s, 0);
+        case tok_close_paren: return  error(ERR_UNEXPECTED_CLOSE);
+        case tok_quote: return error(ERR_QUOTE_NOT_IMPL);
+        case tok_dot: return error(ERR_UNEXPECTED_DOT);
+        case tok_eof: return 0;
+        default: return error(ERR_UNKNOWN_TOKEN);
     }
-    return ret;
 }
 
 sexp* parse(char *s) {

@@ -30,21 +30,6 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
     return 1;
 }
 
-int read_tests(char *path, char** inputs, char **expected_outputs) {
-    // Return number of tests read
-    int i;
-    char *remaining_file = tests_txt;
-    //printf("Reading test... ");
-    for(i=0;;i++) {
-        inputs[i] = malloc(1000);
-        expected_outputs[i] = malloc(1000);
-        if (!read_test(&remaining_file, inputs[i], expected_outputs[i])) break;
-        //printf("%d,",i+1);
-    }
-    //printf("finished\n");
-    return i;
-}
-
 static char output[1000];
 int run_test(char* input, char* expected_output) {
     // Return 0 on success, 1 on failure. Print to stdout.
@@ -71,14 +56,14 @@ int run_test(char* input, char* expected_output) {
 }
 
 int run_tests() {
-    char * inputs[1000];
-    char * expected_outputs[1000];
-    int num_tests, i, failed_tests=0;
+    int num_tests=0, i, failed_tests=0;
 
-    num_tests = read_tests(TESTS_FILE, inputs, expected_outputs);
-    for (i=0; i<num_tests;i++) {
+    char *remaining_file = tests_txt;
+    char input[1000], expected_output[1000];
+    for (i=0; read_test(&remaining_file, input, expected_output); i++) {
+        num_tests++;
         //printf("Running test %d... ", i+1);
-        failed_tests += run_test(inputs[i], expected_outputs[i]);
+        failed_tests += run_test(input, expected_output);
     }
     printf("%d/%d tests passed: ", num_tests-failed_tests, num_tests);
     if (failed_tests > 0) printf("FAILURE\n");
