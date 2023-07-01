@@ -138,20 +138,19 @@ sexp* parse_int(char **s, int base) {
         else return error(ERR_INVALID_CHAR);
     }
     if (**s == '-') { (*s)++; sign=-1; }
-    for (char* p=*s;; p++) {
-        switch (*p) {
+    for (;;(*s)++) {
+        switch (**s) {
             case '0' ... '9':
-                digit = *p-'0';
+                digit = **s-'0';
                 break;
             case 'a' ... 'z':
-                digit = *p-'a'+10;
+                digit = **s-'a'+10;
                 break;
             case 'A' ... 'Z':
-                digit = *p-'A'+10;
+                digit = **s-'A'+10;
                 break;
             case ' ': case '\t': case '\n': case '\r':
             case ')': case '(': case '\0':
-                *s = p;
                 return make_int(out*sign);
             default: return error(ERR_INVALID_CHAR);
         }
