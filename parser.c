@@ -147,7 +147,7 @@ sexp* parse_int(char **s, int base) {
                 digit = *p-'a'+10;
                 break;
             case 'A' ... 'Z':
-                digit = *p-'a'+10;
+                digit = *p-'A'+10;
                 break;
             case ' ': case '\t': case '\n': case '\r':
             case ')': case '(': case '\0':
