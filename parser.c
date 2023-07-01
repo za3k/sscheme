@@ -12,9 +12,21 @@
 sexp* parse_list_right(char **s, int atleastone);
 sexp* parse_sexp(char **s);
 
-struct token {
-    enum token_type { tok_close_paren, tok_constant, tok_dot, tok_eof, tok_form, tok_invalid, tok_number, tok_open_paren, tok_quote, tok_string, tok_symbol } tag;
-    sexp* atom;
+enum token_type {
+    tok_close_paren,
+    tok_comment,
+    tok_constant,
+    tok_dot,
+    tok_eof,
+    tok_invalid,
+    tok_number_decimal,
+    tok_number_hex,
+    tok_number_octal,
+    tok_open_paren,
+    tok_quote,
+    tok_string,
+    tok_symbol,
+    tok_whitespace,
 };
 
 char STRING_BUF[1000];
@@ -53,9 +65,10 @@ char* parse_string(char **s) {
     return 0;
 }
 
-int parse_int(char **s, int *result) {
+int parse_int_decimal(char **s, int *result) {
     int out = 0;
     int sign=1;
+    if ((*s)[0] == '#' && (*s)[1]=='d') (*s)+=2;
     if (**s == '-') { (*s)++; sign=-1; }
     for (char* p=*s;; p++) {
         switch (*p) {
@@ -75,6 +88,7 @@ int parse_int(char **s, int *result) {
 int parse_int_octal(char **s, int *result) {
     int out = 0;
     int sign=1;
+    if ((*s)[0] == '#' && (*s)[1]=='o') (*s)+=2;
     if (**s == '-') { (*s)++; sign=-1; }
     for (char* p=*s;; p++) {
         switch (*p) {
@@ -94,6 +108,7 @@ int parse_int_octal(char **s, int *result) {
 int parse_int_hex(char **s, int *result) {
     int out = 0;
     int sign=1;
+    if ((*s)[0] == '#' && (*s)[1]=='x') (*s)+=2;
     if (**s == '-') { (*s)++; sign=-1; }
     for (char* p=*s;; p++) {
         switch (*p) {
@@ -191,124 +206,87 @@ char* parse_symbol(char **s) {
 
 }
 
-struct token parse_token(char **s) {
-    struct token res;
-    res.tag = tok_invalid;
-    res.atom = 0;
-    int parsed_int;
-    char *parsed_symbol;
-    start:
+enum token_type detect_token_type(char **s) {
+    // Look 2 characters ahead and decide the next token type.
     switch(**s) {
         case '-':
             switch((*s)[1]) {
-                case 0: break;
-                case '0'...'9': goto decimal;
-                default: goto symbol;
+                case 0: return tok_invalid;
+                case '0'...'9': return tok_number_decimal;
+                default: return tok_symbol;
             }
             break;
-        case '0' ... '9': 
-            decimal:
-            if(!parse_int(s, &parsed_int)) break;
-            res.tag = tok_number;
-            res.atom = make_int(parsed_int);
-            break;
-        case ';': // Ignore comments, don't output a token.
-            while (*(++*s) != '\n');
-            (*s)++;
-            goto start;
-        case '(':
-            (*s)++;
-            res.tag = tok_open_paren;
-            break;
-        case ')':
-            (*s)++;
-            res.tag = tok_close_paren;
-            break;
-        case ' ': case '\t': case '\n': case '\r':
-            // Ignore whitespace, don't output a token
-            (*s)++;
-            goto start;
-        case '\'':
-            res.tag = tok_quote;
-            break;
+        case '0' ... '9': return tok_number_decimal;
+        case ';': return tok_comment;
+        case '(': return tok_open_paren;
+        case ')': return tok_close_paren;
+        case ' ': case '\t': case '\n': case '\r': return tok_whitespace;
+        case '\'': return tok_quote;
         case '#':
             switch((*s)[1]) {
-                case 't':
-                case 'f':
-                case '\\':
-                    res.tag = tok_constant;
-                    res.atom = parse_constant(s);
-                    break;
-                case 'o':
-                    (*s)+=2;
-                    if(!parse_int_octal(s, &parsed_int)) break;
-                    res.tag = tok_number;
-                    res.atom = make_int(parsed_int);
-                    break;
-                case 'd': (*s)+=2; goto decimal;
-                case 'x':
-                    (*s)+=2;
-                    if(!parse_int_hex(s, &parsed_int)) break;
-                    res.tag = tok_number;
-                    res.atom = make_int(parsed_int);
-                    break;
+                case 't': return tok_constant;
+                case 'f': return tok_constant;
+                case '\\': return tok_constant;
+                case 'o': return tok_number_octal;
+                case 'd': return tok_number_decimal;
+                case 'x': return tok_number_hex;
+                default: return tok_invalid;
             }
-            break;
-        case '\0':
-            res.tag = tok_eof; // Done parsing!
-            break;
+        case '\0': return tok_eof;
         case '.':
             switch ((*s)[1]) {
                 case ' ': case '\t': case '\n': case '\r': case '\0':
-                    (*s)++;
-                    res.tag = tok_dot;
-                    return res;
+                    return tok_dot;
+                default: return tok_symbol;
             }
-            // Fall through and parse a symbol like .foo
         case 'a'...'z':
         case 'A'...'Z':
         case '!': case '@': case '$': case '%': case '^':
         case '&': case '*': case '_': case '=': case '+':
         case '?': case '>': case '<': case '/': case ':': case '~':
-            symbol:
-            parsed_symbol = parse_symbol(s);
-            res.tag = tok_symbol;
-            res.atom = make_symbol(parsed_symbol);
-            // No need to free because we have only one buffer
-            break;
-        case '"':
-            parsed_symbol = parse_string(s);
-            if (!parsed_symbol) break;
-            res.tag = tok_string;
-            res.atom = make_string(parsed_symbol);
-            // No need to free because we have only one buffer
-            break;
+            return tok_symbol;
+        case '"': return tok_string;
+        default: return tok_invalid;
     }
-
-    return res;
 }
 
-void free_tok(struct token *t) {
-    if (t->atom && !(t->tag == tok_form || t->tag == tok_constant)) free(t->atom);
-    free(t);
+void parse_comment(char **s) {
+    while (*(++*s) != '\n');
+    (*s)++;
 }
 
-int peek_token(char **s) {
-    char *old = *s;
-    struct token tok = parse_token(s);
-    *s = old; // Reset, thus 'peek' instead of parse
-    return tok.tag;
+void parse_dot(char **s) { (*s)++; }
+void parse_close_paren(char **s) { (*s)++; }
+void parse_open_paren(char **s) { (*s)++; }
+void parse_whitespace(char **s) { 
+    while(1) {
+        switch (**s) {
+            case ' ': case '\t': case '\n': case '\r': (*s)++;
+            default: return;
+        }
+    }
+}
+
+enum token_type parse_token_type(char **s) { // Returns next "real" token--skips whitespace and comments
+    enum token_type next_type;
+    start:
+    next_type = detect_token_type(s);
+    switch(next_type) {
+        case tok_comment: parse_comment(s); goto start;
+        case tok_whitespace: parse_whitespace(s); goto start;
+        default: return next_type;
+    }
 }
 
 sexp* parse_list_right(char **s, int atleastone) {
     // We just read "(<init1> <init2> ...".
     // Parse the rest of the list, then return
-    int peeked = peek_token(s);
-    if (peeked == tok_close_paren) { // )
-        parse_token(s); // Consume the close-paren
+    enum token_type next_type = parse_token_type(s);
+    if (next_type == tok_close_paren) { // )
+        parse_close_paren(s);
         return make_empty();
-    } else if (peeked == tok_dot) { // . <final>)
-        parse_token(s); // Consume the dot
+    } else if (next_type == tok_dot) { // . <final>)
+        parse_dot(s);
         if (!atleastone) return error(ERR_UNEXPECTED_DOT);
         sexp *last = parse_sexp(s);
         if (!last) return 0;
@@ -327,21 +305,50 @@ sexp* parse_list_right(char **s, int atleastone) {
 }
 
 sexp* parse_sexp(char **s) {
-    struct token next_token = parse_token(s);
+    enum token_type next_type = parse_token_type(s);
+    int parsed_int;
+    char *parsed_symbol;
+    sexp *parsed_constant;
     // Stream of (non-whitespace, non-comment) tokens here
-    switch(next_token.tag) {
+    switch(next_type) {
+        case tok_close_paren:
+            parse_close_paren(s);
+            return error(ERR_UNEXPECTED_CLOSE);
+        case tok_comment:
+            parse_comment(s);
+            return error(ERR_LOGIC);
         case tok_constant:
-        case tok_form:
-        case tok_number:
-        case tok_string:
-        case tok_symbol:
-            return next_token.atom;
-        case tok_invalid: return error(ERR_INVALID_CHAR);
-        case tok_open_paren: return parse_list_right(s, 0);
-        case tok_close_paren: return  error(ERR_UNEXPECTED_CLOSE);
-        case tok_quote: return error(ERR_QUOTE_NOT_IMPL);
-        case tok_dot: return error(ERR_UNEXPECTED_DOT);
+            parsed_constant = parse_constant(s);
+            if (parsed_constant) return parsed_constant;
+            else return error(ERR_INVALID_CHAR);
+        case tok_dot:
+            parse_dot(s);
+            return error(ERR_UNEXPECTED_DOT);
         case tok_eof: return 0;
+        case tok_invalid: return error(ERR_INVALID_CHAR);
+        case tok_number_decimal:
+            if(parse_int_decimal(s, &parsed_int)) return make_int(parsed_int);
+            else return error(ERR_INVALID_CHAR);
+        case tok_number_hex:
+            if(parse_int_hex(s, &parsed_int)) return make_int(parsed_int);
+            else return error(ERR_INVALID_CHAR);
+        case tok_number_octal:
+            if(parse_int_octal(s, &parsed_int)) return make_int(parsed_int);
+            else return error(ERR_INVALID_CHAR);
+        case tok_open_paren:
+            parse_open_paren(s);
+            return parse_list_right(s, 0);
+        case tok_quote: return error(ERR_QUOTE_NOT_IMPL);
+        case tok_string:
+            parsed_symbol = parse_string(s);
+            if (!parsed_symbol) return error(ERR_INVALID_CHAR);
+            return make_string(parsed_symbol);
+        case tok_symbol:
+            parsed_symbol = parse_symbol(s);
+            return make_symbol(parsed_symbol);
+        case tok_whitespace:
+            parse_whitespace(s);
+            return error(ERR_LOGIC);
         default: return error(ERR_UNKNOWN_TOKEN);
     }
 }
