@@ -1,3 +1,4 @@
+#include "config.h"
 #include "constants.h"
 #include "errors.h"
 #include "helpers.h"
@@ -93,7 +94,7 @@ enum token_type detect_token_type(char **s) {
     }
 }
 
-char STRING_BUF[1000];
+char STRING_BUF[MAX_STRING_SIZE + 1];
 char* parse_string(char **s) {
     // TODO: Warn about too-long strings or use malloc/salloc
     int len=0;
@@ -244,7 +245,7 @@ sexp* parse_constant(char **s) {
     }
 }
 
-char SYMBOL_BUF[1000];
+char SYMBOL_BUF[MAX_SYMBOL_SIZE + 1];
 char* parse_symbol(char **s) {
     // TODO: Warn about too-long symbols
     int length;
