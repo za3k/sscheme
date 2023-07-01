@@ -1,7 +1,9 @@
 #include "prims.h"
+
+#include "config.h"
+#include "constants.h"
 #include "errors.h"
 #include "helpers.h"
-#include "constants.h"
 #include <stdio.h>
 
 // Type and arity checker macros
@@ -154,7 +156,7 @@ sval* integer2char(sval *arg1) {
     else return error(ERR_CHAR_OUT_OF_RANGE);
 }
 
-char LTS_BUFFER[1000]; // list2string crashes if it's longer than 1K
+char LTS_BUFFER[MAX_STRING_SIZE]; // list2string crashes if it's longer
 sval* list2string(sval *arg1) {
     int i;
     if (!arg1) return error(ERR_NULL_PTR);

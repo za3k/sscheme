@@ -1,14 +1,15 @@
 #include "tests.h"
+
+#include "config.h"
+#include "eval.h"
+#include "helpers.h"
 #include "tests.inc.h"
 #include "types.h"
-#include "eval.h"
 #include "parser.h"
-#include "helpers.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-//int snprint1(char* buffer, size_t n, sval *arg);
 int read_test(char **remaining_file, char* input, char *expected_output) {
     // Read one test from *remaining_file. Return 1 for success, 0 for failure.
     // Results are written to input/expected_output strings.
@@ -30,8 +31,8 @@ int read_test(char **remaining_file, char* input, char *expected_output) {
     return 1;
 }
 
-static char output[1000];
 int run_test(char* input, char* expected_output) {
+    static char output[MAX_TEST_OUTPUT_SIZE];
     // Return 0 on success, 1 on failure. Print to stdout.
     //printf("Toparse: %s\n", input);
     sexp* parsed = parse(input);
@@ -59,7 +60,8 @@ int run_tests() {
     int num_tests=0, i, failed_tests=0;
 
     char *remaining_file = tests_txt;
-    char input[1000], expected_output[1000];
+    static char input[MAX_TEST_INPUT_SIZE];
+    static char expected_output[MAX_TEST_OUTPUT_SIZE];
     for (i=0; read_test(&remaining_file, input, expected_output); i++) {
         num_tests++;
         //printf("Running test %d... ", i+1);
