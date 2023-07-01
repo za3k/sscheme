@@ -12,20 +12,20 @@
 ; ============== FORMS (MACROS) ================
 (define (list . x) x) ; Not a macro but very needed until we get ' notation
 (define-macro (if x y z)
-  (list (quote cond) (list x y) (list else z)))
+  (list 'cond (list x y) (list 'else z)))
 (define-macro (and . clauses)
   (cond ((null? clauses) #t)
         ((null? (cdr clauses)) (car clauses))
         (else
-            (list (quote if) (car clauses)
-                             (cons (quote and) (cdr clauses))
-                             #f))))
+            (list 'if (car clauses)
+                      (cons 'and (cdr clauses))
+                      #f))))
 (define-macro (or . clauses) ; Note - this evaluates the truthy clause twice
   (cond ((null? clauses) #f)
         (else
-            (list (quote if) (car clauses)
-                             (car clauses)
-                             (cons (quote or) (cdr clauses))))))
+            (list 'if (car clauses)
+                      (car clauses)
+                      (cons 'or (cdr clauses))))))
 
 ; TODO: case let let* letrec begin do quasiquote for-each named-let
 ; TODO: force delay
@@ -244,7 +244,7 @@
 (define (char-lower-case? c) (boolean (memq c (string->list "abcdefghijklmnopqrstuvwxyz"))))
 (define (char-numeric? c) (boolean (memq c (string->list "0123456789"))))
 (define (char-alphabetic? c) (or (char-upper-case? c) (char-lower-case? c)))
-(define (char-whitespace? c) (boolean (memq c (list #\space #\tab #\page #\linefeed #\return))))
+(define (char-whitespace? c) (boolean (memq c '(#\space #\tab #\page #\linefeed #\return))))
 
 (define (char-upcase c)
   (if (char-lower-case? c)

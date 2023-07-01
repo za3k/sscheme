@@ -73,7 +73,6 @@ nil => nil
 (1 2 3) => err
 (list 1 2 3) => (1 2 3)
 (quote (1 2 3)) => (1 2 3)
-
 '(1 2 3) => (1 2 3)
 '(1  (2 3) 4) => (1 (2 3) 4)
 
@@ -130,18 +129,18 @@ NewVar => err
 ((lambda (x y) x) 1 2) => 1
 ((lambda (x y) y) 1 2) => 2
 (lambda (x) x) => proc
-((lambda (x y) (x y)) car (list 2 3)) => 2
-((lambda (x y) (x y)) (lambda (y) (car y)) (list 2 3)) => 2
+((lambda (x y) (x y)) car '(2 3)) => 2
+((lambda (x y) (x y)) (lambda (y) (car y)) '(2 3)) => 2
   ; Wrong argument counts
 ((lambda (x) x) 1) => 1
 ((lambda (x) x) 1 2) => err
 ((lambda (x) x)) => err
 
 ; Variadic arguments
-((lambda x (car x)) (list 1 2 3) (list 4 5 6)) => (1 2 3)
-((lambda (x . y) (car x)) (list 1 2 3) (list 4 5 6)) => 1
-((lambda (x . y) (car y)) (list 1 2 3) (list 4 5 6)) => (4 5 6)
-((lambda (x y) (car y)) (list 1 2 3) (list 4 5 6)) => 4
+((lambda x (car x)) '(1 2 3) '(4 5 6)) => (1 2 3)
+((lambda (x . y) (car x)) '(1 2 3) '(4 5 6)) => 1
+((lambda (x . y) (car y)) '(1 2 3) '(4 5 6)) => (4 5 6)
+((lambda (x y) (car y)) '(1 2 3) '(4 5 6)) => 4
 
 
 (cond ((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b))) => :b
@@ -168,13 +167,13 @@ NewVar => err
 x => 1
 
 (define (f x y) (car y))
-(f (list 1 2 3) (list 4 5 6)) => 4
+(f '(1 2 3) '(4 5 6)) => 4
 (define (f . y) (car y))
-(f (list 1 2 3) (list 4 5 6)) => (1 2 3)
+(f '(1 2 3) '(4 5 6)) => (1 2 3)
 (define (f x . y) (car y))
-(f (list 1 2 3) (list 4 5 6)) => (4 5 6)
+(f '(1 2 3) '(4 5 6)) => (4 5 6)
 
-(define-macro f (lambda (x y) (list x y))) (f car (list 1 2)) => 1
+(define-macro f (lambda (x y) (list x y))) (f car '(1 2)) => 1
 
 ; Tests for each builtin
 (list) => ()
@@ -184,7 +183,7 @@ x => 1
 (list 1 (list 2 (list 3))) => (1 (2 (3)))
 
 (+ 1 2) => 3
-(+ 1 (list 2 3)) => err
+(+ 1 '(2 3)) => err
 
 (-) => err
 (- 5) => -5
@@ -192,9 +191,9 @@ x => 1
 (- 2 10) => -8
 (- 1 2 3) => err
 (- 1 2 3 4) => err
-(- 1 (list 1 2)) => err
+(- 1 '(1 2)) => err
 
-(apply _builtin+ (list 1 2)) => 3
+(apply _builtin+ '(1 2)) => 3
 
 (< 1 2) => #t
 (< 1 1) => #f
@@ -210,7 +209,7 @@ x => 1
 
 (char->integer #\a) => 97
 (integer->char 97) => #\a
-(list->string (list #\a #\b #\c)) => "abc"
+(list->string '(#\a #\b #\c)) => "abc"
 (string->list "abc") => (#\a #\b #\c)
 (string->symbol "abc") => :abc
 (symbol->string (quote abc)) => "abc"
@@ -232,24 +231,24 @@ x => 1
 (not #t) => #f
 (not #f) => #t
 
-(first (list 1 2 3 4 5 6 7 8 9 10)) => 1
-(second (list 1 2 3 4 5 6 7 8 9 10)) => 2
-(third (list 1 2 3 4 5 6 7 8 9 10)) => 3
-(fourth (list 1 2 3 4 5 6 7 8 9 10)) => 4
-(fifth (list 1 2 3 4 5 6 7 8 9 10)) => 5
-(sixth (list 1 2 3 4 5 6 7 8 9 10)) => 6
-(seventh (list 1 2 3 4 5 6 7 8 9 10)) => 7
-(eighth (list 1 2 3 4 5 6 7 8 9 10)) => 8
-(ninth (list 1 2 3 4 5 6 7 8 9 10)) => 9
-(tenth (list 1 2 3 4 5 6 7 8 9 10)) => 10
-(last (list 1 2 3 4 5 6 7 8 9 10)) => 10
-(rest (list 1 2 3 4 5 6 7 8 9 10)) => (2 3 4 5 6 7 8 9 10)
+(first '(1 2 3 4 5 6 7 8 9 10)) => 1
+(second '(1 2 3 4 5 6 7 8 9 10)) => 2
+(third '(1 2 3 4 5 6 7 8 9 10)) => 3
+(fourth '(1 2 3 4 5 6 7 8 9 10)) => 4
+(fifth '(1 2 3 4 5 6 7 8 9 10)) => 5
+(sixth '(1 2 3 4 5 6 7 8 9 10)) => 6
+(seventh '(1 2 3 4 5 6 7 8 9 10)) => 7
+(eighth '(1 2 3 4 5 6 7 8 9 10)) => 8
+(ninth '(1 2 3 4 5 6 7 8 9 10)) => 9
+(tenth '(1 2 3 4 5 6 7 8 9 10)) => 10
+(last '(1 2 3 4 5 6 7 8 9 10)) => 10
+(rest '(1 2 3 4 5 6 7 8 9 10)) => (2 3 4 5 6 7 8 9 10)
 
 ; Upgraded builtins
 (+) => err
 (+ 1) => 1
 (+ 1 2 3) => 6
-(+ 1 (list 2 3) 4) => err
+(+ 1 '(2 3) 4) => err
 (/ 1) => 1
 (/ 100) => 0
 (/ 10 100) => 0
@@ -307,40 +306,43 @@ x => 1
 
 (list? ()) => #t
 (list? (list 1 2 3)) => #t
+(list? '(1 2 3)) => #t
 (list? (cons 1 2)) => #f
+(list? '(1 . 2)) => #f
+(list? '(1 2 . 3)) => #f
 (list? 2) => #f
 
 (length ()) => 0
 (length (list 2 3 4)) => 3
 
-(map (lambda (x) (+ x 10)) (list 1 2 3)) => (11 12 13)
+(map (lambda (x) (+ x 10)) '(1 2 3)) => (11 12 13)
 
-(append (list 1 2 3) (list 4 5 6)) => (1 2 3 4 5 6)
-(append (list 1 2 3) ()) => (1 2 3)
-(append () (list 4 5 6)) => (4 5 6)
+(append '(1 2 3) '(4 5 6)) => (1 2 3 4 5 6)
+(append '(1 2 3) ()) => (1 2 3)
+(append () '(4 5 6)) => (4 5 6)
 (append () ()) => ()
 
-(reverse (list 1 2 3)) => (3 2 1)
+(reverse '(1 2 3)) => (3 2 1)
 (reverse ()) => ()
-(reverse (list 1)) => (1)
+(reverse '(1)) => (1)
 
 (list-tail (quote (a b c)) 1) => (:b :c)
 (list-ref (quote (a b c)) 1) => :b
-(list-ref (list 10 11 12) 1) => 11
+(list-ref '(10 11 12) 1) => 11
 
-(foldl + 0 (list 10 11 12)) => 33
-(foldr + 0 (list 10 11 12)) => 33
-(filter number? (list 10 #\d 13 "hello" (quote b))) => (10 13)
+(foldl + 0 '(10 11 12)) => 33
+(foldr + 0 '(10 11 12)) => 33
+(filter number? '(10 #\d 13 "hello" '(b))) => (10 13)
 
-(remove 2 (list 1 2 3) eq?) => (1 3)
-(remove 2 (list 1 2 3 2) eq?) => (1 3 2)
-(remq 2 (list 1 2 3)) => (1 3)
-(remq 2 (list 1 2 3 2)) => (1 3 2)
+(remove 2 '(1 2 3) eq?) => (1 3)
+(remove 2 '(1 2 3 2) eq?) => (1 3 2)
+(remq 2 '(1 2 3)) => (1 3)
+(remq 2 '(1 2 3 2)) => (1 3 2)
 
-(assoc 3 (list (list 1 2) (list 3 4) (list 5 6)) eq?) => (3 4)
-(assq 3 (list (list 1 2) (list 3 4) (list 5 6))) => (3 4)
-(assv 3 (list (list 1 2) (list 3 4) (list 5 6))) => (3 4)
-(assf number? (list (list #\d 2) (list 3 4) (list 5 6))) => (3 4)
+(assoc 3 '((1 2) (3 4) (5 6)) eq?) => (3 4)
+(assq  3 '((1 2) (3 4) (5 6))) => (3 4)
+(assv  3 '((1 2) (3 4) (5 6))) => (3 4)
+(assf number? '((#\d 2) (3 4) (5 6))) => (3 4)
 
 (= (+ 2 2) 4) => #t
 (= (+ 1 2) 4) => #f
@@ -384,8 +386,8 @@ x => 1
 (equal? 1 2) => #f
 (equal? 1 null?) => #f
 (equal? null? null?) => #t
-(equal? (list 1 2 3) 1) => #f
-(equal? (list 1 2 3) (list 1 2 3)) => #t
-(equal? (list 1 2 3) (list 4 5 6)) => #f
+(equal? '(1 2 3) 1) => #f
+(equal? '(1 2 3) '(1 2 3)) => #t
+(equal? '(1 2 3) '(4 5 6)) => #f
 
 (substring "arduous" 2 5) => "duo"
