@@ -360,3 +360,18 @@ x => 1
 (char-upcase #\m) => #\M
 (char-upcase #\M) => #\M
 (char-upcase #\0) => #\0
+
+(string-upcase "abc") => "ABC"
+(string-upcase "ABC") => "ABC"
+(string-downcase "abc") => "abc"
+(string-downcase "ABC") => "abc"
+
+(equal? 1 1) => #t
+(equal? 1 2) => #f
+(equal? 1 null?) => #f
+(equal? null? null?) => #t
+(equal? (list 1 2 3) 1) => #f
+(equal? (list 1 2 3) (list 1 2 3)) => #t
+(equal? (list 1 2 3) (list 4 5 6)) => #f
+
+(substring "arduous" 2 5) => "duo"

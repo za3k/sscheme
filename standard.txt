@@ -4,6 +4,8 @@
 ; ============== ALIASES ================
 (define empty? null?)
 (define eqv? eq?)
+(define symbol=? eq?)
+(define string=? eq?) ; Strings are immutable in this Scheme
 (define else #t)
 (define / quotient)
 
@@ -53,7 +55,12 @@
           (cons (car lst) (filter pred (cdr lst)))
           (filter pred (cdr lst)))))
   
-; TODO: equal? 
+(define (equal? a b)
+  (or (eq? a b)
+      (and (pair? a) 
+           (pair? b)
+           (equal? (car a) (car b))
+           (equal? (cdr a) (cdr b)))))
 
 ; ============== NUMBERS ================
 ; Upgrade to builtins to support not exactly 2 arguments: - + * / < <= > >= =
@@ -241,7 +248,44 @@
 (define (string . chars) (list->string chars))
 (define (string-length l) (length (string->list l)))
 (define (string-ref l k) (list-ref (string->list l) k))
-; TODO: string=? string-ci=? string<? string>? string<=? string>=? string-ci<? string-ci>? string-ci<=? string-ci>=? substring string-append
+(define (string-append . strings)
+  (list->string
+    (apply append (map string->list strings))))
+
+
+(define (_sublist lst start end)
+  (if (<= start 0)
+      (if (<= end 0)
+          ()
+          (cons (car lst) (_sublist (cdr lst) start (- end 1))))
+      (_sublist (cdr lst) (- start 1) (- end 1))))
+(define (substring string start end)
+  (list->string (_sublist (string->list string) start end)))
+
+(define (_list<? cmp a b)
+  (cond ((and (null? a) (null? b)) #f)
+        ((null? a) #t)
+        ((null? b) #f)
+        ((cmp (car a) (car b)) #t)
+        ((cmp (car b) (car a)) #f)
+        (else (_list<? cmp (cdr a) (cdr b)))))
+(define (string<? a b)
+    (_list<? char<?
+             (string->list a)
+             (string->list b)))
+(define (string<=? a b) (or (string=? a b) (string<? a b)))
+(define (string>=? a b) (or (string=? a b) (string<? b a)))
+(define (string>? a b) (string<? b a))
+
+(define (string-downcase x) (list->string (map char-downcase (string->list x))))
+(define (string-upcase x) (list->string (map char-upcase (string->list x))))
+(define (string-ci=? a b) (string=? (string-downcase a) (string-downcase b)))
+(define (string-ci<? a b)
+    (string<? (string-downcase a)
+              (string-downcase b)))
+(define (string-ci<=? a b) (or (string-ci=? a b) (string-ci<? a b)))
+(define (string-ci>=? a b) (or (string-ci=? a b) (string-ci>? b a)))
+(define (string-ci>? a b) (string-ci<? b a))
 
 ; ============== SYMBOLS ================
 ; (none)
