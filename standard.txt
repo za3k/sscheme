@@ -27,7 +27,7 @@
                              (car clauses)
                              (cons (quote or) (cdr clauses))))))
 
-; TODO: case let let* letrec begin do quasiquote for-each
+; TODO: case let let* letrec begin do quasiquote for-each named-let
 ; TODO: force delay
 
 ; ============== BOOLEANS ================
@@ -116,9 +116,26 @@
 (define (odd? x) (= (modulo x 2) 1))
 (define (abs x) (if (negative? x) (- x) x))
 
+(define (number->string n)
+  (cond ((zero? n) "0")
+        ((negative? n) (string-append "-" (number->string (- n))))
+        ((< 9 n)
+          (string-append (number->string (quotient n 10))
+                         (number->string (remainder n 10))))
+        ((= 1 n) "1")
+        ((= 2 n) "2")
+        ((= 3 n) "3")
+        ((= 4 n) "4")
+        ((= 5 n) "5")
+        ((= 6 n) "6")
+        ((= 7 n) "7")
+        ((= 8 n) "8")
+        ((= 9 n) "9")
+        (else (error "number->string failure"))))
+
 ; TODO: gcd lcm expt
 ; TODO: range
-; TODO: number->string string->number
+; TODO: string->number
 
 ; ============== LISTS AND PAIRS ================
 (define (caar x) (car (car x)))
@@ -253,26 +270,26 @@
     (apply append (map string->list strings))))
 
 
-(define (_sublist lst start end)
+(define (sublist lst start end)
   (if (<= start 0)
       (if (<= end 0)
           ()
-          (cons (car lst) (_sublist (cdr lst) start (- end 1))))
-      (_sublist (cdr lst) (- start 1) (- end 1))))
+          (cons (car lst) (sublist (cdr lst) start (- end 1))))
+      (sublist (cdr lst) (- start 1) (- end 1))))
 (define (substring string start end)
-  (list->string (_sublist (string->list string) start end)))
+  (list->string (sublist (string->list string) start end)))
 
-(define (_list<? cmp a b)
-  (cond ((and (null? a) (null? b)) #f)
-        ((null? a) #t)
-        ((null? b) #f)
-        ((cmp (car a) (car b)) #t)
-        ((cmp (car b) (car a)) #f)
-        (else (_list<? cmp (cdr a) (cdr b)))))
+(define (list<? cmp)
+  (lambda (a b)
+    (cond ((and (null? a) (null? b)) #f)
+          ((null? a) #t)
+          ((null? b) #f)
+          ((cmp (car a) (car b)) #t)
+          ((cmp (car b) (car a)) #f)
+          (else ((list<? cmp) (cdr a) (cdr b))))))
 (define (string<? a b)
-    (_list<? char<?
-             (string->list a)
-             (string->list b)))
+    ((list<? char<?) (string->list a)
+                     (string->list b)))
 (define (string<=? a b) (or (string=? a b) (string<? a b)))
 (define (string>=? a b) (or (string=? a b) (string<? b a)))
 (define (string>? a b) (string<? b a))

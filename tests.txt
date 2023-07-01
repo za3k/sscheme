@@ -269,7 +269,12 @@ x => 1
 
 (modulo -13 -4) => -1
 (remainder -13 -4) => -1
-; TODO: Make negative cases work right
+
+(number->string 0) => "0"
+(number->string 2) => "2"
+(number->string -2) => "-2"
+(number->string 25) => "25"
+(number->string -25) => "-25"
 
 (odd? 0) => #f
 (odd? 1) => #t
