@@ -9,9 +9,6 @@
 // TODO: Intern symbols to save space and allow == comparison
 // TODO: Point to where an error is--save the source location of each sexp and token
 
-sexp* parse_list_right(char **s, int atleastone);
-sexp* parse_sexp(char **s);
-
 enum token_type {
     tok_close_paren,
     tok_comment,
@@ -28,6 +25,73 @@ enum token_type {
     tok_symbol,
     tok_whitespace,
 };
+
+
+enum token_type detect_token_type(char **s);
+
+// All parse_* function "consume" some of *s by mutating it to point later unless otherwise noted.
+int parse_int_decimal(char **s, int *result);
+int parse_int_octal(char **s, int *result);
+int parse_int_hex(char **s, int *result);
+char* parse_string(char **s);
+char* parse_symbol(char **s);
+sexp* parse_character_constant(char**s);
+sexp* parse_constant(char**s);
+void parse_comment(char **s);
+void parse_dot(char **s);
+void parse_close_paren(char **s);
+void parse_open_paren(char **s);
+void parse_whitespace(char **s);
+
+enum token_type parse_token_type(char **s); // Returns next "real" token--skips whitespace and comments
+sexp* parse_list_right(char **s, int atleastone); // Parse a list.
+sexp* parse_sexp(char **s); // Returns the next parsed s-expression
+sexp* parse(char *s); // Return a (sexp) list of parsed s-expresions.
+
+
+enum token_type detect_token_type(char **s) {
+    // Look 2 characters ahead and decide the next token type.
+    switch(**s) {
+        case '-':
+            switch((*s)[1]) {
+                case '0'...'9': return tok_number_decimal;
+                default: return tok_symbol;
+            }
+            break;
+        case '0' ... '9': return tok_number_decimal;
+        case ';': return tok_comment;
+        case '(': return tok_open_paren;
+        case ')': return tok_close_paren;
+        case ' ': case '\t': case '\n': case '\r': return tok_whitespace;
+        case '\'': return tok_quote;
+        case '#':
+            switch((*s)[1]) {
+                case 't': return tok_constant;
+                case 'f': return tok_constant;
+                case '\\': return tok_constant;
+                case 'o': return tok_number_octal;
+                case 'd': return tok_number_decimal;
+                case 'x': return tok_number_hex;
+                default: return tok_invalid;
+            }
+        case '\0': return tok_eof;
+        case '.':
+            switch ((*s)[1]) {
+                case ' ': case '\t': case '\n': case '\r': case '\0':
+                case ')':
+                    return tok_dot;
+                default: return tok_symbol;
+            }
+        case 'a'...'z':
+        case 'A'...'Z':
+        case '!': case '@': case '$': case '%': case '^':
+        case '&': case '*': case '_': case '=': case '+':
+        case '?': case '>': case '<': case '/': case ':': case '~':
+            return tok_symbol;
+        case '"': return tok_string;
+        default: return tok_invalid;
+    }
+}
 
 char STRING_BUF[1000];
 char* parse_string(char **s) {
@@ -206,59 +270,16 @@ char* parse_symbol(char **s) {
 
 }
 
-enum token_type detect_token_type(char **s) {
-    // Look 2 characters ahead and decide the next token type.
-    switch(**s) {
-        case '-':
-            switch((*s)[1]) {
-                case 0: return tok_invalid;
-                case '0'...'9': return tok_number_decimal;
-                default: return tok_symbol;
-            }
-            break;
-        case '0' ... '9': return tok_number_decimal;
-        case ';': return tok_comment;
-        case '(': return tok_open_paren;
-        case ')': return tok_close_paren;
-        case ' ': case '\t': case '\n': case '\r': return tok_whitespace;
-        case '\'': return tok_quote;
-        case '#':
-            switch((*s)[1]) {
-                case 't': return tok_constant;
-                case 'f': return tok_constant;
-                case '\\': return tok_constant;
-                case 'o': return tok_number_octal;
-                case 'd': return tok_number_decimal;
-                case 'x': return tok_number_hex;
-                default: return tok_invalid;
-            }
-        case '\0': return tok_eof;
-        case '.':
-            switch ((*s)[1]) {
-                case ' ': case '\t': case '\n': case '\r': case '\0':
-                    return tok_dot;
-                default: return tok_symbol;
-            }
-        case 'a'...'z':
-        case 'A'...'Z':
-        case '!': case '@': case '$': case '%': case '^':
-        case '&': case '*': case '_': case '=': case '+':
-        case '?': case '>': case '<': case '/': case ':': case '~':
-            return tok_symbol;
-        case '"': return tok_string;
-        default: return tok_invalid;
-    }
-}
 
-void parse_comment(char **s) {
+inline void parse_comment(char **s) {
     while (*(++*s) != '\n');
     (*s)++;
 }
 
-void parse_dot(char **s) { (*s)++; }
-void parse_close_paren(char **s) { (*s)++; }
-void parse_open_paren(char **s) { (*s)++; }
-void parse_whitespace(char **s) { 
+inline void parse_dot(char **s) { (*s)++; }
+inline void parse_close_paren(char **s) { (*s)++; }
+inline void parse_open_paren(char **s) { (*s)++; }
+inline void parse_whitespace(char **s) { 
     while(1) {
         switch (**s) {
             case ' ': case '\t': case '\n': case '\r': (*s)++;
@@ -267,7 +288,7 @@ void parse_whitespace(char **s) {
     }
 }
 
-enum token_type parse_token_type(char **s) { // Returns next "real" token--skips whitespace and comments
+inline enum token_type parse_token_type(char **s) { // Returns next "real" token--skips whitespace and comments
     enum token_type next_type;
     start:
     next_type = detect_token_type(s);
