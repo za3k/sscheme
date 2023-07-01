@@ -36,6 +36,7 @@ sexp* parse_string(char **s);
 sexp* parse_symbol(char **s);
 sexp* parse_character_constant(char**s);
 sexp* parse_constant(char**s);
+sexp* parse_quote(char **s);
 void parse_comment(char **s);
 void parse_dot(char **s);
 void parse_close_paren(char **s);
@@ -43,7 +44,7 @@ void parse_open_paren(char **s);
 void parse_whitespace(char **s);
 
 enum token_type parse_token_type(char **s); // Returns next "real" token--skips whitespace and comments
-sexp* parse_list_right(char **s, int atleastone); // Parse a list.
+sexp* parse_pair(char **s); // Or any other pair
 sexp* parse_sexp(char **s); // Returns the next parsed s-expression
 sexp* parse(char *s); // Return a (sexp) list of parsed s-expresions.
 
@@ -263,7 +264,7 @@ inline enum token_type parse_token_type(char **s) { // Returns next "real" token
     }
 }
 
-sexp* parse_list_right(char **s, int atleastone) {
+sexp* parse_pair_right(char **s, int atleastone) {
     // We just read "(<init1> <init2> ...".
     // Parse the rest of the list, then return
     enum token_type next_type = parse_token_type(s);
@@ -276,7 +277,7 @@ sexp* parse_list_right(char **s, int atleastone) {
         sexp *last = parse_sexp(s);
         if (!last) return 0;
         if (last->tag == ERROR) return last;
-        sexp *rest = parse_list_right(s, 1);
+        sexp *rest = parse_pair_right(s, 1);
         if (isempty(rest)) {
             return last;
         } else { // We will leak the rest of the list, but it only happens on error
@@ -284,9 +285,19 @@ sexp* parse_list_right(char **s, int atleastone) {
         }
     } else { // <initial> ...)
         sexp *first = parse_sexp(s);
-        sexp *rest = parse_list_right(s, 1);
+        sexp *rest = parse_pair_right(s, 1);
         return make_cons(first, rest);
     }
+}
+
+sexp* parse_quote(char **s) {
+    (*s)++;
+    return error(ERR_QUOTE_NOT_IMPL);
+}
+
+sexp* parse_pair(char **s) {
+    parse_open_paren(s);
+    return parse_pair_right(s, 0);
 }
 
 sexp* parse_sexp(char **s) {
@@ -308,10 +319,8 @@ sexp* parse_sexp(char **s) {
         case tok_number_decimal: return parse_int(s,10);
         case tok_number_hex: return parse_int(s,16);
         case tok_number_octal: return parse_int(s,8);
-        case tok_open_paren:
-            parse_open_paren(s);
-            return parse_list_right(s, 0);
-        case tok_quote: return error(ERR_QUOTE_NOT_IMPL);
+        case tok_open_paren: return parse_pair(s);
+        case tok_quote: return parse_quote(s);
         case tok_string: return parse_string(s);
         case tok_symbol: return parse_symbol(s);
         case tok_whitespace:
