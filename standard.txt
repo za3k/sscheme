@@ -122,10 +122,22 @@
         ((<= 0 n 9) (string (string-ref "0123456789" n)))
         (else (string-append (number->string (quotient n 10))
                              (number->string (remainder n 10))))))
+(define digit-chars '((#\0 0) (#\1 1) (#\2 2) (#\3 3) (#\4 4) (#\5 5) (#\6 6) (#\7 7) (#\8 8) (#\9 9)))
+(define (charlist->number l)
+  (cond ((null? l) 0)
+        ((eq? #\- (car l))
+          (- (charlist->number (cdr l))))
+        ((assq (car l) digit-chars)
+          (+ (cadr (assq (car l) digit-chars))
+             (* 10 (charlist->number (cdr l)))))
+        (else (error "Not a valid number in charlist->number"))))
+(define (string->number s)
+  (if (eq? "" s)
+      (error "Not a valid number in string->number")
+      (charlist->number (reverse (string->list s)))))
 
 ; TODO: gcd lcm expt
 ; TODO: range
-; TODO: string->number
 
 ; ============== LISTS AND PAIRS ================
 (define (caar x) (car (car x)))
