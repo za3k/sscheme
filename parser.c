@@ -282,7 +282,8 @@ sexp* parse_pair_right(char **s, int atleastone) {
         } else { // We will leak the rest of the list, but it only happens on error
             return error(ERR_UNEXPECTED_DOT);
         }
-    } else { // <initial> ...)
+    } else if (next_type == tok_eof) return error(ERR_LIST_UNTERMINATED);
+    else { // <initial> ...)
         sexp *first = parse_sexp(s);
         sexp *rest = parse_pair_right(s, 1);
         return make_cons(first, rest);

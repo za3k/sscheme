@@ -281,7 +281,13 @@ x => 1
 (gcd 32 36) => 4
 (gcd 32 -36) => 4
 (gcd 32 -36 42) => 2
+(gcd 1 10) => 1
 (gcd) => 0
+
+(lcm) => 1
+(lcm 4) => 4
+(lcm 4 6) => 12
+(lcm 4 6 9) => 36
 
 (number->string 0) => "0"
 (number->string 2) => "2"
@@ -308,6 +314,13 @@ x => 1
 (abs 2) => 2
 (abs 0) => 0
 (abs -2) => 2
+
+(expt 2 6) => 64
+
+(range 5) => (0 1 2 3 4)
+(range) => err
+(range 4 10) => (4 5 6 7 8 9)
+(range 4 10 3) => (4 7)
 
 (list? ()) => #t
 (list? (list 1 2 3)) => #t

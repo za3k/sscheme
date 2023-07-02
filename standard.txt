@@ -54,13 +54,25 @@
       (if (pred (car lst))
           (cons (car lst) (filter pred (cdr lst)))
           (filter pred (cdr lst)))))
-  
+
 (define (equal? a b)
   (or (eq? a b)
       (and (pair? a) 
            (pair? b)
            (equal? (car a) (car b))
            (equal? (cdr a) (cdr b)))))
+
+; ============== NON-STANDARD (DEBUGGING AIDS) ================
+(define (with-logging f . args)
+  (lambda args
+    ((lambda (result)
+      (and (display f)
+           (display "(")
+           (display args)
+           (display ")=")
+           (display result)
+           (display "\n")
+           result)) (apply f args))))
 
 ; ============== NUMBERS ================
 ; Upgrade to builtins to support not exactly 2 arguments: - + * / < <= > >= =
@@ -139,14 +151,30 @@
 (define (gcd2 a b)
   (cond ((> a b) (gcd2 b a))
         ((= a 0) b)
-        (gcd2 (remainder b a) a)))
+        (else (gcd2 (remainder b a) a))))
 (define (gcd . lst)
   (cond ((null? lst) 0)
-        ((null? (cdr lst)) (abs (car lst)))
         (else (foldl gcd2 0 (map abs lst)))))
 
-; TODO: gcd lcm expt
-; TODO: range
+(define (lcm2 a b) (* a (/ b (gcd a b))))
+(define (lcm . lst) (foldl lcm2 1 lst))
+
+(define (_range from to step)
+  (if (if (positive? step) (>= from to) (<= from to))
+      ()
+      (cons from (_range (+ from step) to step))))
+(define (range . lst)
+  (cond ((= 1 (length lst)) (_range 0 (first lst) 1))
+        ((= 2 (length lst)) (_range (first lst) (second lst) 1))
+        ((= 3 (length lst)) (apply _range lst))
+        (else (error "Wrong number of arguments to 'range'"))))
+
+(define (expt x n)
+  (cond ((negative? n) 0) ; in integers, anyway!
+        ((zero? n) 1) ; if x is zero, actually undefined, ignore
+        (else 
+          (* x
+             (expt x (- n 1))))))
 
 ; ============== LISTS AND PAIRS ================
 (define (caar x) (car (car x)))
@@ -330,15 +358,3 @@
 ; ============== MISC ================
 ; TODO: standard error messages
 ; TODO: support default values in lambda syntax?
-
-; ============== NON-STANDARD ================
-(define (with-printing f . args)
-  (lambda args
-    ((lambda (result)
-      (and (display f)
-           (display "(")
-           (display args)
-           (display ")=")
-           (display result)
-           (display "\n")
-           result)) (apply f args))))

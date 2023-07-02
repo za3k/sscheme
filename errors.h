@@ -5,6 +5,7 @@
 #define ERR_INVALID_CHAR        "parse: Invalid character"
 #define ERR_STRING_UNTERMINATED "String literal never terminated"
 #define ERR_QUOTE_UNTERMINATED  "Quoted literal never terminated"
+#define ERR_LIST_UNTERMINATED   "List/pair never terminated"
 #define ERR_UNKNOWN_TOKEN       "parse: Unknown token type"
 #define ERR_UNEXPECTED_CLOSE    "Unbalanced and unexpected close paren"
 #define ERR_UNEXPECTED_DOT      "Encountered '.' symbol in unexpected place"
