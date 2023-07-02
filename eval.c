@@ -1,6 +1,8 @@
+#include "eval.h"
+
+#include "config.h"
 #include "constants.h"
 #include "errors.h"
-#include "eval.h"
 #include "helpers.h"
 #include "parser.h"
 #include "prims.h"
@@ -44,7 +46,7 @@ sval* _eval1(sexp* expression, sval* env) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
         } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_define || proc->body.form == form_define_macro)) {
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "define/define-macro");
             sval *name;
             sval *value;
             if (ispair(car(rest))) {
@@ -68,10 +70,10 @@ sval* _eval1(sexp* expression, sval* env) {
             // (lambda (<param1> <param2>) <body>)
             // (lambda (<param1> <param2> . <params>) <body>)
             // (lambda <params> <body>)
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM);
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "lambda");
             else return make_function(car(rest), car(cdr(rest)), env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM);
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
             return car(rest);
         } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
@@ -156,7 +158,7 @@ sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
 }
 
 sval* lookup(sexp *symbol, sval *env) {
-    if (env == 0) return error(ERR_SYMBOL_NOT_FOUND);
+    if (env == 0) return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
     if (iserror(env)) return env;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
     sval* res = lookup_frame(symbol, env->body.env.frame.names, env->body.env.frame.values);

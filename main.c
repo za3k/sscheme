@@ -42,7 +42,9 @@ int main(int argc, char *argv[]) {
     }
     sexp *env = empty_env();
 
-    //printf("------------------Start Execution--------------\n");
+    #ifdef LOGGING_ON
+    printf("------------------Start Execution--------------\n");
+    #endif
 
     sexp* parsed = parse(EXAMPLE);
     printf("Input: "); print1nl(parsed);

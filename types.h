@@ -60,7 +60,7 @@ typedef struct sval {
 } sval;
 
 // The helpers
-sval* error(char *msg);
+sval* error(char *msg, ...);
 sval* make_cell();
 sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);

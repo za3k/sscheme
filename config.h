@@ -10,4 +10,6 @@
 
 #define MAX_CELLS 1000l
 
+//#define LOGGING_ON
+
 #endif // __CONFIG

@@ -1,7 +1,10 @@
 #include "types.h"
-#include "prims.h"
-#include "errors.h"
+
+#include "config.h"
 #include "constants.h"
+#include "errors.h"
+#include "prims.h"
+#include "stdarg.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +16,15 @@ sval* make_cell() {
     return malloc(sizeof(sval));
 }
 
-sval* error(char *msg) {
+char ERR_BUF[MAX_STRING_SIZE];
+sval* error(char *msg, ...) {
+    va_list va;
+    va_start(va, msg);
+    vsprintf(ERR_BUF, msg, va);
+    va_end(va);
     sval *err = make_cell();
     err->tag = ERROR;
-    err->body.error = msg;
+    err->body.error = strdup(ERR_BUF);
     return err;
 }
 
