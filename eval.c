@@ -15,6 +15,7 @@ sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
 sval* bind(sexp *parameters, sval *values, sval *env);
+sval* quasiquote(sexp *template, sval *env);
 
 sval* eval_all(sexp *expressions, sval *env) {
     sval *ret=0;
@@ -75,14 +76,17 @@ sval* _eval1(sexp* expression, sval* env) {
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
             return car(rest);
+        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_unquote ||
+                                                 proc->body.form == form_unquote_splicing)) {
+            return error(ERR_UNQUOTE_NOWHERE);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quasiquote) {
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quasiquote");
+            return quasiquote(car(rest), env);
         } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
         else if (proc->tag == ERROR) return proc;
         else return error(ERR_APPLY_NON_FUNCTION);
-    } else {
-        env->body.symbol[2000000]++;
-        return error(ERR_EVAL_UNKNOWN);
-    }
+    } else return error(ERR_EVAL_UNKNOWN);
 }
 
 
@@ -157,6 +161,10 @@ sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
     }
 }
 
+sval* quasiquote(sexp *template, sval *env) {
+    return error(ERR_QUASIQUOTE);
+}
+
 sval* lookup(sexp *symbol, sval *env) {
     if (env == 0) return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
     if (iserror(env)) return env;
@@ -183,12 +191,15 @@ sval* empty_env() {
         }
 
         // Set up builtins
-        define(BUILTINS_ENV, make_symbol("lambda"), LAMBDA);
         define(BUILTINS_ENV, make_symbol("cond"), COND);
-        define(BUILTINS_ENV, make_symbol("quote"), QUOTE);
         define(BUILTINS_ENV, make_symbol("define"), DEFINE);
         define(BUILTINS_ENV, make_symbol("define-macro"), DEFINE_MACRO);
+        define(BUILTINS_ENV, make_symbol("lambda"), LAMBDA);
         define(BUILTINS_ENV, make_symbol("nil"), NIL);
+        define(BUILTINS_ENV, make_symbol("unquote"), UNQUOTE);
+        define(BUILTINS_ENV, make_symbol("unquote-splicing"), UNQUOTE_SPLICING);
+        define(BUILTINS_ENV, make_symbol("quasiquote"), QUASIQUOTE);
+        define(BUILTINS_ENV, make_symbol("quote"), QUOTE);
         for (int i=0; primitives[i]!=0; i++)
             define(BUILTINS_ENV, make_symbol(primitive_names[i]), make_prim(primitives[i]));
 

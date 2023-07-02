@@ -10,7 +10,7 @@
 (define / quotient)
 
 ; ============== FORMS (MACROS) ================
-(define (list . x) x) ; Not a macro but very needed until we get ' notation
+(define (list . x) x) ; Not a macro but very needed for macros until we get quasiquotes
 (define-macro (if x y z)
   (list 'cond (list x y) (list 'else z)))
 (define-macro (and . clauses)
@@ -307,7 +307,6 @@
 (define (string-append . strings)
   (list->string
     (apply append (map string->list strings))))
-
 
 (define (sublist lst start end)
   (if (<= start 0)

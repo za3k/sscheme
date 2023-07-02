@@ -21,6 +21,9 @@ enum token_type {
     tok_number_hex,
     tok_number_octal,
     tok_open_paren,
+    tok_unquote,
+    tok_unquote_splicing,
+    tok_quasiquote,
     tok_quote,
     tok_string,
     tok_symbol,
@@ -64,6 +67,12 @@ enum token_type detect_token_type(char **s) {
         case ')': return tok_close_paren;
         case ' ': case '\t': case '\n': case '\r': return tok_whitespace;
         case '\'': return tok_quote;
+        case '`': return tok_quasiquote;
+        case ',':
+            switch((*s)[1]) {
+                case '@': return tok_unquote_splicing;
+                default: return tok_unquote;
+            }
         case '#':
             switch((*s)[1]) {
                 case 't': return tok_constant;
@@ -297,6 +306,27 @@ sexp* parse_quote(char **s) {
     else if (rest->tag==ERROR) return rest;
     else return make_cons(QUOTE, make_cons(rest, EMPTY_LIST));
 }
+sexp* parse_quasiquote(char **s) {
+    (*s)++;
+    sexp *rest = parse_sexp(s);
+    if (!rest) return error(ERR_QUASIQUOTE_UNTERMINATED);
+    else if (rest->tag==ERROR) return rest;
+    else return make_cons(QUASIQUOTE, make_cons(rest, EMPTY_LIST));
+}
+sexp* parse_unquote(char **s) {
+    (*s)++;
+    sexp *rest = parse_sexp(s);
+    if (!rest) return error(ERR_UNQUOTE_UNTERMINATED);
+    else if (rest->tag==ERROR) return rest;
+    else return make_cons(UNQUOTE, make_cons(rest, EMPTY_LIST));
+}
+sexp* parse_unquote_splicing(char **s) {
+    (*s)+=2;
+    sexp *rest = parse_sexp(s);
+    if (!rest) return error(ERR_UNQUOTE_UNTERMINATED);
+    else if (rest->tag==ERROR) return rest;
+    else return make_cons(UNQUOTE_SPLICING, make_cons(rest, EMPTY_LIST));
+}
 
 sexp* parse_pair(char **s) {
     parse_open_paren(s);
@@ -323,6 +353,9 @@ sexp* parse_sexp(char **s) {
         case tok_number_hex: return parse_int(s,16);
         case tok_number_octal: return parse_int(s,8);
         case tok_open_paren: return parse_pair(s);
+        case tok_unquote: return parse_unquote(s);
+        case tok_unquote_splicing: return parse_unquote_splicing(s);
+        case tok_quasiquote: return parse_quasiquote(s);
         case tok_quote: return parse_quote(s);
         case tok_string: return parse_string(s);
         case tok_symbol: return parse_symbol(s);

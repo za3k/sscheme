@@ -37,7 +37,7 @@ typedef struct sval {
     } constant;
     enum { 
        // TODO: We rarely look at this. Use only memory position?
-        form_cond, form_define, form_define_macro, form_lambda, form_quote // Special forms
+        form_cond, form_define, form_define_macro, form_lambda, form_unquote, form_unquote_splicing, form_quasiquote, form_quote // Special forms
     } form;
     struct sval *macro_procedure;
     struct sval* (*primitive)(struct sval*);

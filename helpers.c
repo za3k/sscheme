@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+// TODO: Print quotes and quasiquotes better
+
 int ischar(sval *arg) { return arg->tag == CONSTANT && arg->body.constant >= C000; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
@@ -60,6 +62,9 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             case form_lambda: size = snprintf(buffer, n, "lambda"); break;
             case form_define: size = snprintf(buffer, n, "define"); break;
             case form_define_macro: size = snprintf(buffer, n, "define-macro"); break;
+            case form_quasiquote: size = snprintf(buffer, n, "quasiquote"); break;
+            case form_unquote: size = snprintf(buffer, n, "unquote"); break;
+            case form_unquote_splicing: size = snprintf(buffer, n, "unquote-splicing"); break;
             //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {
