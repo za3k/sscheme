@@ -278,6 +278,11 @@ x => 1
 (modulo -13 -4) => -1
 (remainder -13 -4) => -1
 
+(gcd 32 36) => 4
+(gcd 32 -36) => 4
+(gcd 32 -36 42) => 2
+(gcd) => 0
+
 (number->string 0) => "0"
 (number->string 2) => "2"
 (number->string -2) => "-2"

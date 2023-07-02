@@ -136,6 +136,15 @@
       (error "Not a valid number in string->number")
       (charlist->number (reverse (string->list s)))))
 
+(define (gcd2 a b)
+  (cond ((> a b) (gcd2 b a))
+        ((= a 0) b)
+        (gcd2 (remainder b a) a)))
+(define (gcd . lst)
+  (cond ((null? lst) 0)
+        ((null? (cdr lst)) (abs (car lst)))
+        (else (foldl gcd2 0 (map abs lst)))))
+
 ; TODO: gcd lcm expt
 ; TODO: range
 
@@ -321,3 +330,15 @@
 ; ============== MISC ================
 ; TODO: standard error messages
 ; TODO: support default values in lambda syntax?
+
+; ============== NON-STANDARD ================
+(define (with-printing f . args)
+  (lambda args
+    ((lambda (result)
+      (and (display f)
+           (display "(")
+           (display args)
+           (display ")=")
+           (display result)
+           (display "\n")
+           result)) (apply f args))))
