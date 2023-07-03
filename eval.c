@@ -147,21 +147,20 @@ sval* bind(sexp *parameters, sval *values, sexp *env) {
 }
 
 sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
-    if (!ispair(parameters)) error(ERR_FRAME_NON_LIST);
-    if (!ispair(values)) error(ERR_FRAME_NON_LIST);
+    if (!isempty(parameters) && !ispair(parameters)) error(ERR_FRAME_NON_LIST);
+    if (!isempty(values) && !ispair(values)) error(ERR_FRAME_NON_LIST);
     
+    while (!isempty(parameters) && !isempty(values)) {
+        if (!issymbol(car(parameters))) error(ERR_FRAME_NON_SYMBOL);
+        if (symboleq(symbol, car(parameters))) return car(values);
+        parameters = cdr(parameters);
+        values = cdr(values);
+    }
+
     if (isempty(parameters) && isempty(values)) return 0;
     else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);
     else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
-    else {
-        if (!issymbol(car(parameters))) error(ERR_FRAME_NON_SYMBOL);
-        if (symboleq(symbol, car(parameters))) return car(values);
-        else return lookup_frame(
-            symbol,
-            cdr(parameters),
-            cdr(values)
-        );
-    }
+    else return error(ERR_LOGIC);
 }
 
 sval* quasiquote(sexp *template, sval *env) {

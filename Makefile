@@ -17,3 +17,5 @@ eval: main.o $(O_FILES)
 eval-static: main.o $(O_FILES)
 	musl-gcc -static $(CFLAGS) -o $@ $(O_FILES)
 	strip $@
+test: eval
+	./eval --test || gdb -ex 'set args --test' -ex 'run' ./eval

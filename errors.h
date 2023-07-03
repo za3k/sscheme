@@ -11,7 +11,7 @@
 #define ERR_UNKNOWN_TOKEN       "parse: Unknown token type"
 #define ERR_UNEXPECTED_CLOSE    "Unbalanced and unexpected close paren"
 #define ERR_UNEXPECTED_DOT      "Encountered '.' symbol in unexpected place"
-#define ERR_LOGIC               "parse: Logic error, unexpected token type encountered"
+#define ERR_LOGIC               "parse/lookup_frame: Logic error, unexpected token type encountered"
 
 // Eval/Apply core loop
 #define ERR_APPLY_NON_FUNCTION "Tried to apply a non-function"
@@ -23,7 +23,7 @@
 #define ERR_EVAL_UNKNOWN       "eval: An unknown type was encountered"
 #define ERR_BIND_UNKNOWN       "bind: An unknown type was encountered"
 #define ERR_EXPECTED_ENV       "Expected an argument to be of type ENV"
-#define ERR_FRAME_NON_LIST     "lookup_frame: A non-list was passed\n"
+#define ERR_FRAME_NON_LIST     "lookup_frame: A non-list was passed"
 #define ERR_FRAME_NON_SYMBOL   "lookup_frame: A non-symbol was present in a parameter list"
 #define ERR_SYMBOL_NOT_FOUND   "The symbol '%s' was unbound"
 #define ERR_TOO_FEW_PARAM      "Too few parameters passed to function"
