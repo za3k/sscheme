@@ -35,7 +35,6 @@ Finished features:
 
 Unfinished features:
 - Garbage collection
-- Detect infinite loops or out of memory
 - Print where errors happen
 - Input/output, either interactively from stdin or files.
 - Proper tail recursion
@@ -48,9 +47,8 @@ Unfinished features:
 - Nonstandard builtins: `~` `^` `|`
 - Builtins: `call/cc`
 - Data types
-    - Data types
-        - Numbers: floats, bignums, complex numbers, rationals
-        - Vectors
+    - Numbers: floats, bignums, complex numbers, rationals
+    - Vectors
 
 Bug reports are very welcome.
 - Please give me any input which causes a segfault.
