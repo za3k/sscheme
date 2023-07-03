@@ -7,7 +7,7 @@
 #define ERR_QUOTE_UNTERMINATED  "Quoted literal never terminated"
 #define ERR_LIST_UNTERMINATED   "List/pair never terminated"
 #define ERR_QUASIQUOTE_UNTERMINATED   "Quasiquote (`) not followed by anything"
-#define ERR_UNQUOTE_UNTERMINATED   "Unquote (, or @,) not followed by anything"
+#define ERR_UNQUOTE_UNTERMINATED   "Unquote (, or ,@) not followed by anything"
 #define ERR_UNKNOWN_TOKEN       "parse: Unknown token type"
 #define ERR_UNEXPECTED_CLOSE    "Unbalanced and unexpected close paren"
 #define ERR_UNEXPECTED_DOT      "Encountered '.' symbol in unexpected place"
@@ -29,7 +29,7 @@
 #define ERR_TOO_FEW_PARAM      "Too few parameters passed to function"
 #define ERR_TOO_MANY_PARAM     "Too many parameters passed to function"
 #define ERR_WRONG_NUM_FORM     "special form '%s' passed wrong number of arguments"
-#define ERR_UNQUOTE_NOWHERE    "Unquote (, or @,) not inside a quasiquote (`)"
+#define ERR_UNQUOTE_NOWHERE    "Unquote (, or ,@) not inside a quasiquote (`)"
 #define ERR_QUASIQUOTE         "Quasiquote (`) not yet implemented"
 #define ERR_SET                "set!: Tried to set! a nonexistent variable %s"
 

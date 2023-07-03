@@ -67,7 +67,15 @@
   (apply map args) ; our map implementation always calls in order anyway
   nil)
 
-; TODO: case do
+(define-macro (case value . clauses)
+  `(let ((v ,value)) ; Not hygenic, this will bite me later
+     (cond ,@(map (lambda (clause)
+                    (if (eqv? (car clause) 'else)
+                        `(else ,@(cdr clause))
+                        `((memv v (quote ,(car clause))) ,@(cdr clause))))
+                  clauses))))
+
+; TODO: do
 
 ; ============== BOOLEANS ================
 (define (boolean x) (if x #t #f))
