@@ -5,7 +5,7 @@ DATA_H_FILES = $(patsubst %.txt,%.inc.h,$(DATA_FILES))
 H_FILES = $(DATA_H_FILES) $(wildcard *.h)
 O_FILES = $(patsubst %.c,%.o,$(C_FILES))
 
-all: eval eval-static
+all: eval
 
 clean:
 	rm -f eval *.o *.inc.h
