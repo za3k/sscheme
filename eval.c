@@ -58,7 +58,7 @@ sval* _eval1(sexp* expression, sval* env) {
                 sval *body;
                 name = car(car(rest));
                 params = cdr(car(rest));
-                body = car(cdr(rest));
+                body = cdr(rest);
                 value = make_function(params, body, env);
             } else {
                 // (define x <value>)
@@ -71,8 +71,8 @@ sval* _eval1(sexp* expression, sval* env) {
             // (lambda (<param1> <param2>) <body>)
             // (lambda (<param1> <param2> . <params>) <body>)
             // (lambda <params> <body>)
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "lambda");
-            else return make_function(car(rest), car(cdr(rest)), env);
+            if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "lambda");
+            else return make_function(car(rest), cdr(rest), env);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
             return car(rest);
@@ -95,7 +95,7 @@ sval* _apply(sval* proc, sval* args) {
     else if (args->tag == ERROR) return args;
 
     if (proc->tag == PRIMITIVE) return proc->body.primitive(args);
-    else return eval1(
+    else return eval_all(
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
