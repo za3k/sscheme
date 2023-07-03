@@ -193,6 +193,22 @@ sval* symbol2string(sval *arg1) {
     return make_string(arg1->body.symbol);
 }
 
+sval* rappend(sexp *arg1, sexp *arg2) {
+    if(!ispair(arg1) && !isempty(arg1)) error(ERR_WRONG_TYPE, __func__);
+    if(!ispair(arg2) && !isempty(arg2)) error(ERR_WRONG_TYPE, __func__);
+
+    sexp *ret = arg2;
+    while (ispair(arg1)) {
+        ret = make_cons(car(arg1), ret);
+        arg1 = cdr(arg1);
+    }
+    TYPE(__func__, isempty, arg1)
+    return ret;
+}
+sval* append(sexp *arg1, sexp *arg2) {
+    return rappend(rappend(arg1, EMPTY_LIST), arg2);
+}
+
 sval* (*primitives[])(sval *args) = {
     prim_multiply,
     prim_lt,

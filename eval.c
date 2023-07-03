@@ -162,7 +162,18 @@ sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
 }
 
 sval* quasiquote(sexp *template, sval *env) {
-    return error(ERR_QUASIQUOTE);
+    // (quasiquote (a b (unquote c) d)) => (a b c d)
+    // (quasiquote (a b (unquote-splicing (list c d)) e)) => (a b c d e)
+    if (iserror(template)) return template;
+    if (iserror(env)) return env;
+
+    if (!ispair(template)) return template;
+    sexp *first=car(template), *rest=cdr(template);
+    if (iseq(first, UNQUOTE)) return eval1(car(cdr(template)), env);
+    else if (iseq(car(first), UNQUOTE_SPLICING)) return append(
+        eval1(car(cdr(first)), env),
+        quasiquote(rest, env));
+    else return cons(quasiquote(first, env), quasiquote(rest, env));
 }
 
 sval* lookup(sexp *symbol, sval *env) {

@@ -87,7 +87,17 @@ nil => nil
 'nil => :nil
 
 ; Quotes
+'1 => 1
+'(1 2 3) => (1 2 3)
+'nil => :nil
 ''nil => (quote :nil)
+
+; Quasiquotes
+`,2 => 2
+`(4 4 4) => (4 4 4)
+`(4 ,(+ 1 2) 4) => (4 3 4)
+`(4 ,(list 1 2) 4) => (4 (1 2) 4)
+`(4 ,@(list 1 2) 4) => (4 1 2 4)
 
 ; Primitive/symbol resolution
 + => proc
