@@ -75,7 +75,21 @@
                         `((memv v (quote ,(car clause))) ,@(cdr clause))))
                   clauses))))
 
-; TODO: do
+(define-macro (do variable-clauses test . body)
+  (if (or (< (apply min (map length variable-clauses)) 2)
+          (> (apply max (map length variable-clauses)) 3))
+      (error "syntax for 'do' variable clauses is: (<variable> <init> [<step>])")
+      ; Define 'do' in terms of named-let
+      `(let f ,(map (lambda (clause)
+                      (list (first clause) (second clause)))
+                    variable-clauses)
+         (cond ,test
+               (else ,@body
+                     (f ,@(map (lambda (clause)
+                                  (if (= (length clause) 3)
+                                      (third clause)
+                                      (first clause)))
+                          variable-clauses)))))))
 
 ; ============== BOOLEANS ================
 (define (boolean x) (if x #t #f))
