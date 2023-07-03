@@ -23,32 +23,33 @@ Finished features:
     - Numbers (integers only)
     - Symbols
     - Builtin functions
-    - Lambda functions (including closures)
+    - Lambda functions (including closures and varargs)
     - Pairs, Lists
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
     - Strings
 - Comments
 - Special forms: `and` `cond` `define` `define-macro` `if` `lambda` `or` `quote`
-- Functions: `+` `-` `/` `*` `append` `assf` `assoc` `assv` `assq` `car` `cdr` `char?` `char->integer` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `filter` `first` (`second`, `third`...) `integer->char` `last` `length` `list` `list?` `list->string` `list-tail` `list-ref` `map` `nil?` `not` `number?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse` `string->list` `string->symbol` `symbol->string`
+- Functions: `+` `-` `/` `*` `<` `<=` `>` `>=` `abs` `append` `assf` `assoc` `assv` `assq` `boolean?` `car` `cdr` `char?` `char->integer` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `eqv?` `equal?` `even?` `expt` `filter` `first` (`second`, `third`...) `integer->char` `last` `length` `list` `list?` `list->string` `list-tail` `list-ref` `map` `member?` `min` `nil?` `not` `number?` `odd?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse` `string->list` `string->symbol` `symbol->string`
 - About 60K compiled statically.
 
 Unfinished features:
 - lambda varargs support
-- `(define (f arg1 arg) ...)` syntax
-- Special forms: `do` `for-each` `let` `letrec` `set!` `set-car!` `set-cdr!`
+- Special forms: `do` `for-each` `let` `letrec`
 - Garbage collection
 - Detect infinite loops or out of memory
 - Print where errors happen
 - Input/output, either interactively from stdin or files.
 - Most of the standard library
-    - Builtins: `*` `/` `<` `apply` `display` `error` `eval` `quotient` `random`
-    - Builtins: `call/cc`
-    - Builtins: `~` `^` `|`
-    - Functions: `<=` `=` `>` `>=` `abs` `boolean?` `equal?` `even?` `expt` `max` `member?` `min` `newline` `null?` `odd?` `repeated` `square` `write`
+    - Builtins: `display` `write` `read` `read-char` `eval` `random`
+    - Builtins: `set!` `set-car!` `set-cdr!`
+    - Functions: `newline`
+    - Hygenic macros: `let-syntax` and `syntax-rules`
+- Builtins: `~` `^` `|`
 
 Non-features (will never be added):
 - Data types
     - Numbers: floats, bignums, complex numbers, rationals
     - Vectors
 - Builtins for floats: `cos` `expt` `log` `sin` `sqrt` `tan`
+- Builtins: `call/cc`

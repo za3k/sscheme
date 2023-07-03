@@ -10,22 +10,21 @@
 (define / quotient)
 
 ; ============== FORMS (MACROS) ================
-(define (list . x) x) ; Not a macro but very needed for macros until we get quasiquotes
+(define (list . x) x)
 (define-macro (if x y z)
-  (list 'cond (list x y) (list 'else z)))
+  `(cond (,x ,y) (else ,z)))
 (define-macro (and . clauses)
   (cond ((null? clauses) #t)
         ((null? (cdr clauses)) (car clauses))
-        (else
-            (list 'if (car clauses)
-                      (cons 'and (cdr clauses))
-                      #f))))
+        (else `(if ,(car clauses)
+                   (and ,@(cdr clauses))
+                   #f))))
 (define-macro (or . clauses) ; Note - this evaluates the truthy clause twice
   (cond ((null? clauses) #f)
         (else
-            (list 'if (car clauses)
-                      (car clauses)
-                      (cons 'or (cdr clauses))))))
+            `(if ,(car clauses)
+                 ,(car clauses)
+                 (or ,@(cdr clauses))))))
 
 ; TODO: case let let* letrec begin do quasiquote for-each named-let
 ; TODO: force delay
