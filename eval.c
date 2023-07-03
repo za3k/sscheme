@@ -81,7 +81,7 @@ sval* _eval1(sexp* expression, sval* env) {
             return car(rest);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_set) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "set!");
-            return set(env, car(rest), car(cdr(rest)));
+            return set(env, car(rest), eval1(car(cdr(rest)), env));
         } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_unquote ||
                                                  proc->body.form == form_unquote_splicing)) {
             return error(ERR_UNQUOTE_NOWHERE);
