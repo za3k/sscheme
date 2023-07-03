@@ -119,8 +119,8 @@ sval* evcond(sexp *conditions, sval *env) {
     else {
         sexp *condition = eval1(car(car(conditions)), env);
         if (condition->tag == ERROR) return condition;
-        sexp *body = car(cdr(car(conditions)));
-        if (!isfalse(condition)) return eval1(body, env);
+        sexp *body = cdr(car(conditions));
+        if (!isfalse(condition)) return eval_all(body, env);
         else return evcond(cdr(conditions), env);
     }
 }
