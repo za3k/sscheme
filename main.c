@@ -12,6 +12,8 @@ char *EXAMPLE = buffer;
 
 void debug_size() {
     printf("Space available: %lu bytes per cell x %lu cells = %lu KB total\n", sizeof(sval), MAX_CELLS, sizeof(sval)*MAX_CELLS/1000);
+    empty_env();
+    printf("Standard library space: %lu cells = %lu KB\n", cells_used, sizeof(sval)*cells_used/1000);
     printf("  sval:                      %lu\n", sizeof(sval));
     printf("  sval.tag:                  %lu\n", sizeof(((sval *)0)->tag));
     printf("  sval.body:                 %lu\n", sizeof(((sval *)0)->body));
