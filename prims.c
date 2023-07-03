@@ -51,6 +51,7 @@ sval* prim_string2symbol(sval *args) { FARITY(__func__, 1, args); return string2
 sval* prim_stringp(sval *args)       { FARITY(__func__, 1, args); return stringp(car(args)); }
 sval* prim_subtract(sval *args)      { FARITY(__func__, 2, args); return subtract(car(args), car(cdr(args))); }
 sval* prim_symbol2string(sval *args) { FARITY(__func__, 1, args); return symbol2string(car(args)); }
+sval* prim_symbolp(sval *args)       { FARITY(__func__, 1, args); return symbolp(car(args)); }
 
 /*  ============ Definitions of primitives ============= */
 
@@ -62,6 +63,7 @@ sval* nilp(sval *arg1)            { return pred(isnil(arg1)); }
 sval* numberp(sval *arg1)         { return pred(isnumber(arg1)); }
 sval* procedurep(sval *arg1)      { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
 sval* stringp(sval *arg1)         { return pred(isstring(arg1)); }
+sval* symbolp(sval *arg1)         { return pred(issymbol(arg1)); }
 
 sval* add(sval *arg1, sval *arg2) {
     TYPE(__func__, isnumber, arg1);
@@ -248,6 +250,7 @@ sval* (*primitives[])(sval *args) = {
     prim_string2list,
     prim_string2symbol,
     prim_symbol2string,
+    prim_symbolp,
     0,
 };
 char* primitive_names[] = {
@@ -278,4 +281,5 @@ char* primitive_names[] = {
     "string->list",
     "string->symbol",
     "symbol->string",
+    "symbol?",
 };
