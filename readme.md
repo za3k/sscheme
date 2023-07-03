@@ -28,8 +28,7 @@ Finished features:
     - Constants: `nil` `#t` `#f` `()`
     - Characters `#\d` `#\newline`
     - Strings
-- Comments
-- Special forms: `and` `cond` `define` `define-macro` `do` `if` `lambda` `let` (including named let) `let*` `letrec` `or` `quote` `set!`
+- Syntax: `;` `and` `cond` `define` `define-macro` `do` `if` `lambda` `let` (including named let) `let*` `letrec` `or` `quote` `set!`
 - Functions: `+` `-` `/` `*` `<` `<=` `>` `>=` `abs` `append` `assf` `assoc` `assv` `assq` `boolean?` `car` `cdr` `char?` `char->integer` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `eqv?` `equal?` `even?` `expt` `filter` `first` (`second`, `third`...) `integer->char` `last` `length` `list` `list?` `list->string` `list-tail` `list-ref` `map` `member?` `min` `nil?` `not` `number?` `odd?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse` `set-car!` `set-cdr!` `string->list` `string->symbol` `symbol->string`
 - About 88K compiled statically.
 
