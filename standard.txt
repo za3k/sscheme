@@ -9,7 +9,8 @@
 ; ============== FORMS (MACROS) ================
 (define (list . x) x)
 (define-macro (if x y z)
-  `(cond (,x ,y) (else ,z)))
+  `(cond (,x ,y)
+         (else ,z)))
 (define-macro (and . clauses)
   (cond ((null? clauses) #t)
         ((null? (cdr clauses)) (car clauses))
@@ -23,8 +24,23 @@
                  ,(car clauses)
                  (or ,@(cdr clauses))))))
 
-; TODO: case let let* letrec begin do quasiquote for-each named-let
-; TODO: force delay
+(define-macro (begin . clauses)
+  `((lambda () ,@clauses)))
+
+(define-macro (delay x)
+  `((lambda ()
+     (define answer 'nil)
+     (define computed #f)
+     (lambda ()
+       (if computed
+           answer
+           (begin
+             (set! answer ,x)
+             (set! computed #t)
+             answer))))))
+(define (force x) (x))
+
+; TODO: case let let* letrec do for-each named-let
 
 ; ============== BOOLEANS ================
 (define (boolean x) (if x #t #f))
