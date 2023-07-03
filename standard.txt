@@ -6,8 +6,7 @@
 (define else #t)
 (define / quotient)
 
-; ============== FORMS (MACROS) ================
-(define (list . x) x)
+; ============== SYNTAX/FORMS (MACROS) ================
 (define-macro (if x y z)
   `(cond (,x ,y)
          (else ,z)))
@@ -40,7 +39,35 @@
              answer))))))
 (define (force x) (x))
 
-; TODO: case let let* letrec do for-each named-let
+(define-macro (let first . rest)
+  (cond ((list? first) ; regular let
+          `((lambda ,(map car first) ,@rest) ,@(map cadr first)))
+        ((and (symbol? first) (>= (length rest) 2)); named let
+          `((lambda ()
+             (define ,first (lambda ,(map car (car rest)) ,@(cdr rest)))
+             (,first ,@(map cadr (car rest))))))
+        (else (error "let form doesn't look valid"))))
+
+(define-macro (let* bindings . body)
+  (cond ((null? bindings)
+          `(begin ,@body)) ; kludge, sorry
+        ((list? bindings)
+          `(let ((,(caar bindings) ,(cadar bindings)))
+             (let* ,(cdr bindings) ,@body)))
+        (else (error "let* form doesn't look valid"))))
+
+(define-macro (letrec bindings . body)
+  `((lambda ()
+    ,@(map (lambda (binding)
+             `(define ,(first binding) ,(second binding)))
+           bindings)
+    ,@body)))
+
+(define (for-each . args)
+  (apply map args) ; our map implementation always calls in order anyway
+  nil)
+
+; TODO: case do
 
 ; ============== BOOLEANS ================
 (define (boolean x) (if x #t #f))
@@ -189,6 +216,7 @@
              (expt x (- n 1))))))
 
 ; ============== LISTS AND PAIRS ================
+(define (list . x) x)
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
 (define (cdar x) (cdr (car x)))
