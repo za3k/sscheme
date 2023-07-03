@@ -29,6 +29,8 @@ sval* pairp(sval *arg1);
 sval* print1(sval *arg1);
 sval* print1nl(sval *arg1);
 sval* procedurep(sval *arg1);
+sval* setcar(sval *arg1, sval *arg2);
+sval* setcdr(sval *arg1, sval *arg2);
 sval* string2list(sval *arg1);
 sval* string2symbol(sval *arg1);
 sval* stringp(sval *arg1);

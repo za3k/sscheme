@@ -65,6 +65,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             case form_quasiquote: size = snprintf(buffer, n, "quasiquote"); break;
             case form_unquote: size = snprintf(buffer, n, "unquote"); break;
             case form_unquote_splicing: size = snprintf(buffer, n, "unquote-splicing"); break;
+            case form_set: size = snprintf(buffer, n, "set!"); break;
             //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
         }
     } else if (arg->tag == PRIMITIVE) {

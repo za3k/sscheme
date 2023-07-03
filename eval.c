@@ -73,15 +73,18 @@ sval* _eval1(sexp* expression, sval* env) {
             // (lambda <params> <body>)
             if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "lambda");
             else return make_function(car(rest), cdr(rest), env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
-            return car(rest);
-        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_unquote ||
-                                                 proc->body.form == form_unquote_splicing)) {
-            return error(ERR_UNQUOTE_NOWHERE);
         } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quasiquote) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quasiquote");
             return quasiquote(car(rest), env);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
+            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
+            return car(rest);
+        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_set) {
+            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "set!");
+            return set(env, car(rest), car(cdr(rest)));
+        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_unquote ||
+                                                 proc->body.form == form_unquote_splicing)) {
+            return error(ERR_UNQUOTE_NOWHERE);
         } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
         else if (proc->tag == ERROR) return proc;
@@ -186,6 +189,7 @@ sval* lookup(sexp *symbol, sval *env) {
 }
 
 sval* define(sval *env, sval* symbol, sval* thing) {
+    // Allows redefinitions in the same frame, which will shadow. This is a bug I don't plan to fix.
     if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
     if (iserror(env)) return env;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
@@ -193,6 +197,24 @@ sval* define(sval *env, sval* symbol, sval* thing) {
     env->body.env.frame.values = make_cons(thing, env->body.env.frame.values);
     return NIL;
 }
+sval* set(sval *env, sval* symbol, sval* thing) {
+    if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
+    if (iserror(env)) return env;
+    if (!isenv(env)) return error(ERR_EXPECTED_ENV);
+
+    while(env && !lookup_frame(symbol, env->body.env.frame.names, env->body.env.frame.values)) env=env->body.env.parent;
+    if (!env) return error(ERR_SET, symbol->body.symbol);
+
+    sval *names = env->body.env.frame.names;
+    sval *values = env->body.env.frame.values;
+    while(!iseq(symbol, car(names))) {
+        names = cdr(names);
+        values = cdr(values);
+    }
+    setcar(values, thing);
+    return NIL;
+}
+
 sval* empty_env() {
     if (isempty(BUILTINS_ENV->body.env.frame.names)) {
         // Set up character constants
@@ -211,6 +233,7 @@ sval* empty_env() {
         define(BUILTINS_ENV, make_symbol("unquote-splicing"), UNQUOTE_SPLICING);
         define(BUILTINS_ENV, make_symbol("quasiquote"), QUASIQUOTE);
         define(BUILTINS_ENV, make_symbol("quote"), QUOTE);
+        define(BUILTINS_ENV, make_symbol("set!"), SET);
         for (int i=0; primitives[i]!=0; i++)
             define(BUILTINS_ENV, make_symbol(primitive_names[i]), make_prim(primitives[i]));
 

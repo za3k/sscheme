@@ -226,6 +226,18 @@ x => 1
 (string->symbol "abc") => :abc
 (symbol->string (quote abc)) => "abc"
 
+(define x 2)
+(set! x 4)
+x => 4
+
+(define x '(2 . 3))
+(set-car! x 5)
+x => (5 . 3)
+
+(define x '(2 . 3))
+(set-cdr! x 5)
+x => (2 . 5)
+
 ; Tests for the standard library
 (if #t 1 2) => 1
 (if #f 1 2) => 2

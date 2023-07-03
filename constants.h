@@ -21,6 +21,7 @@ extern sexp *UNQUOTE;
 extern sexp *UNQUOTE_SPLICING;
 extern sexp *QUASIQUOTE;
 extern sexp* QUOTE;
+extern sexp* SET;
 extern sval* BUILTINS_ENV;
 extern sval* STANDARD_ENV;
 

@@ -24,31 +24,32 @@ inline static sval* pred(int x) {
 
 /*  ============ Arity checkers and uniform function signatures ============= */
 
-sval* prim_apply(sval *args)      { FARITY(__func__, 2, args); return apply(car(args), car(cdr(args))); }
-sval* prim_add(sval *args)        { FARITY(__func__, 2, args); return add(car(args), car(cdr(args))); }
-sval* prim_cons(sval *args)       { FARITY(__func__, 2, args); return cons(car(args), car(cdr(args))); }
-sval* prim_car(sval *args)        { FARITY(__func__, 1, args); return car(car(args)); }
-sval* prim_charp(sval *args)      { FARITY(__func__, 1, args); return charp(car(args)); }
-sval* prim_cdr(sval *args)        { FARITY(__func__, 1, args); return cdr(car(args)); }
-sval* prim_divide(sval *args)     { FARITY(__func__, 2, args); return divide(car(args), car(cdr(args))); }
-sval* prim_nilp(sval *args)       { FARITY(__func__, 1, args); return nilp(car(args)); }
-sval* prim_emptyp(sval *args)     { FARITY(__func__, 1, args); return emptyp(car(args)); }
-sval* prim_eqp(sval *args)        { FARITY(__func__, 2, args); return eqp(car(args), car(cdr(args))); }
-sval* prim_error(sval *args)      { FARITY(__func__, 1, args); return error_prim(car(args)); }
-sval* prim_pairp(sval *args)      { FARITY(__func__, 1, args); return pairp(car(args)); }
-sval* prim_lt(sval *args)         { FARITY(__func__, 2, args); return lt(car(args), car(cdr(args))); }
-sval* prim_multiply(sval *args)   { FARITY(__func__, 2, args); return multiply(car(args), car(cdr(args))); }
-sval* prim_numberp(sval *args)    { FARITY(__func__, 1, args); return numberp(car(args)); }
-sval* prim_print(sval *args)      { FARITY(__func__, 1, args); return print1(car(args)); }
-sval* prim_procedurep(sval *args) { FARITY(__func__, 1, args); return procedurep(car(args)); }
-sval* prim_stringp(sval *args)    { FARITY(__func__, 1, args); return stringp(car(args)); }
-sval* prim_subtract(sval *args)   { FARITY(__func__, 2, args); return subtract(car(args), car(cdr(args))); }
-
+sval* prim_add(sval *args)           { FARITY(__func__, 2, args); return add(car(args), car(cdr(args))); }
+sval* prim_apply(sval *args)         { FARITY(__func__, 2, args); return apply(car(args), car(cdr(args))); }
+sval* prim_car(sval *args)           { FARITY(__func__, 1, args); return car(car(args)); }
+sval* prim_cdr(sval *args)           { FARITY(__func__, 1, args); return cdr(car(args)); }
 sval* prim_char2integer(sval *args)  { FARITY(__func__, 1, args); return char2integer(car(args)); }
+sval* prim_charp(sval *args)         { FARITY(__func__, 1, args); return charp(car(args)); }
+sval* prim_cons(sval *args)          { FARITY(__func__, 2, args); return cons(car(args), car(cdr(args))); }
+sval* prim_divide(sval *args)        { FARITY(__func__, 2, args); return divide(car(args), car(cdr(args))); }
+sval* prim_emptyp(sval *args)        { FARITY(__func__, 1, args); return emptyp(car(args)); }
+sval* prim_eqp(sval *args)           { FARITY(__func__, 2, args); return eqp(car(args), car(cdr(args))); }
+sval* prim_error(sval *args)         { FARITY(__func__, 1, args); return error_prim(car(args)); }
 sval* prim_integer2char(sval *args)  { FARITY(__func__, 1, args); return integer2char(car(args)); }
 sval* prim_list2string(sval *args)   { FARITY(__func__, 1, args); return list2string(car(args)); }
+sval* prim_lt(sval *args)            { FARITY(__func__, 2, args); return lt(car(args), car(cdr(args))); }
+sval* prim_multiply(sval *args)      { FARITY(__func__, 2, args); return multiply(car(args), car(cdr(args))); }
+sval* prim_nilp(sval *args)          { FARITY(__func__, 1, args); return nilp(car(args)); }
+sval* prim_numberp(sval *args)       { FARITY(__func__, 1, args); return numberp(car(args)); }
+sval* prim_pairp(sval *args)         { FARITY(__func__, 1, args); return pairp(car(args)); }
+sval* prim_print(sval *args)         { FARITY(__func__, 1, args); return print1(car(args)); }
+sval* prim_procedurep(sval *args)    { FARITY(__func__, 1, args); return procedurep(car(args)); }
+sval* prim_setcar(sval *args)        { FARITY(__func__, 2, args); return setcar(car(args), car(cdr(args))); }
+sval* prim_setcdr(sval *args)        { FARITY(__func__, 2, args); return setcdr(car(args), car(cdr(args))); }
 sval* prim_string2list(sval *args)   { FARITY(__func__, 1, args); return string2list(car(args)); }
 sval* prim_string2symbol(sval *args) { FARITY(__func__, 1, args); return string2symbol(car(args)); }
+sval* prim_stringp(sval *args)       { FARITY(__func__, 1, args); return stringp(car(args)); }
+sval* prim_subtract(sval *args)      { FARITY(__func__, 2, args); return subtract(car(args), car(cdr(args))); }
 sval* prim_symbol2string(sval *args) { FARITY(__func__, 1, args); return symbol2string(car(args)); }
 
 /*  ============ Definitions of primitives ============= */
@@ -193,20 +194,30 @@ sval* symbol2string(sval *arg1) {
     return make_string(arg1->body.symbol);
 }
 
-sval* rappend(sexp *arg1, sexp *arg2) {
-    if(!ispair(arg1) && !isempty(arg1)) error(ERR_WRONG_TYPE, __func__);
-    if(!ispair(arg2) && !isempty(arg2)) error(ERR_WRONG_TYPE, __func__);
-
-    sexp *ret = arg2;
+sval* append(sexp *arg1, sexp *arg2) {
+    sval *rarg1 = EMPTY_LIST;
+    sval *ret = arg2;
     while (ispair(arg1)) {
-        ret = make_cons(car(arg1), ret);
+        rarg1 = make_cons(car(arg1), rarg1);
         arg1 = cdr(arg1);
     }
     TYPE(__func__, isempty, arg1)
+    while (!isempty(rarg1)) {
+        ret = make_cons(car(rarg1), ret);
+        rarg1 = cdr(rarg1);
+    }
     return ret;
 }
-sval* append(sexp *arg1, sexp *arg2) {
-    return rappend(rappend(arg1, EMPTY_LIST), arg2);
+
+sval* setcar(sexp *arg1, sexp *arg2) {
+    TYPE(__func__, ispair, arg1)
+    arg1->body.list.car = arg2;
+    return NIL;
+}
+sval* setcdr(sexp *arg1, sexp *arg2) {
+    TYPE(__func__, ispair, arg1)
+    arg1->body.list.cdr = arg2;
+    return NIL;
 }
 
 sval* (*primitives[])(sval *args) = {
@@ -218,10 +229,13 @@ sval* (*primitives[])(sval *args) = {
     prim_car,
     prim_cdr,
     prim_charp,
+    prim_char2integer,
     prim_cons,
     prim_print,
     prim_error,
     prim_eqp,
+    prim_integer2char,
+    prim_list2string,
     prim_nilp,
     prim_emptyp,
     prim_numberp,
@@ -229,9 +243,8 @@ sval* (*primitives[])(sval *args) = {
     prim_procedurep,
     prim_divide,
     prim_stringp,
-    prim_char2integer,
-    prim_integer2char,
-    prim_list2string,
+    prim_setcar,
+    prim_setcdr,
     prim_string2list,
     prim_string2symbol,
     prim_symbol2string,
@@ -246,10 +259,13 @@ char* primitive_names[] = {
     "car",
     "cdr",
     "char?",
+    "char->integer",
     "cons",
     "display",
     "error",
     "eq?",
+    "integer->char",
+    "list->string",
     "nil?",
     "null?",
     "number?",
@@ -257,9 +273,8 @@ char* primitive_names[] = {
     "procedure?",
     "quotient",
     "string?",
-    "char->integer",
-    "integer->char",
-    "list->string",
+    "set-car!",
+    "set-cdr!",
     "string->list",
     "string->symbol",
     "symbol->string",

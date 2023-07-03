@@ -31,6 +31,7 @@
 #define ERR_WRONG_NUM_FORM     "special form '%s' passed wrong number of arguments"
 #define ERR_UNQUOTE_NOWHERE    "Unquote (, or @,) not inside a quasiquote (`)"
 #define ERR_QUASIQUOTE         "Quasiquote (`) not yet implemented"
+#define ERR_SET                "set!: Tried to set! a nonexistent variable %s"
 
 // Primitive execution
 #define ERR_NULL_PTR    "primitive '%s' passed a null pointer"

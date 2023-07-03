@@ -1,6 +1,3 @@
-; ============== BUILTINS ================
-; TODO: set! set-cdr! set-car! '
-
 ; ============== ALIASES ================
 (define empty? null?)
 (define eqv? eq?)

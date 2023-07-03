@@ -7,3 +7,4 @@ sval* apply(sval *proc, sval *args);
 
 sval* empty_env();
 sval* define(sval *env, sval* symbol, sval* val);
+sval* set(sval *env, sval *symbol, sval* val);
