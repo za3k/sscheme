@@ -1,5 +1,7 @@
 #include "types.h"
 
+#include "errors.h"
+
 struct sval TRUE_V = { CONSTANT, .body.constant = constant_true };
 struct sval FALSE_V = { CONSTANT, .body.constant = constant_false };
 struct sval EMPTY_LIST_V = { CONSTANT, .body.constant = constant_empty_list };
@@ -15,6 +17,7 @@ sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM, .body.form = form_unquote_splicing };
 sexp DEFINE_MACRO_V = { SPECIAL_FORM, .body.form = form_define_macro };
 sval BUILTINS_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V }, 0} };
 sval STANDARD_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V}, &BUILTINS_ENV_V} };
+sval OUT_OF_MEMORY_V = { ERROR, .body.error = ERR_OUT_OF_MEMORY };
 struct sval CHARS_V[128] = {
     {CONSTANT, .body.constant = C000},
 };
@@ -93,3 +96,4 @@ sexp *UNQUOTE = &UNQUOTE_V;
 sexp *UNQUOTE_SPLICING = &UNQUOTE_SPLICING_V;
 sval* BUILTINS_ENV = &BUILTINS_ENV_V;
 sval* STANDARD_ENV = &STANDARD_ENV_V;
+sval* OUT_OF_MEMORY = &OUT_OF_MEMORY_V;

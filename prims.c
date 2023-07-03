@@ -25,6 +25,7 @@ inline static sval* pred(int x) {
 /*  ============ Arity checkers and uniform function signatures ============= */
 
 sval* prim_add(sval *args)           { FARITY(__func__, 2, args); return add(car(args), car(cdr(args))); }
+sval* prim_append(sval *args)        { FARITY(__func__, 2, args); return append(car(args), car(cdr(args))); }
 sval* prim_apply(sval *args)         { FARITY(__func__, 2, args); return apply(car(args), car(cdr(args))); }
 sval* prim_car(sval *args)           { FARITY(__func__, 1, args); return car(car(args)); }
 sval* prim_cdr(sval *args)           { FARITY(__func__, 1, args); return cdr(car(args)); }
@@ -197,12 +198,17 @@ sval* symbol2string(sval *arg1) {
 }
 
 sval* append(sexp *arg1, sexp *arg2) {
+    if (arg1->tag == ERROR) return arg1;
+    if (arg2->tag == ERROR) return arg2;
+    if (!isempty(arg1)&&!ispair(arg1)) return error(ERR_WRONG_TYPE, __func__);
+    if (!isempty(arg2)&&!ispair(arg2)) return error(ERR_WRONG_TYPE, __func__);
     sval *rarg1 = EMPTY_LIST;
     sval *ret = arg2;
     while (ispair(arg1)) {
         rarg1 = make_cons(car(arg1), rarg1);
         arg1 = cdr(arg1);
     }
+    if (rarg1->tag == ERROR) return rarg1;
     TYPE(__func__, isempty, arg1)
     while (!isempty(rarg1)) {
         ret = make_cons(car(rarg1), ret);
@@ -227,6 +233,7 @@ sval* (*primitives[])(sval *args) = {
     prim_lt,
     prim_add,
     prim_subtract,
+    prim_append,
     prim_apply,
     prim_car,
     prim_cdr,
@@ -258,6 +265,7 @@ char* primitive_names[] = {
     "<",
     "+",
     "-",
+    "append",
     "apply",
     "car",
     "cdr",

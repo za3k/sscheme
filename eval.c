@@ -16,9 +16,11 @@ sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
 sval* bind(sexp *parameters, sval *values, sval *env);
 sval* quasiquote(sexp *template, sval *env);
+static int call_depth = 0;
 
 sval* eval_all(sexp *expressions, sval *env) {
     sval *ret=0;
+    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
     while (!isempty(expressions)) {
         ret = eval1(car(expressions), env);
         if (ret->tag == ERROR) return ret;
@@ -27,6 +29,7 @@ sval* eval_all(sexp *expressions, sval *env) {
         printf("\n");
         #endif
     }
+    call_depth--;
     return ret;
 }
 
@@ -252,8 +255,10 @@ inline sval* apply(sval* proc, sval* args) {
         for (int i=0; i<indent; i++) printf(" ");
         printf("Apply: "); print1(proc); printf(" TO "); print1nl(args);
         indent += 2;
-    #endif
+    #endif 
+    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
     sval *ret = _apply(proc, args);
+    call_depth--;
     #ifdef LOGGING_ON
         indent -= 2;
         for (int i=0; i<indent; i++) printf(" ");
@@ -268,7 +273,9 @@ inline sval* eval1(sexp* expression, sval* env) {
         printf("Eval: "); print1(expression); printf(" IN "); print1(env); printf("\n");
         indent += 2;
     #endif
+    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
     sval *ret = _eval1(expression, env);
+    call_depth--;
     #ifdef LOGGING_ON
         indent -= 2;
         for (int i=0; i<indent; i++) printf(" ");

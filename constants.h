@@ -24,5 +24,6 @@ extern sexp* QUOTE;
 extern sexp* SET;
 extern sval* BUILTINS_ENV;
 extern sval* STANDARD_ENV;
+extern sval* OUT_OF_MEMORY;
 
 #endif // CONSTANTSH

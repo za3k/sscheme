@@ -32,6 +32,9 @@
 #define ERR_UNQUOTE_NOWHERE    "Unquote (, or ,@) not inside a quasiquote (`)"
 #define ERR_QUASIQUOTE         "Quasiquote (`) not yet implemented"
 #define ERR_SET                "set!: Tried to set! a nonexistent variable %s"
+#define ERR_CALL_DEPTH         "C call depth exceeded. This is a limitation of the current interpreter and will be fixed in the future."
+#define ERR_OUT_OF_MEMORY      "Out of memory. Memory is not currently garbage collected"
+#define ERR_OUT_OF_MEMORY_TWICE "Out of memory. This was not correctly caught, and should be reported to the author."
 
 // Primitive execution
 #define ERR_NULL_PTR    "primitive '%s' passed a null pointer"

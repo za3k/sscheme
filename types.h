@@ -5,6 +5,7 @@
 
 struct sval;
 struct scons;
+extern long cells_used;
 
 //   sexp (an sexp evaluates to an sval. we happen to use the same representation for both)
 typedef struct sval sexp;

@@ -10,10 +10,22 @@
 #include <string.h>
 #include <stdio.h>
 
+long cells_used = 0;
+long cells_free = MAX_CELLS;
+
 /*  Make the base types  */
 
 sval* make_cell() {
-    return malloc(sizeof(sval));
+    if (--cells_free <= 0) {
+        if (cells_free < 0) {
+            // Oops! error didn't propogate
+            printf(ERR_OUT_OF_MEMORY_TWICE);
+            exit(5);
+        }
+        return OUT_OF_MEMORY;
+    }
+    cells_used++;
+    return calloc(1, sizeof(sval));
 }
 
 char ERR_BUF[MAX_STRING_SIZE];
@@ -32,6 +44,7 @@ sval* make_cons(sval *car, sval *cdr) {
     if (car->tag == ERROR) return car;
     if (cdr->tag == ERROR) return cdr;
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = PAIR;
     v->body.list.car = car;
     v->body.list.cdr = cdr;
@@ -43,6 +56,7 @@ sval* make_env(sval* env) {
     if (env->tag == ERROR) return env;
     if (env->tag != ENV) return 0;
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = ENV;
     v->body.env.parent = env;
     v->body.env.frame.names = make_empty();
@@ -52,6 +66,7 @@ sval* make_env(sval* env) {
 
 sval* make_int(int i) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = NUMBER;
     v->body.smallnum = i;
     return v;
@@ -59,12 +74,14 @@ sval* make_int(int i) {
 
 sval* make_symbol(char* name) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = SYMBOL;
     v->body.symbol = strdup(name);
     return v;
 }
 sval* make_string(char* str) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = STRING;
     v->body.symbol = strdup(str);
     return v;
@@ -72,6 +89,7 @@ sval* make_string(char* str) {
 
 sval* make_prim(sval* (*primitive)(sval*)) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = PRIMITIVE;
     v->body.primitive = primitive;
     return v;
@@ -79,6 +97,7 @@ sval* make_prim(sval* (*primitive)(sval*)) {
 
 sexp* make_function(sexp *parameters, sexp *body, sval *env) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     if (env->tag == ERROR) return env;
     if (env->tag != ENV) return 0;
 
@@ -91,6 +110,7 @@ sexp* make_function(sexp *parameters, sexp *body, sval *env) {
 
 sexp* make_macro(sexp *function) {
     sval *v = make_cell();
+    if (v->tag == ERROR) return v;
     v->tag = MACRO;
     v->body.macro_procedure = function;
     return v;

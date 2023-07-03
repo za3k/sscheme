@@ -511,3 +511,16 @@ x => (2 . 5)
 (number->string -25) => "-25"
 (number->string 0) => "0"
 (string->number "25") => 25
+
+; Failures
+; Infinite loop
+((lambda (x) (x x))(lambda (x) (x x))) => err
+
+; Out of memory (currently fails with stack depth instead!)
+(define (bigger x) (append x x))
+(define (nf f)
+  (lambda (x n)
+    (if (zero? n)
+        x
+        ((nf f) (f x) (- n 1)))))
+((nf bigger) '(1) 100) => err
