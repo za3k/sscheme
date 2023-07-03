@@ -47,7 +47,7 @@ sval* _eval1(sexp* expression, sval* env) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
         } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_define || proc->body.form == form_define_macro)) {
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "define/define-macro");
+            if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "define/define-macro");
             sval *name;
             sval *value;
             if (ispair(car(rest))) {
