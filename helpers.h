@@ -16,7 +16,7 @@ int issymbol(sval *arg);
 int isstring(sval *arg);
 int isenv(sval *arg);
 int symboleq(sval *arg1, sval *arg2);
-int iseq(sval *arg1, sval *arg2);
+int iseqv(sval *arg1, sval *arg2);
 
 int islistoflength(sval *arg, int l);
 

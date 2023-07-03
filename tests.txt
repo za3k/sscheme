@@ -107,7 +107,7 @@ car => proc
 cdr => proc
 char? => proc
 cons => proc
-eq? => proc
+eqv? => proc
 list => proc
 pair? => proc
 number? => proc
@@ -155,17 +155,17 @@ NewVar => err
 ((lambda (x y) (car y)) '(1 2 3) '(4 5 6)) => 4
 
 
-(cond ((eq? 2 3) (quote a)) ((eq? 2 4) 5) (else (quote b))) => :b
-(cond ((eq? 2 3) (quote a))
-      ((eq? 2 4) 5)
+(cond ((eqv? 2 3) (quote a)) ((eqv? 2 4) 5) (else (quote b))) => :b
+(cond ((eqv? 2 3) (quote a))
+      ((eqv? 2 4) 5)
       (else (quote b)))
     => :b
-(cond ((eq? 2 3) (quote a))
-      ((eq? 4 4) 5)
+(cond ((eqv? 2 3) (quote a))
+      ((eqv? 4 4) 5)
       (else (quote b)))
     => 5
-(cond ((eq? 2 2) (quote a))
-      ((eq? 2 4) 5)
+(cond ((eqv? 2 2) (quote a))
+      ((eqv? 2 4) 5)
       (else (quote b)))
     => :a
 
@@ -435,12 +435,12 @@ x => (2 . 5)
 (foldr + 0 '(10 11 12)) => 33
 (filter number? '(10 #\d 13 "hello" '(b))) => (10 13)
 
-(remove 2 '(1 2 3) eq?) => (1 3)
-(remove 2 '(1 2 3 2) eq?) => (1 3 2)
+(remove 2 '(1 2 3) eqv?) => (1 3)
+(remove 2 '(1 2 3 2) eqv?) => (1 3 2)
 (remq 2 '(1 2 3)) => (1 3)
 (remq 2 '(1 2 3 2)) => (1 3 2)
 
-(assoc 3 '((1 2) (3 4) (5 6)) eq?) => (3 4)
+(assoc 3 '((1 2) (3 4) (5 6)) eqv?) => (3 4)
 (assq  3 '((1 2) (3 4) (5 6))) => (3 4)
 (assv  3 '((1 2) (3 4) (5 6))) => (3 4)
 (assf number? '((#\d 2) (3 4) (5 6))) => (3 4)

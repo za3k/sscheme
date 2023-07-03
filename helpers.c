@@ -23,7 +23,7 @@ int symboleq(sval *arg1, sval *arg2) {
     return strcmp(arg1->body.symbol,arg2->body.symbol) == 0;
 }
 
-int iseq(sval *arg1, sval *arg2) {
+int iseqv(sval *arg1, sval *arg2) {
     if (arg1->tag != arg2->tag) return 0;
     switch (arg1->tag) {
         case ERROR: return 0; break;

@@ -1,8 +1,8 @@
 ; ============== ALIASES ================
 (define empty? null?)
-(define eqv? eq?)
-(define symbol=? eq?)
-(define string=? eq?) ; Strings are immutable in this Scheme
+(define eq? eqv?)
+(define symbol=? eqv?)
+(define string=? eqv?) ; Strings are immutable in this Scheme
 (define else #t)
 (define / quotient)
 
@@ -72,7 +72,7 @@
 ; ============== BOOLEANS ================
 (define (boolean x) (if x #t #f))
 (define (boolean? x)
-  (or (eq? x #t) (eq? x #f)))
+  (or (eqv? x #t) (eqv? x #f)))
 (define (not x) (if x #f #t))
 
 ; ============== HELPERS ================
@@ -95,7 +95,7 @@
           (filter pred (cdr lst)))))
 
 (define (equal? a b)
-  (or (eq? a b)
+  (or (eqv? a b)
       (and (pair? a) 
            (pair? b)
            (equal? (car a) (car b))
@@ -140,7 +140,7 @@
           ((not (cmp (first lst) (second lst))) #f)
           (else (apply (monotone cmp) (cdr lst))))))
 (define <  (monotone _builtin<))
-(define =  (monotone eq?))
+(define =  (monotone eqv?))
 (define <= (monotone (lambda (x y) (not (_builtin< y x)))))
 (define >  (monotone (lambda (x y)      (_builtin< y x))))
 (define >= (monotone (lambda (x y) (not (_builtin< x y)))))
@@ -176,14 +176,14 @@
 (define digit-chars '((#\0 0) (#\1 1) (#\2 2) (#\3 3) (#\4 4) (#\5 5) (#\6 6) (#\7 7) (#\8 8) (#\9 9)))
 (define (charlist->number l)
   (cond ((null? l) 0)
-        ((eq? #\- (car l))
+        ((eqv? #\- (car l))
           (- (charlist->number (cdr l))))
         ((assq (car l) digit-chars)
           (+ (cadr (assq (car l) digit-chars))
              (* 10 (charlist->number (cdr l)))))
         (else (error "Not a valid number in charlist->number"))))
 (define (string->number s)
-  (if (eq? "" s)
+  (if (eqv? "" s)
       (error "Not a valid number in string->number")
       (charlist->number (reverse (string->list s)))))
 
@@ -313,7 +313,7 @@
 (define (memq v lst) (member v lst eq?))
 
 ; ============== CHARACTERS ================
-(define char=? eq?)
+(define char=? eqv?)
 (define (char<?  a b) (<  (char->integer a) (char->integer b)))
 (define (char<=? a b) (<= (char->integer a) (char->integer b)))
 (define (char>?  a b) (>  (char->integer a) (char->integer b)))

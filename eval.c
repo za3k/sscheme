@@ -172,8 +172,8 @@ sval* quasiquote(sexp *template, sval *env) {
 
     if (!ispair(template)) return template;
     sexp *first=car(template), *rest=cdr(template);
-    if (iseq(first, UNQUOTE)) return eval1(car(cdr(template)), env);
-    else if (iseq(car(first), UNQUOTE_SPLICING)) return append(
+    if (iseqv(first, UNQUOTE)) return eval1(car(cdr(template)), env);
+    else if (iseqv(car(first), UNQUOTE_SPLICING)) return append(
         eval1(car(cdr(first)), env),
         quasiquote(rest, env));
     else return cons(quasiquote(first, env), quasiquote(rest, env));
@@ -207,7 +207,7 @@ sval* set(sval *env, sval* symbol, sval* thing) {
 
     sval *names = env->body.env.frame.names;
     sval *values = env->body.env.frame.values;
-    while(!iseq(symbol, car(names))) {
+    while(!iseqv(symbol, car(names))) {
         names = cdr(names);
         values = cdr(values);
     }

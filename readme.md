@@ -40,6 +40,7 @@ Unfinished features:
 - Detect infinite loops or out of memory
 - Print where errors happen
 - Input/output, either interactively from stdin or files.
+- Proper tail recursion
 - Most of the standard library
     - Builtins: `display` `write` `read` `read-char` `eval` `random`
     - Functions: `newline`

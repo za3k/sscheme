@@ -17,7 +17,7 @@ sval* charp(sval *arg1);
 sval* cons(sval *arg1, sval *arg2);
 sval* divide(sval *arg1, sval *arg2);
 sval* emptyp(sval *arg1);
-sval* eqp(sval *arg1, sval *arg2);
+sval* eqvp(sval *arg1, sval *arg2);
 sval* error_prim(sval *arg1);
 sval* integer2char(sval *arg1);
 sval* list2string(sval *arg1);

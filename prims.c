@@ -33,7 +33,7 @@ sval* prim_charp(sval *args)         { FARITY(__func__, 1, args); return charp(c
 sval* prim_cons(sval *args)          { FARITY(__func__, 2, args); return cons(car(args), car(cdr(args))); }
 sval* prim_divide(sval *args)        { FARITY(__func__, 2, args); return divide(car(args), car(cdr(args))); }
 sval* prim_emptyp(sval *args)        { FARITY(__func__, 1, args); return emptyp(car(args)); }
-sval* prim_eqp(sval *args)           { FARITY(__func__, 2, args); return eqp(car(args), car(cdr(args))); }
+sval* prim_eqvp(sval *args)          { FARITY(__func__, 2, args); return eqvp(car(args), car(cdr(args))); }
 sval* prim_error(sval *args)         { FARITY(__func__, 1, args); return error_prim(car(args)); }
 sval* prim_integer2char(sval *args)  { FARITY(__func__, 1, args); return integer2char(car(args)); }
 sval* prim_list2string(sval *args)   { FARITY(__func__, 1, args); return list2string(car(args)); }
@@ -57,7 +57,7 @@ sval* prim_symbolp(sval *args)       { FARITY(__func__, 1, args); return symbolp
 
 sval* charp(sval *arg1)           { return pred(ischar(arg1)); }
 sval* emptyp(sval *arg1)          { return pred(isempty(arg1)); }
-sval* eqp(sval *arg1, sval *arg2) { return pred(iseq(arg1, arg2)); }
+sval* eqvp(sval *arg1, sval *arg2){ return pred(iseqv(arg1, arg2)); }
 sval* pairp(sval *arg1)           { return pred(ispair(arg1)); }
 sval* nilp(sval *arg1)            { return pred(isnil(arg1)); }
 sval* numberp(sval *arg1)         { return pred(isnumber(arg1)); }
@@ -235,7 +235,7 @@ sval* (*primitives[])(sval *args) = {
     prim_cons,
     prim_print,
     prim_error,
-    prim_eqp,
+    prim_eqvp,
     prim_integer2char,
     prim_list2string,
     prim_nilp,
@@ -266,7 +266,7 @@ char* primitive_names[] = {
     "cons",
     "display",
     "error",
-    "eq?",
+    "eqv?",
     "integer->char",
     "list->string",
     "nil?",
