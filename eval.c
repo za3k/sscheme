@@ -11,46 +11,223 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
-sval* lookup(sexp *symbol, sval *env);
-sval* bind(sexp *names, sval *values, sval *env);
+sval* evlist(sexp *args, sval *env);
 sval* quasiquote(sexp *template, sval *env);
-static int call_depth = 0;
 
-sval* eval_all(sexp *expressions, sval *env) {
-    sval *ret=0;
-    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
-    while (!isempty(expressions)) {
-        ret = eval1(car(expressions), env);
-        if (iserror(ret)) return ret;
-        expressions = cdr(expressions);
-        #ifdef LOGGING_ON
-        printf("\n");
-        #endif
-    }
-    call_depth--;
-    return ret;
+sval* bind(sexp *names, sval *values, sval *env);
+sval* lookup(sexp *symbol, sval *env);
+
+
+// The following functions call each other recursively:
+// - apply (calls eval_all)
+// - eval1 (calls apply, evcond, evlist, quasiquote)
+// - eval_all (calls eval1)
+// - evcond (calls eval1, eval_all)
+// - evlist (calls eval1)
+// - quasiquote (calls eval1, quasiquote)
+// To deal with tail recursion, limited C stack depth, and garbage collection
+// we turn these 6 functions into an explicit state machine with a stack,
+// instead.
+
+static sval* STACK=0;
+
+void push(sval* a) {
+    STACK = make_cons(a, STACK);
+}
+sval* pop() {
+    sval* a = car(STACK);
+    STACK = cdr(STACK);
+    return a;
 }
 
-sval* _eval1(sexp* expression, sval* env) {
-    if (expression->tag == NUMBER) return expression;
-    else if (expression->tag == SYMBOL) return cdr(lookup(expression, env));
-    else if (expression->tag == CONSTANT) return expression;
-    else if (expression->tag == STRING) return expression;
-    else if (expression->tag == SPECIAL_FORM) return expression;
-    else if (expression->tag == FUNCTION) return error(ERR_EVAL_CLOSURE);
-    else if (expression->tag == PRIMITIVE) return error(ERR_EVAL_PRIMITIVE);
-    else if (expression->tag == MACRO) return error(ERR_EVAL_MACRO);
-    else if (expression->tag == ERROR) return expression;
+enum gotos {
+    goto_apply_start,
+    goto_eval1_start,
+    goto_evalall_start,
+    goto_evalall_midlist,
+    goto_evcond_start,
+    goto_evlist_start,
+    goto_quasiquote_start,
+    goto_executestack_done,
+    goto_executestack_error,
+};
+enum gotos _apply(enum gotos resume);
+enum gotos _eval1(enum gotos resume);
+enum gotos _evalall(enum gotos resume);
+enum gotos _evcond(enum gotos resume);
+enum gotos _evlist(enum gotos resume);
+enum gotos _quasiquote(enum gotos resume);
+
+#define ERROR(x) do { push(x); return goto_executestack_error; } while(0)
+#define SAVECONT(x) push(make_int(x))
+#define RESTORECONT() pop()->body.smallnum
+#define IMM(x) do { enum gotos returned_resume = RESTORECONT(); push(x); return returned_resume; } while(0)
+#define TAILCALL(x, y, z) do { push(z); push(y); return goto_##x##_start; } while (0)
+#define RESUME(x) do { if(resume == goto_##x) goto goto_##x; } while(0)
+#define CALL(x, arg1, arg2, resume_name) do { SAVECONT(goto_##resume_name); push(arg2); push(arg1); return goto_##x##_start; goto_##resume_name : } while (0)
+#define RECEIVE(x) x = pop()
+#define SAVE(x) push(x)
+#define RESTORE(x) x = pop()
+
+sval* executestack(enum gotos andthen, sexp *arg1, sexp *arg2) {
+    if (STACK==0) STACK=EMPTY_LIST;
+    printf("Entering 'executestack'.\n");
+    SAVECONT(goto_executestack_done);
+    push(arg2);
+    push(arg1);
+
+    while (1) {
+        printf("Stack size: %d, ", listlength(STACK));
+        switch (andthen) {
+            #define printif(x) case goto_##x: printf("\tfunction: %s\n", #x); break;
+            printif(evalall_start)
+            printif(apply_start)
+            printif(eval1_start)
+            printif(evalall_midlist)
+            printif(evcond_start)
+            printif(evlist_start)
+            printif(quasiquote_start)
+            printif(executestack_done)
+            printif(executestack_error)
+        }
+        // In general, the form of the stack is:
+        // << arg1 arg2 (resume-address saved-register1 ... saved-registerN)* return-address >>
+
+        // Current state is that the stack contains:
+        // <<
+        // arg1
+        // arg2
+        // <Nth resume address>
+        // ...more... >>
+        // nextstep.next_call contains the function to call
+        //
+        //                      OR
+        //
+        // <<
+        // saved-register1 (for Nth resume-address)
+        // ...
+        // saved-registerN
+        // <(N-1)st resume address>
+        // ...more... >>
+        // nextstep.next_call contains the Nth resume-address, to resume
+
+        // After calling or resuming the function:
+        //  - We execute a GOTO to get to the right part of the function
+        //  - All arguments or saved registers are popped.
+        //  - The top of the stack is now the resume-address to return a value to.
+        //  - Execution resumes in normal C code. Note that /all variables have been reset/
+
+
+
+        // There are a few possible return modes: CALL, TAILCALL, IMM, and ERROR
+
+        // IMM, a regular "return" results in:
+        // <<
+        // result
+        // ...more... >>
+        // nextstep.next_call contains <Nth resume address>
+
+        // CALL, a subprocedure call which must return, results in:
+        // <<
+        // subarg1
+        // subarg2
+        // <(N+1)st resume-address>
+        // saved-register1 (for (N+1)st resume-address)
+        // ...
+        // saved-registerN
+        // <Nth resume-address>
+        // ...more... >>
+        // nextstep.next_call contains the function to make a subprocedure call to
+
+        // TAILCALL, a subprocedure call which doesn't need to return, results in:
+        // <<
+        // subarg1
+        // subarg2
+        // <Nth resume address>
+        // ...more... >>
+        // nextstep.next_call contains the function to make a subprocedure call to
+
+        // ERROR, a fatal error which exits execution, results in:
+        // <<
+        // an-error
+        // ...doesn't matter... >>
+        // nextstep.next_call contains 'goto_executestack_error'
+
+        switch(andthen) {
+            case goto_executestack_error: return error(ERR_LOGIC);
+            case goto_executestack_done:
+                return pop();
+            case goto_apply_start:
+                andthen = _apply(andthen);
+                break;
+            case goto_eval1_start:
+                andthen = _eval1(andthen);
+                break;
+            case goto_evalall_start:
+            case goto_evalall_midlist:
+                andthen = _evalall(andthen);
+                break;
+            case goto_evcond_start:
+                andthen = _evcond(andthen);
+                break;
+            case goto_evlist_start:
+                andthen = _evlist(andthen);
+                break;
+            case goto_quasiquote_start:
+                andthen = _quasiquote(andthen);
+                break;
+        }
+        if (andthen == goto_executestack_error) {
+            sexp *err = pop();
+            while (STACK != EMPTY_LIST) pop();
+            return err;
+        }
+    }
+}
+
+enum gotos _evalall(enum gotos resume) {
+    sexp *expressions, *env, *ret=0;
+    //RESUME(evalall_midlist);
+    expressions = pop();
+    env = pop();
+    if (isempty(expressions)) IMM(NIL);
+    else if (!ispair(expressions)) ERROR(error(ERR_LOGIC));
+    else if (isempty(cdr(expressions))) {
+        TAILCALL(evalall, car(expressions), env);
+    } else {
+        //SAVE(expressions);
+        //SAVE(env);
+        //CALL(eval1, car(expressions), env, evalall_midlist);
+        //RECEIVE(ret);
+        //RESTORE(env);
+        //RESTORE(expressions);
+        ret = eval1(car(expressions), env);
+        if (iserror(ret)) ERROR(ret);
+        TAILCALL(evalall, cdr(expressions), env);
+    }
+}
+
+enum gotos _eval1(enum gotos resume) {
+    sexp *expression = pop();
+    sexp *env = pop();
+    if (expression->tag == NUMBER) IMM(expression);
+    else if (expression->tag == SYMBOL) IMM(cdr(lookup(expression, env)));
+    else if (expression->tag == CONSTANT) IMM(expression);
+    else if (expression->tag == STRING) IMM(expression);
+    else if (expression->tag == SPECIAL_FORM) IMM(expression);
+    else if (expression->tag == FUNCTION) ERROR(error(ERR_EVAL_CLOSURE));
+    else if (expression->tag == PRIMITIVE) ERROR(error(ERR_EVAL_PRIMITIVE));
+    else if (expression->tag == MACRO) ERROR(error(ERR_EVAL_MACRO));
+    else if (expression->tag == ERROR) ERROR(expression);
     else if (expression->tag == PAIR) { // An application
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
         if (proc == COND) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
-            return evcond(rest, env);
+            TAILCALL(evcond, rest, env);
         } else if (proc == DEFINE || proc == DEFINE_MACRO) {
-            if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "define/define-macro");
+            if (isempty(rest) || isempty(cdr(rest))) ERROR(error(ERR_WRONG_NUM_FORM, "define/define-macro"));
             sval *name;
             sval *value;
             if (ispair(car(rest))) {
@@ -69,68 +246,99 @@ sval* _eval1(sexp* expression, sval* env) {
                 value = eval1(car(cdr(rest)), env);
             }
             if (proc == DEFINE_MACRO) value = make_macro(value);
-            return define(env, name, value);
+            IMM(define(env, name, value));
         } else if (proc == LAMBDA) {
             // (lambda (<param1> <param2>) <body>)
             // (lambda (<param1> <param2> . <params>) <body>)
             // (lambda <params> <body>)
-            if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "lambda");
-            else return make_function(car(rest), cdr(rest), env);
+            if (isempty(rest) || isempty(cdr(rest))) ERROR(error(ERR_WRONG_NUM_FORM, "lambda"));
+            else IMM(make_function(car(rest), cdr(rest), env));
         } else if (proc == QUASIQUOTE) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quasiquote");
-            return quasiquote(car(rest), env);
+            if (!islistoflength(rest, 1)) ERROR(error(ERR_WRONG_NUM_FORM, "quasiquote"));
+            TAILCALL(quasiquote, car(rest), env);
         } else if (proc == QUOTE) {
-            if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
-            return car(rest);
+            if (!islistoflength(rest, 1)) ERROR(error(ERR_WRONG_NUM_FORM, "quote"));
+            IMM(car(rest));
         } else if (proc == SET) {
-            if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "set!");
-            return set(env, car(rest), eval1(car(cdr(rest)), env));
+            if (!islistoflength(rest, 2)) ERROR(error(ERR_WRONG_NUM_FORM, "set!"));
+            IMM(set(env, car(rest), eval1(car(cdr(rest)), env)));
         } else if (proc->tag == SPECIAL_FORM && (proc == UNQUOTE || proc == UNQUOTE_SPLICING)) {
-            return error(ERR_UNQUOTE_NOWHERE);
-        } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
-        else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
-        else if (proc->tag == ERROR) return proc;
-        else return error(ERR_APPLY_NON_FUNCTION);
-    } else return error(ERR_EVAL_UNKNOWN);
+            ERROR(error(ERR_UNQUOTE_NOWHERE));
+        } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) {
+            sval *ret = evlist(rest, env);
+            TAILCALL(apply, proc, ret);
+        } else if (proc->tag == MACRO) {
+            sval *ret = apply(proc->body.macro_procedure, rest);
+            TAILCALL(eval1, ret, env);
+        } else if (proc->tag == ERROR) ERROR(proc);
+        else ERROR(error(ERR_APPLY_NON_FUNCTION));
+    } else ERROR(error(ERR_EVAL_UNKNOWN));
 }
 
+enum gotos _apply(enum gotos resume) {
+    sval *proc = pop();
+    sval *args = pop();
+    if (iserror(proc)) ERROR(proc);
+    else if (iserror(args)) ERROR(args);
 
-sval* _apply(sval* proc, sval* args) {
-    if (iserror(proc)) return proc;
-    else if (iserror(args)) return args;
-
-    if (proc->tag == PRIMITIVE) return proc->body.primitive(args);
-    else return eval_all(
+    if (proc->tag == PRIMITIVE) IMM(proc->body.primitive(args));
+    else TAILCALL(
+        evalall,
         proc->body.closure.body,
         bind(proc->body.closure.parameters, args, proc->body.closure.env));
 }
 
-sval* evlist(sexp *args, sval *env) {
-    if (isempty(args)) return args;
+enum gotos _evlist(enum gotos resume) {
+    sexp *args = pop();
+    sexp *env = pop();
+    if (isempty(args)) IMM(args);
     args = reverse(args);
     sexp *ret = EMPTY_LIST;
     while (ispair(args)) {
-        if (ismacro(car(args))) return error(ERR_PASSED_MACRO);
-        ret = make_cons(
-            eval1(car(args), env),
-            ret);
+        if (ismacro(car(args))) ERROR(error(ERR_PASSED_MACRO));
+        sexp *first = eval1(car(args), env);
+        ret = make_cons(first, ret);
         args = cdr(args);
     }
-    if (!isempty(args)) return error(ERR_EVLIST_NON_LIST);
-    return ret;
+    if (!isempty(args)) ERROR(error(ERR_EVLIST_NON_LIST));
+    IMM(ret);
 }
 
-sval* evcond(sexp *conditions, sval *env) {
+enum gotos _evcond(enum gotos resume) {
+    sexp *conditions = pop();
+    sexp *env = pop();
     while (ispair(conditions)) {
         sexp *clause = car(conditions);
         conditions = cdr(conditions);
-        if (isempty(clause)||isempty(cdr(clause))) return error(ERR_EVCOND_INVALID);
+        if (isempty(clause)||isempty(cdr(clause))) ERROR(error(ERR_EVCOND_INVALID));
         sexp *condition = eval1(car(clause), env);
-        if (iserror(condition)) return condition;
-        if (!isfalse(condition)) return eval_all(cdr(clause), env);
+        if (iserror(condition)) ERROR(condition);
+        if (!isfalse(condition)) TAILCALL(evalall, cdr(clause), env);
     }
-    if (isempty(conditions)) return NIL;
-    return error(ERR_EVCOND_INVALID);
+    if (isempty(conditions)) IMM(NIL);
+    ERROR(error(ERR_EVCOND_INVALID));
+}
+
+enum gotos _quasiquote(enum gotos resume) {
+    sexp *template = pop();
+    sexp *env = pop();
+    // (quasiquote (a b (unquote c) d)) => (a b c d)
+    // (quasiquote (a b (unquote-splicing (list c d)) e)) => (a b c d e)
+    if (iserror(template)) ERROR(template);
+    if (iserror(env)) ERROR(env);
+
+    if (!ispair(template)) IMM(template);
+    sexp *first=car(template), *rest=cdr(template);
+    if (iseqv(first, UNQUOTE)) TAILCALL(eval1, car(cdr(template)), env);
+    else if (iseqv(car(first), UNQUOTE_SPLICING)) {
+        sval *ret1 = eval1(car(cdr(first)), env);
+        sval *ret2 = quasiquote(rest, env);
+        IMM(append(ret1, ret2));
+    } else {
+        sval *ret1 = quasiquote(first, env);
+        sval *ret2 = quasiquote(rest, env);
+        IMM(cons(ret1, ret2));
+    }
 }
 
 sval* bind(sexp *names, sval *values, sexp *env) {
@@ -156,20 +364,6 @@ sval* bind(sexp *names, sval *values, sexp *env) {
     return error(ERR_BIND_UNKNOWN);
 }
 
-sval* quasiquote(sexp *template, sval *env) {
-    // (quasiquote (a b (unquote c) d)) => (a b c d)
-    // (quasiquote (a b (unquote-splicing (list c d)) e)) => (a b c d e)
-    if (iserror(template)) return template;
-    if (iserror(env)) return env;
-
-    if (!ispair(template)) return template;
-    sexp *first=car(template), *rest=cdr(template);
-    if (iseqv(first, UNQUOTE)) return eval1(car(cdr(template)), env);
-    else if (iseqv(car(first), UNQUOTE_SPLICING)) return append(
-        eval1(car(cdr(first)), env),
-        quasiquote(rest, env));
-    else return cons(quasiquote(first, env), quasiquote(rest, env));
-}
 
 sval* lookup(sexp *symbol, sval *env) {
     if (iserror(env)) return env;
@@ -213,7 +407,7 @@ sval* set(sval *env, sval* symbol, sval* thing) {
 }
 
 sval* empty_env() {
-    if (isempty(BUILTINS_ENV->body.env.frame)) {
+    if (0&&isempty(BUILTINS_ENV->body.env.frame)) {
         // Set up character constants
         for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;
 
@@ -239,39 +433,9 @@ sval* empty_env() {
 }
 
 
-#ifdef LOGGING_ON
-static int indent = 0;
-#endif
-inline sval* apply(sval* proc, sval* args) {
-    #ifdef LOGGING_ON
-        for (int i=0; i<indent; i++) printf(" ");
-        printf("Apply: "); print1(proc); printf(" TO "); print1nl(args);
-        indent += 2;
-    #endif 
-    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
-    sval *ret = _apply(proc, args);
-    call_depth--;
-    #ifdef LOGGING_ON
-        indent -= 2;
-        for (int i=0; i<indent; i++) printf(" ");
-        printf("=> "); print1nl(ret);
-    #endif
-    return ret;
-}
-
-inline sval* eval1(sexp* expression, sval* env) {
-    #ifdef LOGGING_ON
-        for (int i=0; i<indent; i++) printf(" ");
-        printf("Eval: "); print1(expression); printf(" IN "); print1(env); printf("\n");
-        indent += 2;
-    #endif
-    if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
-    sval *ret = _eval1(expression, env);
-    call_depth--;
-    #ifdef LOGGING_ON
-        indent -= 2;
-        for (int i=0; i<indent; i++) printf(" ");
-        printf("=> "); print1nl(ret);
-    #endif
-    return ret;
-}
+inline sval* apply   (sval* proc,        sval* args) { return executestack(goto_apply_start, proc, args); }
+inline sval* eval1   (sexp* expression,  sval* env)  { return executestack(goto_eval1_start, expression, env); }
+inline sval* eval_all(sexp* expressions, sval* env)  { return executestack(goto_evalall_start, expressions, env); }
+inline sval* evlist  (sexp* args,        sval* env)  { return executestack(goto_evlist_start, args, env); }
+inline sval* evcond  (sexp* conditions,  sval* env)  { return executestack(goto_evcond_start, conditions, env); }
+inline sval* quasiquote(sexp* template,  sval* env)  { return executestack(goto_quasiquote_start, template, env); }

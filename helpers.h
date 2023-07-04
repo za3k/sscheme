@@ -20,6 +20,7 @@ int isenv(sval *arg);
 int symboleq(sval *arg1, sval *arg2);
 int iseqv(sval *arg1, sval *arg2);
 
+int listlength(sval *arg);
 int islistoflength(sval *arg, int l);
 sexp* reverse(sval *arg);
 
