@@ -13,12 +13,22 @@ int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isenv(sval *arg) { return arg->tag == ENV; }
 int isfalse(sval *arg) { return arg == FALSE; }
 int isnil(sval *arg) { return arg == NIL; }
+int ismacro(sval *arg) { return arg->tag == MACRO; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int ispair(sval *arg) { return arg->tag == PAIR; }
 int isprocedure(sval *arg) { return arg->tag == FUNCTION || arg->tag == PRIMITIVE; }
 int isstring(sval *arg) { return arg->tag == STRING; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
 int istrue(sval *arg) { return arg == TRUE; }
+
+sexp* reverse(sval *arg) {
+    sval *ret = EMPTY_LIST;
+    while (ispair(arg)) {
+        ret = make_cons(car(arg), ret);
+        arg = cdr(arg);
+    }
+    return ret;
+}
 
 int symboleq(sval *arg1, sval *arg2) {
     return strcmp(arg1->body.symbol,arg2->body.symbol) == 0;

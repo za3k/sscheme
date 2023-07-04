@@ -106,25 +106,31 @@ sval* _apply(sval* proc, sval* args) {
 }
 
 sval* evlist(sexp *args, sval *env) {
-    // TODO: complain if we pass a macro, since it will not work right
     if (isempty(args)) return args;
-    else if(ispair(args)) {
-        return make_cons(
+    args = reverse(args);
+    sexp *ret = EMPTY_LIST;
+    while (ispair(args)) {
+        if (ismacro(car(args))) return error(ERR_PASSED_MACRO);
+        ret = make_cons(
             eval1(car(args), env),
-            evlist(cdr(args), env)
-        );
-    } else return error(ERR_EVLIST_NON_LIST);
+            ret);
+        args = cdr(args);
+    }
+    if (!isempty(args)) return error(ERR_EVLIST_NON_LIST);
+    return ret;
 }
 
 sval* evcond(sexp *conditions, sval *env) {
-    if (isempty(conditions)) return NIL;
-    else {
-        sexp *condition = eval1(car(car(conditions)), env);
+    while (ispair(conditions)) {
+        sexp *clause = car(conditions);
+        conditions = cdr(conditions);
+        if (isempty(clause)||isempty(cdr(clause))) return error(ERR_EVCOND_INVALID);
+        sexp *condition = eval1(car(clause), env);
         if (iserror(condition)) return condition;
-        sexp *body = cdr(car(conditions));
-        if (!isfalse(condition)) return eval_all(body, env);
-        else return evcond(cdr(conditions), env);
+        if (!isfalse(condition)) return eval_all(cdr(clause), env);
     }
+    if (isempty(conditions)) return NIL;
+    return error(ERR_EVCOND_INVALID);
 }
 
 sval* bind(sexp *names, sval *values, sexp *env) {

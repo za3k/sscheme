@@ -12,6 +12,7 @@ int isfalse(sval *arg);
 int istrue(sval *arg);
 int ispair(sval *arg);
 int isprocedure(sval *arg);
+int ismacro(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
 int isstring(sval *arg);
@@ -20,6 +21,7 @@ int symboleq(sval *arg1, sval *arg2);
 int iseqv(sval *arg1, sval *arg2);
 
 int islistoflength(sval *arg, int l);
+sexp* reverse(sval *arg);
 
 // Print is repr-style
 int snprint1(char* buffer, size_t n, sval *arg);

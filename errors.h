@@ -19,6 +19,7 @@
 #define ERR_EVAL_CLOSURE       "eval: Tried to eval a closure"
 #define ERR_EVAL_PRIMITIVE     "eval: Tried to eval a primitive"
 #define ERR_EVAL_MACRO         "eval: Tried to eval a macro"
+#define ERR_EVCOND_INVALID     "evcond: Tried to evcond an invalid form"
 #define ERR_EVLIST_NON_LIST    "evlist: Tried to evlist a non-list"
 #define ERR_EVAL_UNKNOWN       "eval: An unknown type was encountered"
 #define ERR_BIND_UNKNOWN       "bind: An unknown type was encountered"
@@ -35,6 +36,7 @@
 #define ERR_CALL_DEPTH         "C call depth exceeded. This is a limitation of the current interpreter and will be fixed in the future."
 #define ERR_OUT_OF_MEMORY      "Out of memory. Memory is not currently garbage collected"
 #define ERR_OUT_OF_MEMORY_TWICE "Out of memory. This was not correctly caught, and should be reported to the author."
+#define ERR_PASSED_MACRO       "Don't try to pass macros/syntax/forms as procedures"
 
 // Primitive execution
 #define ERR_NULL_PTR    "primitive '%s' passed a null pointer"
