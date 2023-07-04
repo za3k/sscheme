@@ -13,28 +13,35 @@ typedef struct sval sexp;
 typedef struct sval {
   enum stype { CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
-    struct scons {
-        struct sval *car;
-        struct sval *cdr;
-    } list;
-    char *symbol; // Symbols are parsed to strings instead of ints for convenience
-    int smallnum; // Small integer. No bignum support.
-    // Constants just use pointer comparison. No data.
-    // Forms just use pointer comparison. No data.
-    struct sval *macro_procedure;
-    struct sval* (*primitive)(struct sval*);
-    //   Closure (represents a function)
+    // CONSTANT, SPECIAL_FORM don't use any data at all.
+    // Used by ENV
+    struct senv {
+        struct sval *frame; // List of (name, value) pairs
+        struct sval *parent;
+    } env;
+    // Used by ERROR
+    char *error;
+    // Used by FUNCTION
     struct sclosure {
         sexp *parameters; // (unevaluated) list of parameter symbols
         sexp *body; // Unevaluated function body
         struct sval *env;
     } closure;
-    // Environment
-    struct senv {
-        struct sval *frame; // List of (name, value) pairs
-        struct sval *parent;
-    } env;
-    char *error;
+    // Used by MACRO
+    struct sval *macro_procedure;
+    // Used by NUMBER
+    int smallnum;
+    // Used by PAIR.
+    // ENV is (frame, parent) -- in other words, a list of frames.
+    // FUNCTION is (<parameters>, <body>, <env>)
+    struct scons {
+        struct sval *car;
+        struct sval *cdr;
+    } list;
+    // Used by PRIMITIVE
+    struct sval* (*primitive)(struct sval*);
+    // Used by STRING and SYMBOL
+    char *symbol;
   } body;
 } sval;
 
@@ -47,7 +54,6 @@ sval* make_symbol(char* name);
 sval* make_string(char* str);
 sval* make_env(sval* env);
 
-sval* make_empty();
 sval* make_prim(sval* primitive(sval*));
 sexp* make_function(sexp *parameters, sexp *body, sval *env);
 sexp* make_macro(sexp *function);

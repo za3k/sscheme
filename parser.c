@@ -278,7 +278,7 @@ sexp* parse_pair_right(char **s, int atleastone) {
     enum token_type next_type = parse_token_type(s);
     if (next_type == tok_close_paren) { // )
         parse_close_paren(s);
-        return make_empty();
+        return EMPTY_LIST;
     } else if (next_type == tok_dot) { // . <final>)
         parse_dot(s);
         if (!atleastone) return error(ERR_UNEXPECTED_DOT);
@@ -368,7 +368,7 @@ sexp* parse_sexp(char **s) {
 
 sexp* parse(char *s) {
     sexp *first = parse_sexp(&s);
-    if (!first) return make_empty();
+    if (!first) return EMPTY_LIST;
     else if (first->tag == ERROR) return first;
     else {
         sexp *rest = parse(s);

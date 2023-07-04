@@ -59,7 +59,7 @@ sval* make_env(sval* env) {
     if (v->tag == ERROR) return v;
     v->tag = ENV;
     v->body.env.parent = env;
-    v->body.env.frame = make_empty();
+    v->body.env.frame = EMPTY_LIST;
     return v;
 }
 
@@ -119,5 +119,3 @@ sval* make_character_constant (char c) {
     if (((unsigned int)c) >= 128) return 0;
     return &CHARS_V[(int)c];
 };
-
-sval* make_empty() { return EMPTY_LIST; }

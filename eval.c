@@ -135,6 +135,7 @@ sval* bind(sexp *names, sval *values, sexp *env) {
 
     sexp *e, *newenv = make_env(env);
     while (ispair(names) && ispair(values)) { // Normal definitions
+        // Technically this defines things in reverse order, but that should be fine.
         if (iserror(e=define(newenv, car(names), car(values)))) return e;
         names = cdr(names);
         values = cdr(values);
@@ -228,7 +229,7 @@ sval* empty_env() {
         eval_all(parse(standard_txt), STANDARD_ENV);
     }
 
-    return bind(make_empty(), make_empty(), STANDARD_ENV); // Return an empty frame so we can 'define' and modify it.
+    return bind(EMPTY_LIST, EMPTY_LIST, STANDARD_ENV); // Return an empty frame so we can 'define' and modify it.
 }
 
 
