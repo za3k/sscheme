@@ -31,10 +31,7 @@ typedef struct sval {
     } closure;
     // Environment
     struct senv {
-        struct {
-            struct sval *names; // list of symbols
-            struct sval *values; // list of svals
-        } frame;
+        struct sval *frame; // List of (name, value) pairs
         struct sval *parent;
     } env;
     char *error;

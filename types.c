@@ -59,8 +59,7 @@ sval* make_env(sval* env) {
     if (v->tag == ERROR) return v;
     v->tag = ENV;
     v->body.env.parent = env;
-    v->body.env.frame.names = make_empty();
-    v->body.env.frame.values = make_empty();
+    v->body.env.frame = make_empty();
     return v;
 }
 

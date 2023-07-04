@@ -14,7 +14,7 @@
 sval* evlist(sexp *args, sval *env);
 sval* evcond(sexp *conditions, sval *env);
 sval* lookup(sexp *symbol, sval *env);
-sval* bind(sexp *parameters, sval *values, sval *env);
+sval* bind(sexp *names, sval *values, sval *env);
 sval* quasiquote(sexp *template, sval *env);
 static int call_depth = 0;
 
@@ -35,7 +35,7 @@ sval* eval_all(sexp *expressions, sval *env) {
 
 sval* _eval1(sexp* expression, sval* env) {
     if (expression->tag == NUMBER) return expression;
-    else if (expression->tag == SYMBOL) return lookup(expression, env);
+    else if (expression->tag == SYMBOL) return cdr(lookup(expression, env));
     else if (expression->tag == CONSTANT) return expression;
     else if (expression->tag == STRING) return expression;
     else if (expression->tag == SPECIAL_FORM) return expression;
@@ -127,44 +127,26 @@ sval* evcond(sexp *conditions, sval *env) {
     }
 }
 
-sval* bind(sexp *parameters, sval *values, sexp *env) {
-    sval* newenv;
+sval* bind(sexp *names, sval *values, sexp *env) {
     if (iserror(env)) return env;
-    if (iserror(parameters)) return parameters;
+    if (iserror(names)) return names;
     if (iserror(values)) return values;
+    if (!isenv(env)) return error(ERR_BIND_UNKNOWN);
 
-    if (isempty(parameters) && isempty(values)) { // Base case
-        return make_env(env);
-    } else if (ispair(parameters) && ispair(values)) { // Recursion
-        newenv = bind(cdr(parameters), cdr(values), env);
-        define(newenv, car(parameters), car(values));
-        return newenv;
-    } else if (issymbol(parameters)) { // varargs
-        newenv = make_env(env);
-        define(newenv, parameters, values);
-        return newenv;
-    } else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);
-    else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
-    else return error(ERR_BIND_UNKNOWN);
-}
-
-sval* lookup_frame(sexp *symbol, sexp *env) {
-    sexp *names = env->body.env.frame.names;
-    sexp *values = env->body.env.frame.values;
-    if (!isempty(names) && !ispair(names)) error(ERR_FRAME_NON_LIST);
-    if (!isempty(values) && !ispair(values)) error(ERR_FRAME_NON_LIST);
-    
-    while (!isempty(names) && !isempty(values)) {
-        if (!issymbol(car(names))) error(ERR_FRAME_NON_SYMBOL);
-        if (symboleq(symbol, car(names))) return car(values);
+    sexp *e, *newenv = make_env(env);
+    while (ispair(names) && ispair(values)) { // Normal definitions
+        if (iserror(e=define(newenv, car(names), car(values)))) return e;
         names = cdr(names);
         values = cdr(values);
     }
-
-    if (isempty(names) && isempty(values)) return 0;
-    else if (isempty(names)) return error(ERR_TOO_MANY_PARAM);
-    else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
-    else return error(ERR_LOGIC);
+    if (issymbol(names)) { // varargs forms
+        if (iserror(e=define(newenv, names, values))) return e;
+        names = values = EMPTY_LIST;
+    } 
+    if (isempty(names) && isempty(values)) return newenv;
+    if (ispair(names)) return error(ERR_TOO_FEW_PARAM);
+    if (ispair(values)) return error(ERR_TOO_MANY_PARAM);
+    return error(ERR_BIND_UNKNOWN);
 }
 
 sval* quasiquote(sexp *template, sval *env) {
@@ -186,8 +168,11 @@ sval* lookup(sexp *symbol, sval *env) {
     if (iserror(env)) return env;
     if (env && !isenv(env)) return error(ERR_EXPECTED_ENV);
     while (env) {
-        sval* res = lookup_frame(symbol, env);
-        if (res != 0) return res;
+        sexp *frame = env->body.env.frame;
+        while (!isempty(frame)) {
+            if (symboleq(symbol, car(car(frame)))) return car(frame);
+            frame = cdr(frame);
+        }
         env = env->body.env.parent;
     }
     return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
@@ -199,30 +184,29 @@ sval* define(sval *env, sval* symbol, sval* thing) {
     if (iserror(env)) return env;
     if (iserror(thing)) return thing;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
-    env->body.env.frame.names = make_cons(symbol, env->body.env.frame.names);
-    env->body.env.frame.values = make_cons(thing, env->body.env.frame.values);
+
+    sval *newframe = make_cons(
+        make_cons(symbol, thing),
+        env->body.env.frame);
+    if (iserror(newframe)) return newframe;
+    env->body.env.frame = newframe;
     return NIL;
 }
+
 sval* set(sval *env, sval* symbol, sval* thing) {
     if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
     if (iserror(env)) return env;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
 
-    while(env && !lookup_frame(symbol, env)) env=env->body.env.parent;
-    if (!env) return error(ERR_SET, symbol->body.symbol);
+    sexp *binding = lookup(symbol, env);
+    if (iserror(binding)) return binding;
+    setcdr(binding, thing);
 
-    sval *names = env->body.env.frame.names;
-    sval *values = env->body.env.frame.values;
-    while(!iseqv(symbol, car(names))) {
-        names = cdr(names);
-        values = cdr(values);
-    }
-    setcar(values, thing);
     return NIL;
 }
 
 sval* empty_env() {
-    if (isempty(BUILTINS_ENV->body.env.frame.names)) {
+    if (isempty(BUILTINS_ENV->body.env.frame)) {
         // Set up character constants
         for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;
 
