@@ -1,4 +1,6 @@
 *.o
 *.inc.h
+*.expand
 eval
 eval-static
+callgraph.png
