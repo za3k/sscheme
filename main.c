@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 char buffer[INPUT_BUFFER_SIZE]={0};
-char *EXAMPLE = buffer;
+char *INPUT = buffer;
 
 void debug_size() {
     printf("Space available: %lu bytes per cell x %lu cells = %lu KB total\n", sizeof(sval), MAX_CELLS, sizeof(sval)*MAX_CELLS/1000);
@@ -32,13 +32,13 @@ void debug_size() {
 
 int main(int argc, char *argv[]) {
     if ( argc == 1) {
-        EXAMPLE=slurp_stdin(EXAMPLE);
+        INPUT=slurp_stdin(INPUT);
     } else if ( argc == 2 && strcmp(argv[1],"--test")==0) {
         run_tests(); return 0;
     } else if ( argc == 2 && strcmp(argv[1],"--size")==0) {
         debug_size(); return 0;
     } else if (argc == 2) {
-        EXAMPLE=argv[1];
+        INPUT=argv[1];
     } else {
         printf("Usage: eval [SCHEME CODE]\n");
         return 2;
@@ -49,9 +49,11 @@ int main(int argc, char *argv[]) {
     printf("------------------Start Execution--------------\n");
     #endif
 
-    sexp* parsed = parse(EXAMPLE);
-    printf("Input: "); print1nl(parsed);
+    sexp* parsed;
+    while ((parsed = parse_sexp(&INPUT))) {
+        printf("Input: "); print1nl(parsed);
 
-    sval* result = eval_all(parsed, env);
-    print1nl(result);
+        sval* result = eval_all(parsed, env);
+        print1nl(result);
+    }
 }

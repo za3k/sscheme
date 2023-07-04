@@ -47,7 +47,7 @@ void parse_open_paren(char **s);
 void parse_whitespace(char **s);
 
 enum token_type parse_token_type(char **s); // Returns next "real" token--skips whitespace and comments
-sexp* parse_pair(char **s); // Or any other pair
+sexp* parse_pair(char **s);
 sexp* parse_sexp(char **s); // Returns the next parsed s-expression
 sexp* parse(char *s); // Return a (sexp) list of parsed s-expresions.
 
