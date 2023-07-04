@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     while ((parsed = parse_sexp(&INPUT))) {
         printf("Input: "); print1nl(parsed);
 
-        sval* result = eval_all(parsed, env);
+        sval* result = eval1(parsed, env);
         print1nl(result);
     }
 }
