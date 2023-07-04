@@ -2,24 +2,24 @@
 
 #include "errors.h"
 
-struct sval TRUE_V = { CONSTANT, .body.constant = constant_true };
-struct sval FALSE_V = { CONSTANT, .body.constant = constant_false };
-struct sval EMPTY_LIST_V = { CONSTANT, .body.constant = constant_empty_list };
-struct sval NIL_V = { CONSTANT, .body.constant = constant_nil };
-sexp LAMBDA_V = { SPECIAL_FORM, .body.form = form_lambda };
-sexp COND_V = { SPECIAL_FORM, .body.form = form_cond };
-sexp DEFINE_V = { SPECIAL_FORM, .body.form = form_define };
-sexp QUOTE_V = { SPECIAL_FORM, .body.form = form_quote };
-sexp QUASIQUOTE_V = { SPECIAL_FORM, .body.form = form_quasiquote };
-sexp SET_V = { SPECIAL_FORM, .body.form = form_set };
-sexp UNQUOTE_V = { SPECIAL_FORM, .body.form = form_unquote };
-sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM, .body.form = form_unquote_splicing };
-sexp DEFINE_MACRO_V = { SPECIAL_FORM, .body.form = form_define_macro };
+struct sval TRUE_V = { CONSTANT };
+struct sval FALSE_V = { CONSTANT };
+struct sval EMPTY_LIST_V = { CONSTANT };
+struct sval NIL_V = { CONSTANT };
+sexp LAMBDA_V = { SPECIAL_FORM };
+sexp COND_V = { SPECIAL_FORM };
+sexp DEFINE_V = { SPECIAL_FORM };
+sexp QUOTE_V = { SPECIAL_FORM };
+sexp QUASIQUOTE_V = { SPECIAL_FORM };
+sexp SET_V = { SPECIAL_FORM };
+sexp UNQUOTE_V = { SPECIAL_FORM };
+sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM };
+sexp DEFINE_MACRO_V = { SPECIAL_FORM  };
 sval BUILTINS_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V }, 0} };
 sval STANDARD_ENV_V = { ENV, .body.env = {{ &EMPTY_LIST_V, &EMPTY_LIST_V}, &BUILTINS_ENV_V} };
 sval OUT_OF_MEMORY_V = { ERROR, .body.error = ERR_OUT_OF_MEMORY };
 struct sval CHARS_V[128] = {
-    {CONSTANT, .body.constant = C000},
+    {CONSTANT},
 };
 
 char *char_constant_names[] = {

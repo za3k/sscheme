@@ -7,7 +7,7 @@
 
 // TODO: Print quotes and quasiquotes better
 
-int ischar(sval *arg) { return arg->tag == CONSTANT && arg->body.constant >= C000; }
+int ischar(sval *arg) { return arg->tag == CONSTANT && arg >= CHARS_V && arg <= CHARS_V+127; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isenv(sval *arg) { return arg->tag == ENV; }
@@ -27,15 +27,13 @@ int iseqv(sval *arg1, sval *arg2) {
     if (arg1->tag != arg2->tag) return 0;
     switch (arg1->tag) {
         case ERROR: return 0; break;
-        case SPECIAL_FORM: return arg1->body.form == arg2->body.form; break;
-        case PRIMITIVE: return arg1->body.primitive == arg2->body.primitive; break;
-        case SYMBOL: return symboleq(arg1, arg2); break;
-        case CONSTANT: return arg1->body.constant == arg2->body.constant; break;
+        case PRIMITIVE: return arg1->body.primitive == arg2->body.primitive;
+        case SYMBOL: return symboleq(arg1, arg2);
         case NUMBER: return arg1->body.smallnum == arg2->body.smallnum; break;
-        case PAIR:
-        case FUNCTION:
-            return arg1==arg2;
-            break;
+        case CONSTANT: return arg1==arg2;
+        case SPECIAL_FORM: return arg1==arg2;
+        case PAIR: return arg1==arg2;
+        case FUNCTION: return arg1==arg2;
         default: return 0;
     }
 }
@@ -47,27 +45,23 @@ int snprint1(char* buffer, size_t n, sval *arg) {
     } else if (arg->tag == SYMBOL) {
         size = snprintf(buffer, n, ":%s", arg->body.symbol);
     } else if (arg->tag == CONSTANT) {
-        switch (arg->body.constant) {
-            case constant_nil: size = snprintf(buffer, n, "nil"); break;
-            case constant_empty_list: size = snprintf(buffer, n, "()"); break;
-            case constant_false: size = snprintf(buffer, n, "#f"); break;
-            case constant_true: size = snprintf(buffer, n, "#t"); break;
-            case C000...C127: size = snprintf(buffer, n, "%s", char_constant_names[arg->body.constant-C000]); break;
-            //default: size = snprintf(buffer, n, "<Unknown constant>");
-        }
+        if (arg == NIL) size = snprintf(buffer, n, "nil");
+        else if (arg == EMPTY_LIST) size = snprintf(buffer, n, "()");
+        else if (arg == FALSE) size = snprintf(buffer, n, "#f");
+        else if (arg == TRUE) size = snprintf(buffer, n, "#t");
+        else if (ischar(arg)) size = snprintf(buffer, n, "%s", char_constant_names[arg-CHARS_V]);
+        else size = snprintf(buffer, n, "<Unknown constant>");
     } else if (arg->tag == SPECIAL_FORM) {
-        switch(arg->body.form) {
-            case form_quote: size = snprintf(buffer, n, "quote"); break;
-            case form_cond: size = snprintf(buffer, n, "cond"); break;
-            case form_lambda: size = snprintf(buffer, n, "lambda"); break;
-            case form_define: size = snprintf(buffer, n, "define"); break;
-            case form_define_macro: size = snprintf(buffer, n, "define-macro"); break;
-            case form_quasiquote: size = snprintf(buffer, n, "quasiquote"); break;
-            case form_unquote: size = snprintf(buffer, n, "unquote"); break;
-            case form_unquote_splicing: size = snprintf(buffer, n, "unquote-splicing"); break;
-            case form_set: size = snprintf(buffer, n, "set!"); break;
-            //default: size = snprintf(buffer, n, "<special form %d>", arg->body.form); break;
-        }
+        if (arg == QUOTE) size = snprintf(buffer, n, "quote");
+        else if (arg == COND) size = snprintf(buffer, n, "cond");
+        else if (arg == LAMBDA) size = snprintf(buffer, n, "lambda");
+        else if (arg == DEFINE) size = snprintf(buffer, n, "define");
+        else if (arg == DEFINE_MACRO) size = snprintf(buffer, n, "define-macro");
+        else if (arg == QUASIQUOTE) size = snprintf(buffer, n, "quasiquote");
+        else if (arg == UNQUOTE) size = snprintf(buffer, n, "unquote");
+        else if (arg == UNQUOTE_SPLICING) size = snprintf(buffer, n, "unquote-splicing");
+        else if (arg == SET) size = snprintf(buffer, n, "set!");
+        else size = snprintf(buffer, n, "<special form %lx>", (unsigned long) arg);
     } else if (arg->tag == PRIMITIVE) {
         int i;
         for (i=0; primitives[i]!=0; i++) {

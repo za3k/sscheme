@@ -148,7 +148,7 @@ sval* print1nl(sval *arg) {
 
 sval* char2integer(sval *arg1) {
     TYPE(__func__, ischar, arg1);
-    return make_int(arg1->body.constant-C000);
+    return make_int(arg1-CHARS_V);
 }
 
 sval* integer2char(sval *arg1) {
@@ -167,7 +167,7 @@ sval* list2string(sval *arg1) {
     else if (ispair(arg1)) {
         for (i=0; i<=MAX_STRING_SIZE && !isempty(arg1); i++, arg1=cdr(arg1)) {
             TYPE(__func__, ischar, car(arg1));
-            LTS_BUFFER[i] = car(arg1)->body.constant-C000;
+            LTS_BUFFER[i] = car(arg1)-CHARS_V;
         }
         if (i==MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
         LTS_BUFFER[i]=0;

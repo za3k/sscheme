@@ -46,10 +46,10 @@ sval* _eval1(sexp* expression, sval* env) {
     else if (expression->tag == PAIR) { // An application
         sval *proc = eval1(car(expression), env);
         sval *rest = cdr(expression);
-        if (proc->tag == SPECIAL_FORM && proc->body.form == form_cond) {
+        if (proc == COND) {
             // (cond (<cond1> <val1>) (<cond2> <val2>) (else <val3>))
             return evcond(rest, env);
-        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_define || proc->body.form == form_define_macro)) {
+        } else if (proc == DEFINE || proc == DEFINE_MACRO) {
             if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "define/define-macro");
             sval *name;
             sval *value;
@@ -68,25 +68,24 @@ sval* _eval1(sexp* expression, sval* env) {
                 name = car(rest);
                 value = eval1(car(cdr(rest)), env);
             }
-            if (proc->body.form == form_define_macro) value = make_macro(value);
+            if (proc == DEFINE_MACRO) value = make_macro(value);
             return define(env, name, value);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_lambda) {
+        } else if (proc == LAMBDA) {
             // (lambda (<param1> <param2>) <body>)
             // (lambda (<param1> <param2> . <params>) <body>)
             // (lambda <params> <body>)
             if (isempty(rest) || isempty(cdr(rest))) return error(ERR_WRONG_NUM_FORM, "lambda");
             else return make_function(car(rest), cdr(rest), env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quasiquote) {
+        } else if (proc == QUASIQUOTE) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quasiquote");
             return quasiquote(car(rest), env);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_quote) {
+        } else if (proc == QUOTE) {
             if (!islistoflength(rest, 1)) return error(ERR_WRONG_NUM_FORM, "quote");
             return car(rest);
-        } else if (proc->tag == SPECIAL_FORM && proc->body.form == form_set) {
+        } else if (proc == SET) {
             if (!islistoflength(rest, 2)) return error(ERR_WRONG_NUM_FORM, "set!");
             return set(env, car(rest), eval1(car(cdr(rest)), env));
-        } else if (proc->tag == SPECIAL_FORM && (proc->body.form == form_unquote ||
-                                                 proc->body.form == form_unquote_splicing)) {
+        } else if (proc->tag == SPECIAL_FORM && (proc == UNQUOTE || proc == UNQUOTE_SPLICING)) {
             return error(ERR_UNQUOTE_NOWHERE);
         } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) return apply(proc, evlist(rest, env));
         else if (proc->tag == MACRO) return eval1(apply(proc->body.macro_procedure, rest), env);
@@ -220,10 +219,7 @@ sval* set(sval *env, sval* symbol, sval* thing) {
 sval* empty_env() {
     if (isempty(BUILTINS_ENV->body.env.frame.names)) {
         // Set up character constants
-        for (int i=0; i<128; i++) {
-            CHARS_V[i].tag = CONSTANT;
-            CHARS_V[i].body.constant = C000+i;
-        }
+        for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;
 
         // Set up builtins
         define(BUILTINS_ENV, make_symbol("cond"), COND);

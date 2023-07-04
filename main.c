@@ -13,6 +13,7 @@ char *EXAMPLE = buffer;
 void debug_size() {
     printf("Space available: %lu bytes per cell x %lu cells = %lu KB total\n", sizeof(sval), MAX_CELLS, sizeof(sval)*MAX_CELLS/1000);
     empty_env();
+    empty_env();
     printf("Standard library space: %lu cells = %lu KB\n", cells_used, sizeof(sval)*cells_used/1000);
     printf("  sval:                      %lu\n", sizeof(sval));
     printf("  sval.tag:                  %lu\n", sizeof(((sval *)0)->tag));
@@ -20,8 +21,8 @@ void debug_size() {
     printf("  sval.body.list:            %lu\n", sizeof(((sval *)0)->body.list));
     printf("  sval.body.symbol:          %lu\n", sizeof(((sval *)0)->body.symbol));
     printf("  sval.body.smallnum:        %lu\n", sizeof(((sval *)0)->body.smallnum));
-    printf("  sval.body.constant:        %lu\n", sizeof(((sval *)0)->body.constant));
-    printf("  sval.body.form:            %lu\n", sizeof(((sval *)0)->body.form));
+    printf("  sval.body.constant:        %lu\n", 0l);
+    printf("  sval.body.form:            %lu\n", 0l);
     printf("  sval.body.macro_procedure: %lu\n", sizeof(((sval *)0)->body.macro_procedure));
     printf("  sval.body.primitive:       %lu\n", sizeof(((sval *)0)->body.primitive));
     printf("  sval.body.closure:         %lu\n", sizeof(((sval *)0)->body.closure));
