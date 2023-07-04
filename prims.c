@@ -8,14 +8,15 @@
 
 // Type and arity checker macros
 #define FARITY(f, x, args) if (!islistoflength(args, x)) return error(ERR_WRONG_NUM, f);
-#define TYPE(f, p, arg) if (!arg) { return error(ERR_NULL_PTR, f); } else if (arg->tag == ERROR) { return arg; } else if (!p(arg)) { return error(ERR_WRONG_TYPE, f); }
+#define TYPE(f, p, arg) if (!arg) { return error(ERR_NULL_PTR, f); } else if (iserror(arg)) { return arg; } else if (!p(arg)) { return error(ERR_WRONG_TYPE, f); }
 
 // Helpers
 int listOf(sval *arg, int p(sval *arg)) {
-    if (isempty(arg)) return 1;
-    if (!ispair(arg)) return 0;
-    if (!p(car(arg))) return 0;
-    return listOf(cdr(arg), p);
+    while (ispair(arg)) {
+        if (!p(car(arg))) return 0;
+        arg = cdr(arg);
+    }
+    return isempty(arg);
 }
 
 inline static sval* pred(int x) {
@@ -62,7 +63,7 @@ sval* eqvp(sval *arg1, sval *arg2){ return pred(iseqv(arg1, arg2)); }
 sval* pairp(sval *arg1)           { return pred(ispair(arg1)); }
 sval* nilp(sval *arg1)            { return pred(isnil(arg1)); }
 sval* numberp(sval *arg1)         { return pred(isnumber(arg1)); }
-sval* procedurep(sval *arg1)      { return pred(arg1->tag == FUNCTION || arg1->tag == PRIMITIVE); }
+sval* procedurep(sval *arg1)      { return pred(isprocedure(arg1)); }
 sval* stringp(sval *arg1)         { return pred(isstring(arg1)); }
 sval* symbolp(sval *arg1)         { return pred(issymbol(arg1)); }
 
@@ -86,8 +87,8 @@ sval* cdr(sval *arg1) {
 }
 
 sval* cons(sval *arg1, sval *arg2) {
-    if (arg1->tag == ERROR) return arg1;
-    if (arg2->tag == ERROR) return arg2;
+    if (iserror(arg1)) return arg1;
+    if (iserror(arg2)) return arg2;
     return make_cons(arg1, arg2);
 }
 
@@ -160,19 +161,18 @@ sval* integer2char(sval *arg1) {
 
 char LTS_BUFFER[MAX_STRING_SIZE+1];
 sval* list2string(sval *arg1) {
-    int i;
+    int i=0;
     if (!arg1) return error(ERR_NULL_PTR, __func__);
-    else if (arg1->tag == ERROR) return arg1;
-    else if (isempty(arg1)) return make_string("");
-    else if (ispair(arg1)) {
-        for (i=0; i<=MAX_STRING_SIZE && !isempty(arg1); i++, arg1=cdr(arg1)) {
-            TYPE(__func__, ischar, car(arg1));
-            LTS_BUFFER[i] = car(arg1)-CHARS_V;
-        }
-        if (i==MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
-        LTS_BUFFER[i]=0;
-        return make_string(LTS_BUFFER);
-    } else return error(ERR_WRONG_TYPE, __func__);
+    else if (iserror(arg1)) return arg1;
+
+    for (i=0; i<=MAX_STRING_SIZE && ispair(arg1); i++, arg1=cdr(arg1)) {
+        TYPE(__func__, ischar, car(arg1));
+        LTS_BUFFER[i] = car(arg1)-CHARS_V;
+    }
+    if (i>=MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
+    if (!isempty(arg1)) return error(ERR_WRONG_TYPE, __func__);
+    LTS_BUFFER[i]=0;
+    return make_string(LTS_BUFFER);
 }
 
 sval* string2list(sval *arg1) {
@@ -181,7 +181,7 @@ sval* string2list(sval *arg1) {
     char *string = arg1->body.symbol;
     int l=strlen(string);
     sval *ret = EMPTY_LIST;
-    for (int i=l-1; i>=0; i--) ret = make_cons(&CHARS_V[(int) string[i]], ret);
+    for (int i=l-1; i>=0&&!iserror(ret); i--) ret = make_cons(&CHARS_V[(int) string[i]], ret);
     return ret;
 }
 
@@ -198,8 +198,8 @@ sval* symbol2string(sval *arg1) {
 }
 
 sval* append(sexp *arg1, sexp *arg2) {
-    if (arg1->tag == ERROR) return arg1;
-    if (arg2->tag == ERROR) return arg2;
+    if (iserror(arg1)) return arg1;
+    if (iserror(arg2)) return arg2;
     if (!isempty(arg1)&&!ispair(arg1)) return error(ERR_WRONG_TYPE, __func__);
     if (!isempty(arg2)&&!ispair(arg2)) return error(ERR_WRONG_TYPE, __func__);
     sval *rarg1 = EMPTY_LIST;
@@ -208,9 +208,9 @@ sval* append(sexp *arg1, sexp *arg2) {
         rarg1 = make_cons(car(arg1), rarg1);
         arg1 = cdr(arg1);
     }
-    if (rarg1->tag == ERROR) return rarg1;
+    if (iserror(rarg1)) return rarg1;
     TYPE(__func__, isempty, arg1)
-    while (!isempty(rarg1)) {
+    while (!isempty(rarg1)&&!iserror(ret)) {
         ret = make_cons(car(rarg1), ret);
         rarg1 = cdr(rarg1);
     }
@@ -219,11 +219,13 @@ sval* append(sexp *arg1, sexp *arg2) {
 
 sval* setcar(sexp *arg1, sexp *arg2) {
     TYPE(__func__, ispair, arg1)
+    if (iserror(arg2)) return arg2;
     arg1->body.list.car = arg2;
     return NIL;
 }
 sval* setcdr(sexp *arg1, sexp *arg2) {
     TYPE(__func__, ispair, arg1)
+    if (iserror(arg2)) return arg2;
     arg1->body.list.cdr = arg2;
     return NIL;
 }

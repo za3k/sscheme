@@ -11,6 +11,7 @@ int isnil(sval *arg);
 int isfalse(sval *arg);
 int istrue(sval *arg);
 int ispair(sval *arg);
+int isprocedure(sval *arg);
 int isnumber(sval *arg);
 int issymbol(sval *arg);
 int isstring(sval *arg);

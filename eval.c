@@ -23,7 +23,7 @@ sval* eval_all(sexp *expressions, sval *env) {
     if (call_depth++ > MAX_CALL_DEPTH) return error(ERR_CALL_DEPTH);
     while (!isempty(expressions)) {
         ret = eval1(car(expressions), env);
-        if (ret->tag == ERROR) return ret;
+        if (iserror(ret)) return ret;
         expressions = cdr(expressions);
         #ifdef LOGGING_ON
         printf("\n");
@@ -96,8 +96,8 @@ sval* _eval1(sexp* expression, sval* env) {
 
 
 sval* _apply(sval* proc, sval* args) {
-    if (proc->tag == ERROR) return proc;
-    else if (args->tag == ERROR) return args;
+    if (iserror(proc)) return proc;
+    else if (iserror(args)) return args;
 
     if (proc->tag == PRIMITIVE) return proc->body.primitive(args);
     else return eval_all(
@@ -108,7 +108,7 @@ sval* _apply(sval* proc, sval* args) {
 sval* evlist(sexp *args, sval *env) {
     // TODO: complain if we pass a macro, since it will not work right
     if (isempty(args)) return args;
-    else if(args->tag == PAIR) {
+    else if(ispair(args)) {
         return make_cons(
             eval1(car(args), env),
             evlist(cdr(args), env)
@@ -120,7 +120,7 @@ sval* evcond(sexp *conditions, sval *env) {
     if (isempty(conditions)) return NIL;
     else {
         sexp *condition = eval1(car(car(conditions)), env);
-        if (condition->tag == ERROR) return condition;
+        if (iserror(condition)) return condition;
         sexp *body = cdr(car(conditions));
         if (!isfalse(condition)) return eval_all(body, env);
         else return evcond(cdr(conditions), env);
@@ -129,9 +129,9 @@ sval* evcond(sexp *conditions, sval *env) {
 
 sval* bind(sexp *parameters, sval *values, sexp *env) {
     sval* newenv;
-    if (env->tag == ERROR) return env;
-    if (parameters->tag == ERROR) return parameters;
-    if (values->tag == ERROR) return values;
+    if (iserror(env)) return env;
+    if (iserror(parameters)) return parameters;
+    if (iserror(values)) return values;
 
     if (isempty(parameters) && isempty(values)) { // Base case
         return make_env(env);
@@ -148,19 +148,21 @@ sval* bind(sexp *parameters, sval *values, sexp *env) {
     else return error(ERR_BIND_UNKNOWN);
 }
 
-sval* lookup_frame(sexp *symbol, sexp *parameters, sval *values) {
-    if (!isempty(parameters) && !ispair(parameters)) error(ERR_FRAME_NON_LIST);
+sval* lookup_frame(sexp *symbol, sexp *env) {
+    sexp *names = env->body.env.frame.names;
+    sexp *values = env->body.env.frame.values;
+    if (!isempty(names) && !ispair(names)) error(ERR_FRAME_NON_LIST);
     if (!isempty(values) && !ispair(values)) error(ERR_FRAME_NON_LIST);
     
-    while (!isempty(parameters) && !isempty(values)) {
-        if (!issymbol(car(parameters))) error(ERR_FRAME_NON_SYMBOL);
-        if (symboleq(symbol, car(parameters))) return car(values);
-        parameters = cdr(parameters);
+    while (!isempty(names) && !isempty(values)) {
+        if (!issymbol(car(names))) error(ERR_FRAME_NON_SYMBOL);
+        if (symboleq(symbol, car(names))) return car(values);
+        names = cdr(names);
         values = cdr(values);
     }
 
-    if (isempty(parameters) && isempty(values)) return 0;
-    else if (isempty(parameters)) return error(ERR_TOO_MANY_PARAM);
+    if (isempty(names) && isempty(values)) return 0;
+    else if (isempty(names)) return error(ERR_TOO_MANY_PARAM);
     else if (isempty(values)) return error(ERR_TOO_FEW_PARAM);
     else return error(ERR_LOGIC);
 }
@@ -181,18 +183,21 @@ sval* quasiquote(sexp *template, sval *env) {
 }
 
 sval* lookup(sexp *symbol, sval *env) {
-    if (env == 0) return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
     if (iserror(env)) return env;
-    if (!isenv(env)) return error(ERR_EXPECTED_ENV);
-    sval* res = lookup_frame(symbol, env->body.env.frame.names, env->body.env.frame.values);
-    if (res != 0) return res;
-    else return lookup(symbol, env->body.env.parent);
+    if (env && !isenv(env)) return error(ERR_EXPECTED_ENV);
+    while (env) {
+        sval* res = lookup_frame(symbol, env);
+        if (res != 0) return res;
+        env = env->body.env.parent;
+    }
+    return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
 }
 
 sval* define(sval *env, sval* symbol, sval* thing) {
     // Allows redefinitions in the same frame, which will shadow. This is a bug I don't plan to fix.
     if (!issymbol(symbol)) return error(ERR_DEFINE_NONSYMBOL);
     if (iserror(env)) return env;
+    if (iserror(thing)) return thing;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
     env->body.env.frame.names = make_cons(symbol, env->body.env.frame.names);
     env->body.env.frame.values = make_cons(thing, env->body.env.frame.values);
@@ -203,7 +208,7 @@ sval* set(sval *env, sval* symbol, sval* thing) {
     if (iserror(env)) return env;
     if (!isenv(env)) return error(ERR_EXPECTED_ENV);
 
-    while(env && !lookup_frame(symbol, env->body.env.frame.names, env->body.env.frame.values)) env=env->body.env.parent;
+    while(env && !lookup_frame(symbol, env)) env=env->body.env.parent;
     if (!env) return error(ERR_SET, symbol->body.symbol);
 
     sval *names = env->body.env.frame.names;

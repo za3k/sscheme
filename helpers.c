@@ -7,7 +7,7 @@
 
 // TODO: Print quotes and quasiquotes better
 
-int ischar(sval *arg) { return arg->tag == CONSTANT && arg >= CHARS_V && arg <= CHARS_V+127; }
+int ischar(sval *arg) { return arg >= CHARS_V && arg <= &CHARS_V[127]; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isenv(sval *arg) { return arg->tag == ENV; }
@@ -15,6 +15,7 @@ int isfalse(sval *arg) { return arg == FALSE; }
 int isnil(sval *arg) { return arg == NIL; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int ispair(sval *arg) { return arg->tag == PAIR; }
+int isprocedure(sval *arg) { return arg->tag == FUNCTION || arg->tag == PRIMITIVE; }
 int isstring(sval *arg) { return arg->tag == STRING; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
 int istrue(sval *arg) { return arg == TRUE; }
@@ -123,8 +124,11 @@ int snprint1(char* buffer, size_t n, sval *arg) {
 }
 
 int islistoflength(sval *arg, int l) {
-    if (l == 0) return isempty(arg);
-    else return ispair(arg) && islistoflength(arg->body.list.cdr, l-1);
+    while (ispair(arg)) {
+        arg = cdr(arg);
+        l--;
+    }
+    return isempty(arg) && l==0;
 }
 
 char *slurp_stdin(char* buffer) {
