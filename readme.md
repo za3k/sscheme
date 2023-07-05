@@ -30,12 +30,12 @@ Finished features:
     - Strings
 - Syntax: `;` `and` `cond` `define` `define-macro` `do` `if` `lambda` `let` (including named let) `let*` `letrec` `or` `quote` `set!`
 - Functions: `+` `-` `/` `*` `<` `<=` `>` `>=` `abs` `append` `assf` `assoc` `assv` `assq` `boolean?` `car` `cdr` `char?` `char->integer` `cons` `cadr` (`caaaar`, etc) `empty?` `eq?` `eqv?` `equal?` `even?` `expt` `filter` `first` (`second`, `third`...) `integer->char` `last` `length` `list` `list?` `list->string` `list-tail` `list-ref` `map` `member?` `min` `nil?` `not` `number?` `odd?` `pair?` `print` `procedure?` `remove` `remq` `remv` `rest` `reverse` `set-car!` `set-cdr!` `string->list` `string->symbol` `symbol->string`
-- About 88K compiled statically.
+- Zero-overhead tail recursion
+- Garbage collection
+- ~100K compiled statically.
 
 Unfinished features:
 - Print where errors happen
-- Garbage collection
-- Proper tail recursion
 - Input/output, either interactively from stdin or files.
 - Some of the standard library
     - Builtins: `display` `write` `read` `read-char` `newline`
@@ -51,6 +51,7 @@ Unfinished features:
 
 Bug reports are very welcome.
 - Please give me any input which causes a segfault.
+- Please give me any input that prints an error and exits.
 - Please give me any input that returns an error and shouldn't.
 - Please give me any input that returns the wrong value.
 - I will politely write down inputs that should give an error but don't.
