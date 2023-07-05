@@ -8,7 +8,7 @@ O_FILES = $(patsubst %.c,%.o,$(C_FILES))
 all: eval
 
 clean:
-	rm -f eval *.o *.inc.h *.expand callgraph.png
+	rm -f eval *.o *.inc.h
 $(O_FILES): $(H_FILES)
 %.inc.h: %.txt
 	xxd -i $< | sed -e "s/};/,0x00};/" | sed -e "s/unsigned //" >$@
