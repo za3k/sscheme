@@ -1,3 +1,4 @@
+#include "allocator.h"
 #include "config.h"
 #include "eval.h"
 #include "helpers.h"
@@ -13,7 +14,7 @@ char *INPUT = buffer;
 void debug_size() {
     printf("Space available: %lu bytes per cell x %lu cells = %lu KB total\n", sizeof(sval), MAX_CELLS, sizeof(sval)*MAX_CELLS/1000);
     empty_env();
-    empty_env();
+    gc_force(0);
     printf("Standard library space: %lu cells = %lu KB\n", cells_used, sizeof(sval)*cells_used/1000);
     printf("  sval:                      %lu\n", sizeof(sval));
     printf("  sval.tag:                  %lu\n", sizeof(((sval *)0)->tag));
@@ -28,6 +29,9 @@ void debug_size() {
     printf("  sval.body.closure:         %lu\n", sizeof(((sval *)0)->body.closure));
     printf("  sval.body.env:             %lu\n", sizeof(((sval *)0)->body.env));
     printf("  sval.body.error:           %lu\n", sizeof(((sval *)0)->body.error));
+    printf("  sval.allocated:            %lu\n", sizeof(((sval *)0)->allocated));
+    printf("  sval.in_use:               %lu\n", sizeof(((sval *)0)->in_use));
+    printf("  sval.marked:               %lu\n", sizeof(((sval *)0)->marked));
 }
 
 int main(int argc, char *argv[]) {

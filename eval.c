@@ -1,5 +1,6 @@
 #include "eval.h"
 
+#include "allocator.h"
 #include "config.h"
 #include "constants.h"
 #include "errors.h"
@@ -18,7 +19,6 @@ sval* quasiquote(sexp *template, sval *env);
 sval* bind(sexp *names, sval *values, sval *env);
 sval* lookup(sexp *symbol, sval *env);
 
-
 // The following functions call each other recursively:
 // - apply (calls eval_all)
 // - eval1 (calls apply, evcond, evlist, quasiquote)
@@ -29,17 +29,6 @@ sval* lookup(sexp *symbol, sval *env);
 // To deal with tail recursion, limited C stack depth, and garbage collection
 // we turn these 6 functions into a state machine with an explicit stack,
 // instead.
-
-static sval* STACK=0;
-
-void push(sval* a) {
-    STACK = make_cons(a, STACK);
-}
-sval* pop() {
-    sval* a = car(STACK);
-    STACK = cdr(STACK);
-    return a;
-}
 
 enum gotos {
     goto_apply_start,
@@ -111,9 +100,8 @@ void debug(enum gotos andthen) {
     print1nl(STACK);
 }
 
-sval *ULTIMATE_RETURN=0;
 sval* executestack(enum gotos andthen, sexp *arg1, sexp *arg2) {
-    if (STACK==0) STACK=EMPTY_LIST;
+    init_stack();
     //printf("Entering 'executestack'.\n");
     SAVECONT(goto_executestack_done);
     push(arg2);
@@ -227,6 +215,7 @@ sval* executestack(enum gotos andthen, sexp *arg1, sexp *arg2) {
             //printf("error encountered\n");
             return err;
         }
+        gc(STACK);
     }
 }
 
@@ -513,6 +502,7 @@ sval* lookup(sexp *symbol, sval *env) {
     while (env) {
         sexp *frame = env->body.env.frame;
         while (!isempty(frame)) {
+            if (iserror(frame)) return frame;
             if (symboleq(symbol, car(car(frame)))) return car(frame);
             frame = cdr(frame);
         }
@@ -549,7 +539,9 @@ sval* set(sval *env, sval* symbol, sval* thing) {
 }
 
 sval* empty_env() {
-    if (isempty(BUILTINS_ENV->body.env.frame)) {
+    if (BUILTINS_ENV == 0) {
+        BUILTINS_ENV = make_env(0);
+
         // Set up character constants
         for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;
 
@@ -566,6 +558,9 @@ sval* empty_env() {
         define(BUILTINS_ENV, make_symbol("set!"), SET);
         for (int i=0; primitives[i]!=0; i++)
             define(BUILTINS_ENV, make_symbol(primitive_names[i]), make_prim(primitives[i]));
+    }
+    if (STANDARD_ENV == 0) {
+        STANDARD_ENV = make_env(BUILTINS_ENV);
 
         // Run the standard library
         eval_all(parse(standard_txt), STANDARD_ENV);

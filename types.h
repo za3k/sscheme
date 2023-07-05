@@ -5,7 +5,6 @@
 
 struct sval;
 struct scons;
-extern long cells_used;
 
 //   sexp (an sexp evaluates to an sval. we happen to use the same representation for both)
 typedef struct sval sexp;
@@ -43,11 +42,14 @@ typedef struct sval {
     // Used by STRING and SYMBOL
     char *symbol;
   } body;
+  // Allocator and garbage collector. These are each one bit.
+  unsigned char allocated;
+  unsigned char in_use;
+  unsigned char marked;
 } sval;
 
 // The helpers
 sval* error(char *msg, ...);
-sval* make_cell();
 sval* make_cons(sval *car, sval *cdr);
 sval* make_int(int i);
 sval* make_symbol(char* name);

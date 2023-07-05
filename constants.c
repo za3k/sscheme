@@ -14,8 +14,7 @@ sexp SET_V = { SPECIAL_FORM };
 sexp UNQUOTE_V = { SPECIAL_FORM };
 sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM };
 sexp DEFINE_MACRO_V = { SPECIAL_FORM  };
-sval BUILTINS_ENV_V = { ENV, .body.env = { &EMPTY_LIST_V, 0} };
-sval STANDARD_ENV_V = { ENV, .body.env = { &EMPTY_LIST_V, &BUILTINS_ENV_V} };
+
 sval OUT_OF_MEMORY_V = { ERROR, .body.error = ERR_OUT_OF_MEMORY };
 struct sval CHARS_V[128] = {
     {CONSTANT},
@@ -93,6 +92,6 @@ sexp *QUOTE = &QUOTE_V;
 sexp *SET = &SET_V;
 sexp *UNQUOTE = &UNQUOTE_V;
 sexp *UNQUOTE_SPLICING = &UNQUOTE_SPLICING_V;
-sval* BUILTINS_ENV = &BUILTINS_ENV_V;
-sval* STANDARD_ENV = &STANDARD_ENV_V;
+sval* BUILTINS_ENV;
+sval* STANDARD_ENV;
 sval* OUT_OF_MEMORY = &OUT_OF_MEMORY_V;

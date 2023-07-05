@@ -1,5 +1,6 @@
 #include "types.h"
 
+#include "allocator.h"
 #include "config.h"
 #include "constants.h"
 #include "errors.h"
@@ -10,23 +11,7 @@
 #include <string.h>
 #include <stdio.h>
 
-long cells_used = 0;
-long cells_free = MAX_CELLS;
-
 /*  Make the base types  */
-
-sval* make_cell() {
-    if (--cells_free <= 0) {
-        if (cells_free < 0) {
-            // Oops! error didn't propogate
-            printf(ERR_OUT_OF_MEMORY_TWICE);
-            exit(5);
-        }
-        return OUT_OF_MEMORY;
-    }
-    cells_used++;
-    return calloc(1, sizeof(sval));
-}
 
 char ERR_BUF[MAX_STRING_SIZE];
 sval* error(char *msg, ...) {
@@ -53,8 +38,10 @@ sval* make_cons(sval *car, sval *cdr) {
 
 sval* make_env(sval* env) {
     // Caller is expected to mutate to set frame
-    if (env->tag == ERROR) return env;
-    if (env->tag != ENV) return 0;
+    if (env) {
+        if (env->tag == ERROR) return env;
+        if (env->tag != ENV) return error(ERR_WRONG_TYPE);
+    }
     sval *v = make_cell();
     if (v->tag == ERROR) return v;
     v->tag = ENV;
