@@ -133,12 +133,17 @@ int snprint1(char* buffer, size_t n, sval *arg) {
     return size;
 }
 
-int islistoflength(sval *arg, int l) {
+int listlength(sval *arg) {
+    int l=0;
     while (ispair(arg)) {
         arg = cdr(arg);
-        l--;
+        l++;
     }
-    return isempty(arg) && l==0;
+    return isempty(arg) ? l : -1;
+}
+
+int islistoflength(sval *arg, int l) {
+    return l == listlength(arg);
 }
 
 char *slurp_stdin(char* buffer) {

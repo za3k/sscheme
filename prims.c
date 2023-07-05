@@ -134,7 +134,7 @@ sval* subtract(sval *arg1, sval *arg2) {
     return make_int(arg1->body.smallnum-arg2->body.smallnum);
 }
 
-static char print_buffer[1000];
+static char print_buffer[MAX_PRINT_SIZE];
 sval* print1(sval *arg) {
     snprint1(print_buffer, sizeof(print_buffer), arg);
     printf("%s",print_buffer);

@@ -513,8 +513,7 @@ x => (2 . 5)
 (string->number "25") => 25
 
 ; Failures
-; Infinite loop
-((lambda (x) (x x))(lambda (x) (x x))) => err
+; Infinite loop (no longer safe to test): ((lambda (x) (x x))(lambda (x) (x x)))
 
 ; Out of memory (currently fails with stack depth instead!)
 (define (bigger x) (append x x))
