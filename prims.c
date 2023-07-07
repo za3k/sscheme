@@ -220,13 +220,13 @@ sval* append(sexp *arg1, sexp *arg2) {
 sval* setcar(sexp *arg1, sexp *arg2) {
     TYPE(__func__, ispair, arg1)
     if (iserror(arg2)) return arg2;
-    arg1->body.list.car = arg2;
+    _setcar(arg1, arg2);
     return NIL;
 }
 sval* setcdr(sexp *arg1, sexp *arg2) {
     TYPE(__func__, ispair, arg1)
     if (iserror(arg2)) return arg2;
-    arg1->body.list.cdr = arg2;
+    _setcdr(arg1, arg2);
     return NIL;
 }
 

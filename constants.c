@@ -84,12 +84,12 @@ sval* STANDARD_ENV;
 sval* OUT_OF_MEMORY;
 
 sval* make_constant() {
-    sval* ret = &HEAP[HEAP_END++];
+    sval* ret = constant_cell();
     ret->tag = CONSTANT;
     return ret;
 }
 sval* make_form() {
-    sval* ret = &HEAP[HEAP_END++];
+    sval* ret = constant_cell();
     ret->tag = SPECIAL_FORM;
     return ret;
 }
@@ -115,10 +115,7 @@ void init_constants() {
     OUT_OF_MEMORY = error(ERR_OUT_OF_MEMORY);
 
     CHARS = &HEAP[HEAP_END];
-    HEAP_END+=128;
-    for (int i=0; i<128; i++) {
-        CHARS[i].tag = CONSTANT;
-    }
+    for (int i=0; i<128; i++) make_constant();
 
     CONSTANTS_END = HEAP_END;
 }

@@ -7,6 +7,7 @@ extern long cells_used;
 extern long cells_free;
 
 sval* make_cell();
+sval* constant_cell();
 int isallocated(sval* v);
 sval* gc(sval* root);
 void gc_force(sval* root);

@@ -101,6 +101,7 @@ void debug(enum gotos andthen) {
 }
 
 sval* executestack(enum gotos andthen, sexp *arg1, sexp *arg2) {
+    init_constants();
     init_stack();
     //printf("Entering 'executestack'.\n");
     SAVECONT(goto_executestack_done);

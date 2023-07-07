@@ -114,10 +114,11 @@ sval* make_character_constant (char c) {
 };
 
 // PAIR
-sval* _car(sval *pair) { return pair->body.list.car; }
-sval* _cdr(sval *pair) { return pair->body.list.cdr; }
-void _setcar(sval *pair, sval *v) { pair->body.list.car = v; }
-void _setcdr(sval *pair, sval *v) { pair->body.list.cdr = v; }
+sval* _car(sval *pair) { return &HEAP[pair->body.list.car]; }
+sval* _cdr(sval *pair) { return &HEAP[pair->body.list.cdr]; }
+int _index(sval* v) { return v ? v-HEAP : -1; }
+void _setcar(sval *pair, sval *v) { pair->body.list.car = _index(v); }
+void _setcdr(sval *pair, sval *v) { pair->body.list.cdr = _index(v); }
 // ENV
 sval* _env_frame(sval *env) { return _car(env); }
 sval* _env_parent(sval *env) { return _cdr(env); }

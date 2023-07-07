@@ -8,6 +8,7 @@ struct scons;
 
 //   sexp (an sexp evaluates to an sval. we happen to use the same representation for both)
 typedef struct sval sexp;
+typedef int heap_pointer;
 
 typedef struct sval {
   enum stype { UNALLOCATED, CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
@@ -20,8 +21,8 @@ typedef struct sval {
     // FUNCTION is (<parameters> . (<body> . <env>))
     // MACRO is (<procedure> . ())
     struct scons {
-        struct sval *car;
-        struct sval *cdr;
+        heap_pointer car;
+        heap_pointer cdr;
     } list;
     // Used by NUMBER
     int smallnum;

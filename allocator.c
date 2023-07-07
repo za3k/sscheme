@@ -34,6 +34,10 @@ int ismarked(sval *v) { return v->marked; }
 void mark(sval *v, int set) { v->marked = set; }
 int isinuse(sval *v) { return v->in_use; }
 void inuse(sval *v, int set) { v->in_use = set; }
+sval* constant_cell() {
+    cells_free--;
+    return &HEAP[HEAP_END++];
+}
 sval* make_cell() {
     if (--cells_free <= 0) {
         if (cells_free < 0) {
@@ -44,12 +48,12 @@ sval* make_cell() {
         return OUT_OF_MEMORY;
     }
     cells_used++;
-    if (FREE_LIST) {
+    if (FREE_LIST && FREE_LIST != NIL) {
         // Use a previously freed cell
         cells_freed--;
         sval *ret = FREE_LIST;
         FREE_LIST = _cdr(ret);
-        _setcdr(ret, 0);
+        _setcdr(ret, NIL);
         return ret;
     } else {
         // Allocate a new cell
@@ -63,8 +67,8 @@ void free_cell(sval* cell) {
         free(cell->body.symbol);
     }
     cell->tag = UNALLOCATED;
-    _setcar(cell, 0);
-    _setcdr(cell, FREE_LIST);
+    _setcar(cell, NIL);
+    _setcdr(cell, FREE_LIST ? FREE_LIST : NIL);
     FREE_LIST = cell;
 
     cells_used--;
