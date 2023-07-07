@@ -345,7 +345,7 @@ enum gotos _eval1(enum gotos resume) {
             sval *ret;
 
             SAVE(env);
-            CALL(apply, proc->body.macro_procedure, rest, eval1_macro);
+            CALL(apply, _macro_procedure(proc), rest, eval1_macro);
             RECEIVE(ret);
             RESTORE(env);
 
@@ -364,8 +364,8 @@ enum gotos _apply(enum gotos resume) {
     if (isprimitive(proc)) IMM(proc->body.primitive(args));
     else TAILCALL(
         evalall,
-        proc->body.closure.body,
-        bind(proc->body.closure.parameters, args, proc->body.closure.env));
+        _function_body(proc),
+        bind(_function_args(proc), args, _function_env(proc)));
 }
 
 enum gotos _evlist(enum gotos resume) {
@@ -500,13 +500,13 @@ sval* lookup(sexp *symbol, sval *env) {
     if (iserror(env)) return env;
     if (env && !isenv(env)) return error(ERR_EXPECTED_ENV);
     while (env) {
-        sexp *frame = env->body.env.frame;
+        sexp *frame = _env_frame(env);
         while (!isempty(frame)) {
             if (iserror(frame)) return frame;
             if (symboleq(symbol, car(car(frame)))) return car(frame);
             frame = cdr(frame);
         }
-        env = env->body.env.parent;
+        env = _env_parent(env);
     }
     return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
 }
@@ -520,9 +520,9 @@ sval* define(sval *env, sval* symbol, sval* thing) {
 
     sval *newframe = make_cons(
         make_cons(symbol, thing),
-        env->body.env.frame);
+        _env_frame(env));
     if (iserror(newframe)) return newframe;
-    env->body.env.frame = newframe;
+    _set_env_frame(env, newframe);
     return NIL;
 }
 

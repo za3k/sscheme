@@ -32,8 +32,8 @@ sval* make_cons(sval *car, sval *cdr) {
     sval *v = make_cell();
     if (iserror(v)) return v;
     v->tag = PAIR;
-    v->body.list.car = car;
-    v->body.list.cdr = cdr;
+    _setcar(v, car);
+    _setcdr(v, cdr);
     return v;
 }
 
@@ -107,3 +107,19 @@ sval* make_character_constant (char c) {
     if (((unsigned int)c) >= 128) return error(ERR_INVALID_CHAR);
     return &CHARS_V[(int)c];
 };
+
+// PAIR
+sval* _car(sval *pair) { return pair->body.list.car; }
+sval* _cdr(sval *pair) { return pair->body.list.cdr; }
+void _setcar(sval *pair, sval *v) { pair->body.list.car = v; }
+void _setcdr(sval *pair, sval *v) { pair->body.list.cdr = v; }
+// ENV
+sval* _env_frame(sval *env) { return env->body.env.frame; }
+sval* _env_parent(sval *env) { return env->body.env.parent; }
+void _set_env_frame(sval *env, sval *v) { env->body.env.frame = v; }
+// MACRO
+sval* _macro_procedure(sval *macro) { return macro->body.macro_procedure; }
+// FUNCTION
+sval* _function_args(sval *function) { return function->body.closure.parameters; }
+sval* _function_body(sval *function) { return function->body.closure.body; }
+sval* _function_env(sval *function) { return function->body.closure.env; }

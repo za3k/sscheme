@@ -21,9 +21,18 @@ sval* FREE_LIST = 0;
 sval* STACK = 0;
 
 void free_cell(sval* cell);
+int isallocated(sval* v);
+int ismarked(sval *v);
+void mark(sval *v, int set);
+int isinuse(sval *v);
+void inuse(sval *v, int set);
 
 // ----------- Heap allocation ----------
-inline int isallocated(sval* v) { return v->tag != UNALLOCATED; }
+int isallocated(sval* v) { return v->tag != UNALLOCATED; }
+int ismarked(sval *v) { return v->marked; }
+void mark(sval *v, int set) { v->marked = set; }
+int isinuse(sval *v) { return v->in_use; }
+void inuse(sval *v, int set) { v->in_use = set; }
 sval* make_cell() {
     if (--cells_free <= 0) {
         if (cells_free < 0) {
@@ -38,8 +47,8 @@ sval* make_cell() {
         // Use a previously freed cell
         cells_freed--;
         sval *ret = FREE_LIST;
-        FREE_LIST = ret->body.list.cdr;
-        ret->body.list.cdr = 0;
+        FREE_LIST = _cdr(ret);
+        _setcdr(ret, 0);
         return ret;
     } else {
         // Allocate a new cell
@@ -55,8 +64,8 @@ void free_cell(sval* cell) {
         free(cell->body.error);
     }
     cell->tag = UNALLOCATED;
-    cell->body.list.car = 0;
-    cell->body.list.cdr = FREE_LIST;
+    _setcar(cell, 0);
+    _setcdr(cell, FREE_LIST);
     FREE_LIST = cell;
 
     cells_used--;
@@ -82,15 +91,15 @@ void gc_force(sval *root) {
     // Represents nodes reachable from the root, but which we haven't yet scanned the children of
     static sval *candidates[MAX_CELLS+5000];
 
-    for (int i=0; i<MAX_CELLS; i++) HEAP[i].in_use=0;
-    for (int i=0; i<MAX_CELLS; i++) HEAP[i].marked=0;
+    for (int i=0; i<MAX_CELLS; i++) inuse(&HEAP[i], 0);
+    for (int i=0; i<MAX_CELLS; i++) mark(&HEAP[i], 0);
     for (int i=0; i<MAX_CELLS; i++) candidates[i]=0;
 
     // Start with the root
     candidates[0] = root;
     candidates[1] = STANDARD_ENV;
     long int finger_low = (root ? 0 : 1), finger_high = 2;
-    for (int i=finger_low; i<finger_high; i++) candidates[i]->marked = 1;
+    for (int i=finger_low; i<finger_high; i++) mark(candidates[i],1);
 
     // "Mark" phase
     //printf("Garbage collection\n");
@@ -99,29 +108,29 @@ void gc_force(sval *root) {
     //printf("  unallocated (before) %ld\n", cells_free);
     while (finger_low < finger_high) {
         sval *value = candidates[finger_low++];
-        value->in_use = 1;
+        inuse(value,1);
         sval *children[3] = {0, 0, 0};
 
         if (isenv(value)) {
-            children[0] = value->body.env.frame;
-            children[1] = value->body.env.parent;
+            children[0] = _env_frame(value);
+            children[1] = _env_parent(value);
         } else if (ispair(value)) {
             children[0] = car(value);
             children[1] = cdr(value);
         } else if (ismacro(value)) {
-            children[0] = value->body.macro_procedure;
+            children[0] = _macro_procedure(value);
         } else if (isfunction(value)) {
-            children[0] = value->body.closure.parameters;
-            children[1] = value->body.closure.body;
-            children[2] = value->body.closure.env;
+            children[0] = _function_args(value);
+            children[1] = _function_body(value);
+            children[2] = _function_env(value);
         }
 
         for (int i=0; i<3; i++) {
             if (children[i]) {
                 sval *child = children[i];
                 if (inheap(child) && !isallocated(child)) printf("Mark phase encountered an unallocated child, this is an error.\n");
-                if (child->marked) continue; // Already on the list
-                child->marked = 1;
+                if (ismarked(child)) continue; // Already on the list
+                mark(child, 1);
                 candidates[finger_high++] = child;
             }
         }
@@ -131,7 +140,7 @@ void gc_force(sval *root) {
 
     // "Sweep" phase
     for (int i=0; i<MAX_CELLS; i++) {
-        if (isallocated(&HEAP[i]) && !HEAP[i].in_use) {
+        if (isallocated(&HEAP[i]) && !isinuse(&HEAP[i])) {
             free_cell(&HEAP[i]);
         }
     }

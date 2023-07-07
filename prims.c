@@ -77,13 +77,13 @@ sval* add(sval *arg1, sval *arg2) {
 sval* car(sval *arg1) {
     TYPE(__func__, ispair, arg1);
 
-    return arg1->body.list.car;
+    return _car(arg1);
 }
 
 sval* cdr(sval *arg1) {
     TYPE(__func__, ispair, arg1);
 
-    return arg1->body.list.cdr;
+    return _cdr(arg1);
 }
 
 sval* cons(sval *arg1, sval *arg2) {

@@ -60,4 +60,20 @@ sexp* make_function(sexp *parameters, sexp *body, sval *env);
 sexp* make_macro(sexp *function);
 sval* make_character_constant (char c);
 
+// PAIR
+sval* _car(sval *pair);
+sval* _cdr(sval *pair);
+void _setcar(sval *pair, sval *v);
+void _setcdr(sval *pair, sval *v);
+// ENV
+sval* _env_frame(sval *env);
+sval* _env_parent(sval *env);
+void _set_env_frame(sval *env, sval *v);
+// MACRO
+sval* _macro_procedure(sval *macro);
+// FUNCTION
+sval* _function_args(sval *function);
+sval* _function_body(sval *function);
+sval* _function_env(sval *function);
+
 #endif // __TYPES
