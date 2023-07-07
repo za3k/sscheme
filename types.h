@@ -10,7 +10,7 @@ struct scons;
 typedef struct sval sexp;
 
 typedef struct sval {
-  enum stype { CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
+  enum stype { UNALLOCATED, CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
     // CONSTANT, SPECIAL_FORM don't use any data at all.
     // Used by ENV
@@ -43,7 +43,6 @@ typedef struct sval {
     char *symbol;
   } body;
   // Allocator and garbage collector. These are each one bit.
-  unsigned char allocated;
   unsigned char in_use;
   unsigned char marked;
 } sval;

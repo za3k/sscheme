@@ -29,7 +29,6 @@ void debug_size() {
     printf("  sval.body.closure:         %lu\n", sizeof(((sval *)0)->body.closure));
     printf("  sval.body.env:             %lu\n", sizeof(((sval *)0)->body.env));
     printf("  sval.body.error:           %lu\n", sizeof(((sval *)0)->body.error));
-    printf("  sval.allocated:            %lu\n", sizeof(((sval *)0)->allocated));
     printf("  sval.in_use:               %lu\n", sizeof(((sval *)0)->in_use));
     printf("  sval.marked:               %lu\n", sizeof(((sval *)0)->marked));
 }

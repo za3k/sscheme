@@ -38,11 +38,9 @@ sval* make_cell() {
         sval *ret = FREE_LIST;
         FREE_LIST = ret->body.list.cdr;
         ret->body.list.cdr = 0;
-        ret->allocated = 1;
         return ret;
     } else {
         // Allocate a new cell
-        HEAP[HEAP_END].allocated = 1;
         return &HEAP[HEAP_END++];
     }
 }
@@ -54,10 +52,9 @@ void free_cell(sval* cell) {
     } else if (cell->tag == ERROR) {
         free(cell->body.error);
     }
-    cell->tag = PAIR;
+    cell->tag = UNALLOCATED;
     cell->body.list.car = 0;
     cell->body.list.cdr = FREE_LIST;
-    cell->allocated = 0;
     FREE_LIST = cell;
 
     cells_used--;
@@ -120,7 +117,7 @@ void gc_force(sval *root) {
         for (int i=0; i<3; i++) {
             if (children[i]) {
                 sval *child = children[i];
-                if (inheap(child) && !child->allocated) printf("Mark phase encountered an unallocated child, this is an error.\n");
+                if (inheap(child) && child->tag == UNALLOCATED) printf("Mark phase encountered an unallocated child, this is an error.\n");
                 if (child->marked) continue; // Already on the list
                 child->marked = 1;
                 candidates[finger_high++] = child;
@@ -132,7 +129,7 @@ void gc_force(sval *root) {
 
     // "Sweep" phase
     for (int i=0; i<MAX_CELLS; i++) {
-        if (HEAP[i].allocated && !HEAP[i].in_use) {
+        if (HEAP[i].tag != UNALLOCATED && !HEAP[i].in_use) {
             free_cell(&HEAP[i]);
         }
     }
