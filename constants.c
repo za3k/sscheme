@@ -1,24 +1,9 @@
+#include "allocator.h"
 #include "errors.h"
 #include "types.h"
-
-struct sval TRUE_V = { CONSTANT };
-struct sval FALSE_V = { CONSTANT };
-struct sval EMPTY_LIST_V = { CONSTANT };
-struct sval NIL_V = { CONSTANT };
-sexp LAMBDA_V = { SPECIAL_FORM };
-sexp COND_V = { SPECIAL_FORM };
-sexp DEFINE_V = { SPECIAL_FORM };
-sexp QUOTE_V = { SPECIAL_FORM };
-sexp QUASIQUOTE_V = { SPECIAL_FORM };
-sexp SET_V = { SPECIAL_FORM };
-sexp UNQUOTE_V = { SPECIAL_FORM };
-sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM };
-sexp DEFINE_MACRO_V = { SPECIAL_FORM  };
+#include "helpers.h"
 
 sval OUT_OF_MEMORY_V = { ERROR, .body.symbol = ERR_OUT_OF_MEMORY };
-struct sval CHARS_V[128] = {
-    {CONSTANT},
-};
 
 char *char_constant_names[] = {
     "#\\nul", "#\\soh", "#\\stx", "#\\etx", // 0-3
@@ -79,19 +64,61 @@ const char char_constant_values[] = {
  7,8,9,10,10,11,12,13,27,32,127
 };
 
-struct sval* TRUE=&TRUE_V;
-struct sval* FALSE=&FALSE_V;
-struct sval* EMPTY_LIST=&EMPTY_LIST_V;
-struct sval* NIL=&NIL_V;
-sexp *COND = &COND_V;
-sexp *DEFINE = &DEFINE_V;
-sexp *DEFINE_MACRO = &DEFINE_MACRO_V;
-sexp *LAMBDA = &LAMBDA_V;
-sexp *QUASIQUOTE = &QUASIQUOTE_V;
-sexp *QUOTE = &QUOTE_V;
-sexp *SET = &SET_V;
-sexp *UNQUOTE = &UNQUOTE_V;
-sexp *UNQUOTE_SPLICING = &UNQUOTE_SPLICING_V;
+// Zero-based
+sval* CHARS;
+sval* TRUE;
+sval* FALSE;
+sval* EMPTY_LIST;
+sval* NIL;
+sval* COND;
+sval* DEFINE;
+sval* DEFINE_MACRO;
+sval* LAMBDA;
+sval *UNQUOTE;
+sval *UNQUOTE_SPLICING;
+sval *QUASIQUOTE;
+sval* QUOTE;
+sval* SET;
 sval* BUILTINS_ENV;
 sval* STANDARD_ENV;
-sval* OUT_OF_MEMORY = &OUT_OF_MEMORY_V;
+sval* OUT_OF_MEMORY;
+
+sval* make_constant() {
+    sval* ret = &HEAP[HEAP_END++];
+    ret->tag = CONSTANT;
+    return ret;
+}
+sval* make_form() {
+    sval* ret = &HEAP[HEAP_END++];
+    ret->tag = SPECIAL_FORM;
+    return ret;
+}
+
+void init_constants() {
+    if (isconstant(&HEAP[0])) return;
+
+    EMPTY_LIST = make_constant();
+    FALSE = make_constant();
+    TRUE = make_constant();
+    NIL = make_constant();
+
+    COND = make_form();
+    DEFINE = make_form();
+    DEFINE_MACRO = make_form();
+    LAMBDA = make_form();
+    UNQUOTE = make_form();
+    UNQUOTE_SPLICING = make_form();
+    QUASIQUOTE = make_form();
+    QUOTE = make_form();
+    SET = make_form();
+
+    OUT_OF_MEMORY = error(ERR_OUT_OF_MEMORY);
+
+    CHARS = &HEAP[HEAP_END];
+    HEAP_END+=128;
+    for (int i=0; i<128; i++) {
+        CHARS[i].tag = CONSTANT;
+    }
+
+    CONSTANTS_END = HEAP_END;
+}

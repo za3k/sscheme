@@ -16,4 +16,8 @@ void init_stack();
 void push(sval* a);
 sval* pop();
 
+extern long HEAP_END;
+extern sval HEAP[];
+extern long CONSTANTS_END;
+
 #endif //__ALLOC

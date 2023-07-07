@@ -367,6 +367,7 @@ sexp* parse_sexp(char **s) {
 }
 
 sexp* parse(char *s) {
+    init_constants();
     sexp *first = parse_sexp(&s);
     if (!first) return EMPTY_LIST;
     else if (iserror(first)) return first;

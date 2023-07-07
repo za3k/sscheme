@@ -36,6 +36,7 @@ int run_test(char* input, char* expected_output) {
     // Return 0 on success, 1 on failure. Print to stdout.
     //printf("Toparse: %s\n", input);
     sexp* parsed = parse(input);
+    if (!parsed) return 1;
     //print1nl(parsed);
     sval* result = eval_all(parsed, empty_env());
 

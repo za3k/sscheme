@@ -7,7 +7,7 @@
 
 // TODO: Print quotes and quasiquotes better
 
-int ischar(sval *arg) { return arg >= CHARS_V && arg <= &CHARS_V[127]; }
+int ischar(sval *arg) { return arg >= &CHARS[0] && arg <= &CHARS[127]; }
 int isconstant(sval *arg) { return arg->tag == CONSTANT; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
@@ -57,7 +57,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         else if (arg == EMPTY_LIST) size = snprintf(buffer, n, "()");
         else if (arg == FALSE) size = snprintf(buffer, n, "#f");
         else if (arg == TRUE) size = snprintf(buffer, n, "#t");
-        else if (ischar(arg)) size = snprintf(buffer, n, "%s", char_constant_names[arg-CHARS_V]);
+        else if (ischar(arg)) size = snprintf(buffer, n, "%s", char_constant_names[arg-CHARS]);
         else size = snprintf(buffer, n, "<Unknown constant>");
     } else if (isform(arg)) {
         if (arg == QUOTE) size = snprintf(buffer, n, "quote");

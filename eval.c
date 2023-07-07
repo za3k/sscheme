@@ -538,12 +538,13 @@ sval* set(sval *env, sval* symbol, sval* thing) {
     return NIL;
 }
 
+
 sval* empty_env() {
     if (BUILTINS_ENV == 0) {
-        BUILTINS_ENV = make_env(EMPTY_LIST);
+        init_constants();
 
-        // Set up character constants
-        for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;
+        // Make the environment
+        BUILTINS_ENV = make_env(EMPTY_LIST);
 
         // Set up builtins
         define(BUILTINS_ENV, make_symbol("cond"), COND);

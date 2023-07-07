@@ -149,13 +149,13 @@ sval* print1nl(sval *arg) {
 
 sval* char2integer(sval *arg1) {
     TYPE(__func__, ischar, arg1);
-    return make_int(arg1-CHARS_V);
+    return make_int(arg1-CHARS);
 }
 
 sval* integer2char(sval *arg1) {
     TYPE(__func__, isnumber, arg1);
     int i = arg1->body.smallnum;
-    if (0 <= i && i < 128) return &CHARS_V[i];
+    if (0 <= i && i < 128) return &CHARS[i];
     else return error(ERR_CHAR_OUT_OF_RANGE);
 }
 
@@ -167,7 +167,7 @@ sval* list2string(sval *arg1) {
 
     for (i=0; i<=MAX_STRING_SIZE && ispair(arg1); i++, arg1=cdr(arg1)) {
         TYPE(__func__, ischar, car(arg1));
-        LTS_BUFFER[i] = car(arg1)-CHARS_V;
+        LTS_BUFFER[i] = car(arg1)-CHARS;
     }
     if (i>=MAX_STRING_SIZE) return error(ERR_STRING_TOO_BIG);
     if (!isempty(arg1)) return error(ERR_WRONG_TYPE, __func__);
@@ -181,7 +181,7 @@ sval* string2list(sval *arg1) {
     char *string = arg1->body.symbol;
     int l=strlen(string);
     sval *ret = EMPTY_LIST;
-    for (int i=l-1; i>=0&&!iserror(ret); i--) ret = make_cons(&CHARS_V[(int) string[i]], ret);
+    for (int i=l-1; i>=0&&!iserror(ret); i--) ret = make_cons(&CHARS[(int) string[i]], ret);
     return ret;
 }
 

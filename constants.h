@@ -7,23 +7,25 @@ extern char *char_constant_names[140];
 extern char char_constant_values[140];
 
 // Singleton constants
-extern struct sval CHARS_V[128];
+extern sval* CHARS; // Length 128 array
 
-extern struct sval* TRUE;
-extern struct sval* FALSE;
-extern struct sval* EMPTY_LIST;
-extern struct sval* NIL;
-extern sexp* COND;
-extern sexp* DEFINE;
-extern sexp* DEFINE_MACRO;
-extern sexp* LAMBDA;
-extern sexp *UNQUOTE;
-extern sexp *UNQUOTE_SPLICING;
-extern sexp *QUASIQUOTE;
-extern sexp* QUOTE;
-extern sexp* SET;
+extern sval* TRUE;
+extern sval* FALSE;
+extern sval* EMPTY_LIST;
+extern sval* NIL;
+extern sval* COND;
+extern sval* DEFINE;
+extern sval* DEFINE_MACRO;
+extern sval* LAMBDA;
+extern sval *UNQUOTE;
+extern sval *UNQUOTE_SPLICING;
+extern sval *QUASIQUOTE;
+extern sval* QUOTE;
+extern sval* SET;
 extern sval* BUILTINS_ENV;
 extern sval* STANDARD_ENV;
 extern sval* OUT_OF_MEMORY;
+
+void init_constants();
 
 #endif // CONSTANTSH

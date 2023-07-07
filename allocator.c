@@ -14,11 +14,12 @@
 long cells_used = 0;
 long cells_free = MAX_CELLS;
 long cells_freed = 0;
-sval HEAP[MAX_CELLS];
 
+sval HEAP[MAX_CELLS];
 long HEAP_END = 0;
 sval* FREE_LIST = 0;
 sval* STACK = 0;
+long CONSTANTS_END = 0;
 
 void free_cell(sval* cell);
 int isallocated(sval* v);
@@ -138,7 +139,7 @@ void gc_force(sval *root) {
     //printf("  finger (low) %ld\n", finger_high);
 
     // "Sweep" phase
-    for (int i=0; i<MAX_CELLS; i++) {
+    for (int i=CONSTANTS_END; i<MAX_CELLS; i++) {
         if (isallocated(&HEAP[i]) && !isinuse(&HEAP[i])) {
             free_cell(&HEAP[i]);
         }
