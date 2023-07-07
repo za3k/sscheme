@@ -497,9 +497,7 @@ sval* bind(sexp *names, sval *values, sexp *env) {
 
 
 sval* lookup(sexp *symbol, sval *env) {
-    if (iserror(env)) return env;
-    if (env && !isenv(env)) return error(ERR_EXPECTED_ENV);
-    while (env) {
+    while (isenv(env)) {
         sexp *frame = _env_frame(env);
         while (!isempty(frame)) {
             if (iserror(frame)) return frame;
@@ -508,7 +506,9 @@ sval* lookup(sexp *symbol, sval *env) {
         }
         env = _env_parent(env);
     }
-    return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
+    if (iserror(env)) return env;
+    if (isempty(env)) return error(ERR_SYMBOL_NOT_FOUND, symbol->body.symbol);
+    else return error(ERR_EXPECTED_ENV);
 }
 
 sval* define(sval *env, sval* symbol, sval* thing) {
@@ -540,7 +540,7 @@ sval* set(sval *env, sval* symbol, sval* thing) {
 
 sval* empty_env() {
     if (BUILTINS_ENV == 0) {
-        BUILTINS_ENV = make_env(0);
+        BUILTINS_ENV = make_env(EMPTY_LIST);
 
         // Set up character constants
         for (int i=0; i<128; i++) CHARS_V[i].tag = CONSTANT;

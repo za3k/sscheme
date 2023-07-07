@@ -12,37 +12,28 @@ typedef struct sval sexp;
 typedef struct sval {
   enum stype { UNALLOCATED, CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
-    // CONSTANT, SPECIAL_FORM don't use any data at all.
-    // Used by ENV
-    struct senv {
-        struct sval *frame; // List of (name, value) pairs
-        struct sval *parent;
-    } env;
-    // Used by ERROR
-    char *error;
-    // Used by FUNCTION
-    struct sclosure {
-        sexp *parameters; // (unevaluated) list of parameter symbols
-        sexp *body; // Unevaluated function body
-        struct sval *env;
-    } closure;
-    // Used by MACRO
-    struct sval *macro_procedure;
-    // Used by NUMBER
-    int smallnum;
-    // Used by PAIR.
-    // ENV is (frame, parent) -- in other words, a list of frames.
-    // FUNCTION is (<parameters>, <body>, <env>)
+    // Used by PAIR, ENV, FUNCTION, and MACRO
+    // PAIR is (<car> . <cdr>)
+    // A list is (), or any pair where its <cdr> is a list.
+    //
+    // ENV is a list of frames.
+    // FUNCTION is (<parameters> . (<body> . <env>))
+    // MACRO is (<procedure> . ())
     struct scons {
         struct sval *car;
         struct sval *cdr;
     } list;
+    // Used by ERROR
+    char *error;
+    // Used by NUMBER
+    int smallnum;
     // Used by PRIMITIVE
     struct sval* (*primitive)(struct sval*);
     // Used by STRING and SYMBOL
     char *symbol;
+    // CONSTANT, SPECIAL_FORM don't use any data at all.
   } body;
-  // Allocator and garbage collector. These are each one bit.
+  // Allocator and garbage collector. These are each one bit, conceputally.
   unsigned char in_use;
   unsigned char marked;
 } sval;

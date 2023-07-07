@@ -120,6 +120,7 @@ void gc_force(sval *root) {
         } else if (ismacro(value)) {
             children[0] = _macro_procedure(value);
         } else if (isfunction(value)) {
+            inuse(_cdr(value),1);
             children[0] = _function_args(value);
             children[1] = _function_body(value);
             children[2] = _function_env(value);

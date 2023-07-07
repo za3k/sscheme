@@ -39,15 +39,13 @@ sval* make_cons(sval *car, sval *cdr) {
 
 sval* make_env(sval* env) {
     // Caller is expected to mutate to set frame
-    if (env) {
-        if (iserror(env)) return env;
-        if (!isenv(env)) return error(ERR_WRONG_TYPE);
-    }
+    if (iserror(env)) return env;
+    if (env != EMPTY_LIST && !isenv(env)) return error(ERR_WRONG_TYPE);
     sval *v = make_cell();
     if (iserror(v)) return v;
     v->tag = ENV;
-    v->body.env.parent = env;
-    v->body.env.frame = EMPTY_LIST;
+    _setcar(v, EMPTY_LIST); // empty list
+    _setcdr(v, env); // parent
     return v;
 }
 
@@ -83,23 +81,30 @@ sval* make_prim(sval* (*primitive)(sval*)) {
 }
 
 sexp* make_function(sexp *parameters, sexp *body, sval *env) {
-    sval *v = make_cell();
-    if (iserror(v)) return v;
     if (iserror(env)) return env;
     if (!isenv(env)) return 0;
 
-    v->tag = FUNCTION;
-    v->body.closure.parameters = parameters;
-    v->body.closure.body = body;
-    v->body.closure.env = env;
-    return v;
+    sval *v1 = make_cell();
+    if (iserror(v1)) return v1;
+    sval *v2 = make_cell();
+    if (iserror(v2)) return v2;
+
+    v1->tag = FUNCTION;
+    v2->tag = FUNCTION;
+
+    _setcar(v1, parameters);
+    _setcdr(v1, v2);
+    _setcar(v2, body);
+    _setcdr(v2, env);
+    return v1;
 }
 
 sexp* make_macro(sexp *function) {
     sval *v = make_cell();
     if (iserror(v)) return v;
     v->tag = MACRO;
-    v->body.macro_procedure = function;
+    _setcar(v, function);
+    _setcdr(v, EMPTY_LIST);
     return v;
 }
 
@@ -114,12 +119,12 @@ sval* _cdr(sval *pair) { return pair->body.list.cdr; }
 void _setcar(sval *pair, sval *v) { pair->body.list.car = v; }
 void _setcdr(sval *pair, sval *v) { pair->body.list.cdr = v; }
 // ENV
-sval* _env_frame(sval *env) { return env->body.env.frame; }
-sval* _env_parent(sval *env) { return env->body.env.parent; }
-void _set_env_frame(sval *env, sval *v) { env->body.env.frame = v; }
+sval* _env_frame(sval *env) { return _car(env); }
+sval* _env_parent(sval *env) { return _cdr(env); }
+void _set_env_frame(sval *env, sval *v) { _setcar(env, v); }
 // MACRO
-sval* _macro_procedure(sval *macro) { return macro->body.macro_procedure; }
+sval* _macro_procedure(sval *macro) { return _car(macro); }
 // FUNCTION
-sval* _function_args(sval *function) { return function->body.closure.parameters; }
-sval* _function_body(sval *function) { return function->body.closure.body; }
-sval* _function_env(sval *function) { return function->body.closure.env; }
+sval* _function_args(sval *function) { return _car(function); }
+sval* _function_body(sval *function) { return _car(_cdr(function)); }
+sval* _function_env(sval *function) { return _cdr(_cdr(function)); }
