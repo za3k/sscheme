@@ -362,7 +362,7 @@ enum gotos _apply(enum gotos resume) {
     if (iserror(proc)) ERROR(proc);
     else if (iserror(args)) ERROR(args);
 
-    if (isprimitive(proc)) IMM(proc->body.primitive(args));
+    if (isprimitive(proc)) IMM(_primitive_func(proc)(args));
     else TAILCALL(
         evalall,
         _function_body(proc),

@@ -75,8 +75,10 @@ sval* make_string(char* str) {
 sval* make_prim(sval* (*primitive)(sval*)) {
     sval *v = make_cell();
     if (iserror(v)) return v;
+    int primnum = lookup_primitive(primitive);
+    if (!primitives[primnum]) return error(ERR_LOGIC);
     v->tag = PRIMITIVE;
-    v->body.primitive = primitive;
+    v->body.primitive = primnum;
     return v;
 }
 
@@ -113,6 +115,8 @@ sval* make_character_constant (char c) {
     return &CHARS[(int)c];
 };
 
+// PRIMITIVE
+sval* (*_primitive_func(sval *primitive))(sval*) { return primitives[primitive->body.primitive]; }
 // PAIR
 sval* _car(sval *pair) { return &HEAP[pair->body.list.car]; }
 sval* _cdr(sval *pair) { return &HEAP[pair->body.list.cdr]; }

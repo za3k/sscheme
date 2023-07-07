@@ -230,6 +230,16 @@ sval* setcdr(sexp *arg1, sexp *arg2) {
     return NIL;
 }
 
+int lookup_primitive(sval* (*primitive)(sval *args)) {
+    int i;
+    sval*(**p)(sval*);
+
+    for (i=0, p = primitives; p!=0; i++,p++) {
+        if (*p==primitive) return i;
+    }
+    return i;
+}
+
 sval* (*primitives[])(sval *args) = {
     prim_multiply,
     prim_lt,

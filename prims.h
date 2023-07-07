@@ -5,6 +5,7 @@
 // Primitive functions -- uniform signature
 extern sval* (*primitives[])(sval *args);
 extern char* primitive_names[];
+int lookup_primitive(sval* (*primitive)(sval *args));
 
 // Primitive functions -- core
 sval* add(sval *arg1, sval *arg2);

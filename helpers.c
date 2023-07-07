@@ -1,6 +1,8 @@
 #include "helpers.h"
-#include "prims.h"
+
 #include "constants.h"
+#include "prims.h"
+#include "types.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -71,14 +73,11 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         else if (arg == SET) size = snprintf(buffer, n, "set!");
         else size = snprintf(buffer, n, "<special form %lx>", (unsigned long) arg);
     } else if (isprimitive(arg)) {
-        int i;
-        for (i=0; primitives[i]!=0; i++) {
-            if (primitives[i]==arg->body.primitive) {
-                size = snprintf(buffer, n, "<primitive %s>", primitive_names[i]);
-                break;
-            }
+        if (_primitive_func(arg)) {
+            size = snprintf(buffer, n, "<primitive %s>", primitive_names[arg->body.primitive]);
+        } else {
+            size = snprintf(buffer, n, "<primitive #%d (invalid)>", arg->body.primitive);
         }
-        if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long) arg->body.primitive);
     } else if (iserror(arg)) size = snprintf(buffer, n, "<error: %s>", arg->body.symbol);
     else if (isenv(arg)) size = snprintf(buffer, n, "<env: 0x%lx>", (unsigned long) &arg);
     else if (isfunction(arg)) size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg);

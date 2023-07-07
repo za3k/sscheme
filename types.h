@@ -27,7 +27,7 @@ typedef struct sval {
     // Used by NUMBER
     int smallnum;
     // Used by PRIMITIVE
-    struct sval* (*primitive)(struct sval*);
+    short primitive;
     // Used by ERROR, STRING, and SYMBOL
     char *symbol;
     // CONSTANT, SPECIAL_FORM don't use any data at all.
@@ -65,5 +65,7 @@ sval* _macro_procedure(sval *macro);
 sval* _function_args(sval *function);
 sval* _function_body(sval *function);
 sval* _function_env(sval *function);
+// PRIMITIVE
+sval* (*_primitive_func(sval *primitive))(sval*);
 
 #endif // __TYPES
