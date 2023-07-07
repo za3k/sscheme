@@ -3,8 +3,6 @@
 #include "types.h"
 #include "helpers.h"
 
-sval OUT_OF_MEMORY_V = { ERROR, .body.symbol = ERR_OUT_OF_MEMORY };
-
 char *char_constant_names[] = {
     "#\\nul", "#\\soh", "#\\stx", "#\\etx", // 0-3
     "#\\eot", "#\\enq", "#\\ack", "#\\bel", // 4-7

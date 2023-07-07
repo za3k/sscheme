@@ -11,7 +11,6 @@ typedef struct sval sexp;
 typedef int heap_pointer;
 
 typedef struct sval {
-  enum stype { UNALLOCATED, CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   union {
     // Used by PAIR, ENV, FUNCTION, and MACRO
     // PAIR is (<car> . <cdr>)
@@ -32,6 +31,7 @@ typedef struct sval {
     char *symbol;
     // CONSTANT, SPECIAL_FORM don't use any data at all.
   } body;
+  enum stype { UNALLOCATED, CONSTANT, ENV, ERROR, FUNCTION, MACRO, NUMBER, PAIR, PRIMITIVE, SPECIAL_FORM, STRING, SYMBOL } tag;
   // Allocator and garbage collector. These are each one bit, conceputally.
   unsigned char in_use;
   unsigned char marked;
