@@ -23,13 +23,11 @@ typedef struct sval {
         struct sval *car;
         struct sval *cdr;
     } list;
-    // Used by ERROR
-    char *error;
     // Used by NUMBER
     int smallnum;
     // Used by PRIMITIVE
     struct sval* (*primitive)(struct sval*);
-    // Used by STRING and SYMBOL
+    // Used by ERROR, STRING, and SYMBOL
     char *symbol;
     // CONSTANT, SPECIAL_FORM don't use any data at all.
   } body;

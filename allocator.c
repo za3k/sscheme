@@ -58,10 +58,8 @@ sval* make_cell() {
 
 void free_cell(sval* cell) {
     if (cell==0) return;
-    if (issymbol(cell) || isstring(cell)) {
+    if (issymbol(cell) || isstring(cell) || iserror(cell)) {
         free(cell->body.symbol);
-    } else if (iserror(cell)) {
-        free(cell->body.error);
     }
     cell->tag = UNALLOCATED;
     _setcar(cell, 0);

@@ -22,7 +22,7 @@ sval* error(char *msg, ...) {
     va_end(va);
     sval *err = make_cell();
     err->tag = ERROR;
-    err->body.error = strdup(ERR_BUF);
+    err->body.symbol = strdup(ERR_BUF);
     return err;
 }
 

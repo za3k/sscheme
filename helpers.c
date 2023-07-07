@@ -79,7 +79,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             }
         }
         if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long) arg->body.primitive);
-    } else if (iserror(arg)) size = snprintf(buffer, n, "<error: %s>", arg->body.error);
+    } else if (iserror(arg)) size = snprintf(buffer, n, "<error: %s>", arg->body.symbol);
     else if (isenv(arg)) size = snprintf(buffer, n, "<env: 0x%lx>", (unsigned long) &arg);
     else if (isfunction(arg)) size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg);
     else if (ismacro(arg)) {

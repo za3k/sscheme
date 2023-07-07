@@ -15,7 +15,7 @@ sexp UNQUOTE_V = { SPECIAL_FORM };
 sexp UNQUOTE_SPLICING_V = { SPECIAL_FORM };
 sexp DEFINE_MACRO_V = { SPECIAL_FORM  };
 
-sval OUT_OF_MEMORY_V = { ERROR, .body.error = ERR_OUT_OF_MEMORY };
+sval OUT_OF_MEMORY_V = { ERROR, .body.symbol = ERR_OUT_OF_MEMORY };
 struct sval CHARS_V[128] = {
     {CONSTANT},
 };
