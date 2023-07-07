@@ -106,8 +106,8 @@ void gc_force(sval *root) {
             children[0] = value->body.env.frame;
             children[1] = value->body.env.parent;
         } else if (ispair(value)) {
-            children[0] = value->body.list.car;
-            children[1] = value->body.list.cdr;
+            children[0] = car(value);
+            children[1] = cdr(value);
         } else if (ismacro(value)) {
             children[0] = value->body.macro_procedure;
         } else if (isfunction(value)) {

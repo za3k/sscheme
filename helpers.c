@@ -112,8 +112,8 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         while (ispair(lst)) {
             if (first) first=0;
             else size += snprintf(buffer+size,n-size," ");
-            size += snprint1(buffer+size,n-size,lst->body.list.car);
-            lst = lst->body.list.cdr;
+            size += snprint1(buffer+size,n-size,car(lst));
+            lst = cdr(lst);
         }
         if (isempty(lst)) {} // We finished a normal-style list. Done. (); (1 2 3); (1)
         else { // This is a 'cons', not a list. (1 . 2); (1 2 3 . 4)
