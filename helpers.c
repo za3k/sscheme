@@ -8,18 +8,22 @@
 // TODO: Print quotes and quasiquotes better
 
 int ischar(sval *arg) { return arg >= CHARS_V && arg <= &CHARS_V[127]; }
+int isconstant(sval *arg) { return arg->tag == CONSTANT; }
 int iserror(sval *arg) { return arg->tag == ERROR; }
 int isempty(sval *arg) { return arg == EMPTY_LIST; }
 int isenv(sval *arg) { return arg->tag == ENV; }
 int isfalse(sval *arg) { return arg == FALSE; }
+int isform(sval *arg) { return arg->tag == SPECIAL_FORM; }
+int isfunction(sval *arg) { return arg->tag == FUNCTION; }
 int isnil(sval *arg) { return arg == NIL; }
 int ismacro(sval *arg) { return arg->tag == MACRO; }
 int isnumber(sval *arg) { return arg->tag == NUMBER; }
 int ispair(sval *arg) { return arg->tag == PAIR; }
-int isprocedure(sval *arg) { return arg->tag == FUNCTION || arg->tag == PRIMITIVE; }
+int isprimitive(sval *arg) { return arg->tag == PRIMITIVE; }
+int isprocedure(sval *arg) { return isfunction(arg) || isprimitive(arg); }
 int isstring(sval *arg) { return arg->tag == STRING; }
 int issymbol(sval *arg) { return arg->tag == SYMBOL; }
-int istrue(sval *arg) { return arg == TRUE; }
+int sametype(sval *arg1, sval *arg2) { return arg1->tag == arg2->tag; }
 
 sexp* reverse(sval *arg) {
     sval *ret = EMPTY_LIST;
@@ -35,34 +39,27 @@ int symboleq(sval *arg1, sval *arg2) {
 }
 
 int iseqv(sval *arg1, sval *arg2) {
-    if (arg1->tag != arg2->tag) return 0;
-    switch (arg1->tag) {
-        case ERROR: return 0; break;
-        case PRIMITIVE: return arg1->body.primitive == arg2->body.primitive;
-        case SYMBOL: return symboleq(arg1, arg2);
-        case NUMBER: return arg1->body.smallnum == arg2->body.smallnum; break;
-        case CONSTANT: return arg1==arg2;
-        case SPECIAL_FORM: return arg1==arg2;
-        case PAIR: return arg1==arg2;
-        case FUNCTION: return arg1==arg2;
-        default: return 0;
-    }
+    if (!sametype(arg1, arg2)) return 0;
+    if (iserror(arg1)) return 0;
+    else if (arg1==arg2) return 1;
+    else if (isprimitive(arg1)) return arg1->body.primitive == arg2->body.primitive;
+    else if (issymbol(arg1)) return symboleq(arg1, arg2);
+    else if (isnumber(arg1)) return arg1->body.smallnum == arg2->body.smallnum;
+    else return 0;
 }
 
 int snprint1(char* buffer, size_t n, sval *arg) {
     int size = 0;
-    if (arg->tag == NUMBER) {
-        size = snprintf(buffer, n, "%d", arg->body.smallnum);
-    } else if (arg->tag == SYMBOL) {
-        size = snprintf(buffer, n, ":%s", arg->body.symbol);
-    } else if (arg->tag == CONSTANT) {
+    if (isnumber(arg)) size = snprintf(buffer, n, "%d", arg->body.smallnum);
+    else if (issymbol(arg)) size = snprintf(buffer, n, ":%s", arg->body.symbol);
+    else if (isconstant(arg)) {
         if (arg == NIL) size = snprintf(buffer, n, "nil");
         else if (arg == EMPTY_LIST) size = snprintf(buffer, n, "()");
         else if (arg == FALSE) size = snprintf(buffer, n, "#f");
         else if (arg == TRUE) size = snprintf(buffer, n, "#t");
         else if (ischar(arg)) size = snprintf(buffer, n, "%s", char_constant_names[arg-CHARS_V]);
         else size = snprintf(buffer, n, "<Unknown constant>");
-    } else if (arg->tag == SPECIAL_FORM) {
+    } else if (isform(arg)) {
         if (arg == QUOTE) size = snprintf(buffer, n, "quote");
         else if (arg == COND) size = snprintf(buffer, n, "cond");
         else if (arg == LAMBDA) size = snprintf(buffer, n, "lambda");
@@ -73,7 +70,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
         else if (arg == UNQUOTE_SPLICING) size = snprintf(buffer, n, "unquote-splicing");
         else if (arg == SET) size = snprintf(buffer, n, "set!");
         else size = snprintf(buffer, n, "<special form %lx>", (unsigned long) arg);
-    } else if (arg->tag == PRIMITIVE) {
+    } else if (isprimitive(arg)) {
         int i;
         for (i=0; primitives[i]!=0; i++) {
             if (primitives[i]==arg->body.primitive) {
@@ -82,17 +79,14 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             }
         }
         if (primitives[i]==0) size = snprintf(buffer, n, "<builtin %lx>", (unsigned long) arg->body.primitive);
-    } else if (arg->tag == ERROR) {
-        size = snprintf(buffer, n, "<error: %s>", arg->body.error);
-    } else if (arg->tag == ENV) {
-        size = snprintf(buffer, n, "<env: 0x%lx>", (unsigned long) &arg->body.env);
-    } else if (arg->tag == FUNCTION) {
-        size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg->body);
-    } else if (arg->tag == MACRO) {
+    } else if (iserror(arg)) size = snprintf(buffer, n, "<error: %s>", arg->body.error);
+    else if (isenv(arg)) size = snprintf(buffer, n, "<env: 0x%lx>", (unsigned long) &arg->body.env);
+    else if (isfunction(arg)) size = snprintf(buffer, n, "<function 0x%lx>", (unsigned long) &arg->body);
+    else if (ismacro(arg)) {
         size = snprintf(buffer, n, "<macro ");
         size += snprint1(buffer+size, n-size, arg->body.macro_procedure);
         size += snprintf(buffer+size, n-size, ">");
-    } else if (arg->tag == STRING) {
+    } else if (isstring(arg)) {
         char *s = arg->body.symbol;
         char c;
         int size=snprintf(buffer, n, "\"");
@@ -111,7 +105,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             }
         }
         size+=snprintf(buffer+size, n-size, "\"");
-    } else if (arg->tag == PAIR) {
+    } else if (ispair(arg)) {
         size = snprintf(buffer, n, "(");
         sval *lst = arg;
         int first=1;
@@ -127,9 +121,7 @@ int snprint1(char* buffer, size_t n, sval *arg) {
             size += snprint1(buffer+size,n-size,lst);
         }
         size += snprintf(buffer+size,n-size,")");
-    } else {
-        size = snprintf(buffer, n, "<Unknown value>");
-    }
+    } else size = snprintf(buffer, n, "<Unknown value>");
     return size;
 }
 

@@ -5,12 +5,15 @@
 #define __HELPERS
 
 int ischar(sval *arg);
+int isconstant(sval *arg);
 int iserror(sval *arg);
 int isempty(sval *arg);
 int isnil(sval *arg);
 int isfalse(sval *arg);
-int istrue(sval *arg);
+int isform(sval *arg);
+int isfunction(sval *arg);
 int ispair(sval *arg);
+int isprimitive(sval *arg);
 int isprocedure(sval *arg);
 int ismacro(sval *arg);
 int isnumber(sval *arg);

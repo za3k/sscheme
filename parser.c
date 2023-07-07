@@ -284,7 +284,7 @@ sexp* parse_pair_right(char **s, int atleastone) {
         if (!atleastone) return error(ERR_UNEXPECTED_DOT);
         sexp *last = parse_sexp(s);
         if (!last) return error(ERR_UNEXPECTED_DOT);
-        if (last->tag == ERROR) return last;
+        if (iserror(last)) return last;
         sexp *rest = parse_pair_right(s, 1);
         if (isempty(rest)) {
             return last;
@@ -303,28 +303,28 @@ sexp* parse_quote(char **s) {
     (*s)++;
     sexp *rest = parse_sexp(s);
     if (!rest) return error(ERR_QUOTE_UNTERMINATED);
-    else if (rest->tag==ERROR) return rest;
+    else if (iserror(rest)) return rest;
     else return make_cons(QUOTE, make_cons(rest, EMPTY_LIST));
 }
 sexp* parse_quasiquote(char **s) {
     (*s)++;
     sexp *rest = parse_sexp(s);
     if (!rest) return error(ERR_QUASIQUOTE_UNTERMINATED);
-    else if (rest->tag==ERROR) return rest;
+    else if (iserror(rest)) return rest;
     else return make_cons(QUASIQUOTE, make_cons(rest, EMPTY_LIST));
 }
 sexp* parse_unquote(char **s) {
     (*s)++;
     sexp *rest = parse_sexp(s);
     if (!rest) return error(ERR_UNQUOTE_UNTERMINATED);
-    else if (rest->tag==ERROR) return rest;
+    else if (iserror(rest)) return rest;
     else return make_cons(UNQUOTE, make_cons(rest, EMPTY_LIST));
 }
 sexp* parse_unquote_splicing(char **s) {
     (*s)+=2;
     sexp *rest = parse_sexp(s);
     if (!rest) return error(ERR_UNQUOTE_UNTERMINATED);
-    else if (rest->tag==ERROR) return rest;
+    else if (iserror(rest)) return rest;
     else return make_cons(UNQUOTE_SPLICING, make_cons(rest, EMPTY_LIST));
 }
 
@@ -369,10 +369,10 @@ sexp* parse_sexp(char **s) {
 sexp* parse(char *s) {
     sexp *first = parse_sexp(&s);
     if (!first) return EMPTY_LIST;
-    else if (first->tag == ERROR) return first;
+    else if (iserror(first)) return first;
     else {
         sexp *rest = parse(s);
-        if (rest->tag == ERROR) return rest;
+        if (iserror(rest)) return rest;
         else return cons(first, rest);
     }
 }

@@ -41,9 +41,8 @@ int run_test(char* input, char* expected_output) {
 
     snprint1(output, sizeof(output), result);
     int success = strcmp(output,expected_output)==0 ||
-      (strcmp("proc", expected_output)==0 && result->tag == FUNCTION) ||
-      (strcmp("proc", expected_output)==0 && result->tag == PRIMITIVE) ||
-      (strcmp("err", expected_output)==0 && result->tag == ERROR);
+      (strcmp("proc", expected_output)==0 && isprocedure(result)) ||
+      (strcmp("err", expected_output)==0 && iserror(result));
     if (success) {
         //printf("pass\n");
     } else {

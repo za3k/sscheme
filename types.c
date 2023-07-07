@@ -4,6 +4,7 @@
 #include "config.h"
 #include "constants.h"
 #include "errors.h"
+#include "helpers.h"
 #include "prims.h"
 #include "stdarg.h"
 
@@ -26,10 +27,10 @@ sval* error(char *msg, ...) {
 }
 
 sval* make_cons(sval *car, sval *cdr) {
-    if (car->tag == ERROR) return car;
-    if (cdr->tag == ERROR) return cdr;
+    if (iserror(car)) return car;
+    if (iserror(cdr)) return cdr;
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = PAIR;
     v->body.list.car = car;
     v->body.list.cdr = cdr;
@@ -39,11 +40,11 @@ sval* make_cons(sval *car, sval *cdr) {
 sval* make_env(sval* env) {
     // Caller is expected to mutate to set frame
     if (env) {
-        if (env->tag == ERROR) return env;
-        if (env->tag != ENV) return error(ERR_WRONG_TYPE);
+        if (iserror(env)) return env;
+        if (!isenv(env)) return error(ERR_WRONG_TYPE);
     }
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = ENV;
     v->body.env.parent = env;
     v->body.env.frame = EMPTY_LIST;
@@ -52,7 +53,7 @@ sval* make_env(sval* env) {
 
 sval* make_int(int i) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = NUMBER;
     v->body.smallnum = i;
     return v;
@@ -60,14 +61,14 @@ sval* make_int(int i) {
 
 sval* make_symbol(char* name) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = SYMBOL;
     v->body.symbol = strdup(name);
     return v;
 }
 sval* make_string(char* str) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = STRING;
     v->body.symbol = strdup(str);
     return v;
@@ -75,7 +76,7 @@ sval* make_string(char* str) {
 
 sval* make_prim(sval* (*primitive)(sval*)) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = PRIMITIVE;
     v->body.primitive = primitive;
     return v;
@@ -83,9 +84,9 @@ sval* make_prim(sval* (*primitive)(sval*)) {
 
 sexp* make_function(sexp *parameters, sexp *body, sval *env) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
-    if (env->tag == ERROR) return env;
-    if (env->tag != ENV) return 0;
+    if (iserror(v)) return v;
+    if (iserror(env)) return env;
+    if (!isenv(env)) return 0;
 
     v->tag = FUNCTION;
     v->body.closure.parameters = parameters;
@@ -96,7 +97,7 @@ sexp* make_function(sexp *parameters, sexp *body, sval *env) {
 
 sexp* make_macro(sexp *function) {
     sval *v = make_cell();
-    if (v->tag == ERROR) return v;
+    if (iserror(v)) return v;
     v->tag = MACRO;
     v->body.macro_procedure = function;
     return v;

@@ -1,10 +1,11 @@
 #include "allocator.h"
 
-#include "types.h"
 #include "config.h"
-#include "prims.h"
-#include "errors.h"
 #include "constants.h"
+#include "errors.h"
+#include "helpers.h"
+#include "prims.h"
+#include "types.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +23,7 @@ sval* STACK = 0;
 void free_cell(sval* cell);
 
 // ----------- Heap allocation ----------
+inline int isallocated(sval* v) { return v->tag != UNALLOCATED; }
 sval* make_cell() {
     if (--cells_free <= 0) {
         if (cells_free < 0) {
@@ -47,9 +49,9 @@ sval* make_cell() {
 
 void free_cell(sval* cell) {
     if (cell==0) return;
-    if (cell->tag == SYMBOL || cell->tag == STRING) {
+    if (issymbol(cell) || isstring(cell)) {
         free(cell->body.symbol);
-    } else if (cell->tag == ERROR) {
+    } else if (iserror(cell)) {
         free(cell->body.error);
     }
     cell->tag = UNALLOCATED;
@@ -100,15 +102,15 @@ void gc_force(sval *root) {
         value->in_use = 1;
         sval *children[3] = {0, 0, 0};
 
-        if (value->tag == ENV) {
+        if (isenv(value)) {
             children[0] = value->body.env.frame;
             children[1] = value->body.env.parent;
-        } else if (value->tag == PAIR) {
+        } else if (ispair(value)) {
             children[0] = value->body.list.car;
             children[1] = value->body.list.cdr;
-        } else if (value->tag == MACRO) {
+        } else if (ismacro(value)) {
             children[0] = value->body.macro_procedure;
-        } else if (value->tag == FUNCTION) {
+        } else if (isfunction(value)) {
             children[0] = value->body.closure.parameters;
             children[1] = value->body.closure.body;
             children[2] = value->body.closure.env;
@@ -117,7 +119,7 @@ void gc_force(sval *root) {
         for (int i=0; i<3; i++) {
             if (children[i]) {
                 sval *child = children[i];
-                if (inheap(child) && child->tag == UNALLOCATED) printf("Mark phase encountered an unallocated child, this is an error.\n");
+                if (inheap(child) && !isallocated(child)) printf("Mark phase encountered an unallocated child, this is an error.\n");
                 if (child->marked) continue; // Already on the list
                 child->marked = 1;
                 candidates[finger_high++] = child;
@@ -129,7 +131,7 @@ void gc_force(sval *root) {
 
     // "Sweep" phase
     for (int i=0; i<MAX_CELLS; i++) {
-        if (HEAP[i].tag != UNALLOCATED && !HEAP[i].in_use) {
+        if (isallocated(&HEAP[i]) && !HEAP[i].in_use) {
             free_cell(&HEAP[i]);
         }
     }

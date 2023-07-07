@@ -254,16 +254,16 @@ enum gotos _eval1(enum gotos resume) {
     RESUME(eval1_define);
     expression = pop();
     env = pop();
-    if (expression->tag == NUMBER) IMM(expression);
-    else if (expression->tag == SYMBOL) IMM(cdr(lookup(expression, env)));
-    else if (expression->tag == CONSTANT) IMM(expression);
-    else if (expression->tag == STRING) IMM(expression);
-    else if (expression->tag == SPECIAL_FORM) IMM(expression);
-    else if (expression->tag == FUNCTION) ERROR(error(ERR_EVAL_CLOSURE));
-    else if (expression->tag == PRIMITIVE) ERROR(error(ERR_EVAL_PRIMITIVE));
-    else if (expression->tag == MACRO) ERROR(error(ERR_EVAL_MACRO));
-    else if (expression->tag == ERROR) ERROR(expression);
-    else if (expression->tag == PAIR) { // An application
+    if (isnumber(expression)) IMM(expression);
+    else if (issymbol(expression)) IMM(cdr(lookup(expression, env)));
+    else if (isconstant(expression)) IMM(expression);
+    else if (isstring(expression)) IMM(expression);
+    else if (isform(expression)) IMM(expression);
+    else if (isfunction(expression)) ERROR(error(ERR_EVAL_CLOSURE));
+    else if (isprimitive(expression)) ERROR(error(ERR_EVAL_PRIMITIVE));
+    else if (ismacro(expression)) ERROR(error(ERR_EVAL_MACRO));
+    else if (iserror(expression)) ERROR(expression);
+    else if (ispair(expression)) { // An application
         sval *proc;
 
         SAVE(expression);
@@ -330,9 +330,9 @@ enum gotos _eval1(enum gotos resume) {
             RESTORE(rest);
 
             IMM(set(env, car(rest), value));
-        } else if (proc->tag == SPECIAL_FORM && (proc == UNQUOTE || proc == UNQUOTE_SPLICING)) {
+        } else if (proc == UNQUOTE || proc == UNQUOTE_SPLICING) {
             ERROR(error(ERR_UNQUOTE_NOWHERE));
-        } else if (proc->tag == PRIMITIVE || proc->tag == FUNCTION) {
+        } else if (isprocedure(proc)) {
             sval *args;
 
             SAVE(proc);
@@ -341,7 +341,7 @@ enum gotos _eval1(enum gotos resume) {
             RESTORE(proc);
 
             TAILCALL(apply, proc, args);
-        } else if (proc->tag == MACRO) {
+        } else if (ismacro(proc)) {
             sval *ret;
 
             SAVE(env);
@@ -350,7 +350,7 @@ enum gotos _eval1(enum gotos resume) {
             RESTORE(env);
 
             TAILCALL(eval1, ret, env);
-        } else if (proc->tag == ERROR) ERROR(proc);
+        } else if (iserror(proc)) ERROR(proc);
         else ERROR(error(ERR_APPLY_NON_FUNCTION));
     } else ERROR(error(ERR_EVAL_UNKNOWN));
 }
@@ -361,7 +361,7 @@ enum gotos _apply(enum gotos resume) {
     if (iserror(proc)) ERROR(proc);
     else if (iserror(args)) ERROR(args);
 
-    if (proc->tag == PRIMITIVE) IMM(proc->body.primitive(args));
+    if (isprimitive(proc)) IMM(proc->body.primitive(args));
     else TAILCALL(
         evalall,
         proc->body.closure.body,
